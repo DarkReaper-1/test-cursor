@@ -1,0 +1,10 @@
+# Place Square APK files here
+#
+# Obtain with:
+#   ./scripts/download_apk.sh
+#   ./scripts/download_apk.sh --from /path/to/com.squareup.apk
+#
+# Expected files:
+#   com.squareup.apk          — Square Point of Sale
+#   com.squareup.team.apk     — Square Team (optional)
+#   com.squareup.dashboard.apk — Square Dashboard (optional)
