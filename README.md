@@ -1,10 +1,19 @@
-# Square App Reverse Engineering
+# test-cursor
+
+This repository contains two independent projects:
+
+1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
+2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+
+---
+
+## Square App Reverse Engineering
 
 Educational security research toolkit for statically and dynamically analyzing Square Android applications (Point of Sale, Team, Dashboard).
 
 > **Disclaimer:** Reverse engineering is for authorized security research, education, and interoperability analysis only. Only analyze apps you have legal permission to test. Do not use findings to commit fraud, bypass payment security, or steal cardholder data.
 
-## Quick Start
+### Quick Start
 
 ```bash
 # 1. Install toolchain (jadx, apktool, frida, adb)
@@ -24,7 +33,7 @@ cat output/com.squareup/ANALYSIS.md
 cat output/com.squareup/scan-report.txt
 ```
 
-## Project Structure
+### Project Structure
 
 ```
 ├── apks/                  # Place APK files here (gitignored)
@@ -40,7 +49,7 @@ cat output/com.squareup/scan-report.txt
     └── analyze.sh         # End-to-end pipeline
 ```
 
-## Target Applications
+### Target Applications
 
 | App | Package | Purpose |
 |-----|---------|---------|
@@ -48,7 +57,7 @@ cat output/com.squareup/scan-report.txt
 | Square Team | `com.squareup.team` | Team management |
 | Square Dashboard | `com.squareup.dashboard` | Business analytics |
 
-## Analysis Workflow
+### Analysis Workflow
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
@@ -56,13 +65,6 @@ cat output/com.squareup/scan-report.txt
 │  (adb/copy) │    │ jadx+apktool │    │ secrets/API │    │ Frida + mitm │
 └─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘
 ```
-
-### Static Analysis
-
-1. **AndroidManifest.xml** — permissions, exported activities, deep links
-2. **Java source (jadx)** — business logic, API clients, security checks
-3. **Smali (apktool)** — patch root/SSL checks for repackaging
-4. **strings.xml / assets** — endpoints, feature flags, embedded config
 
 ### Dynamic Analysis
 
@@ -77,34 +79,39 @@ frida -U -f com.squareup \
 frida -U com.squareup -l frida/trace_pos_intents.js
 ```
 
-## Square POS API (Public Surface)
+See [docs/methodology.md](docs/methodology.md) and [docs/intent-api.md](docs/intent-api.md) for full documentation.
 
-Square exposes a documented intent-based API for third-party apps to initiate transactions. Authentication uses **package name + SHA-1 fingerprint** registered in the [Square Developer Console](https://developer.squareup.com/apps).
+---
 
-Key intent action: `com.squareup.pos.action.CHARGE`
+## Spider-Man Web Swing
 
-See [docs/intent-api.md](docs/intent-api.md) for the full contract.
+A basic browser-based Spider-Man web-swinging game built with HTML5 Canvas.
 
-## Known Research
+### Play
 
-| Source | Finding |
-|--------|---------|
-| [Black Hat US 2015 — Mobile Point of Scam](https://blackhat.com/docs/us-15/materials/us-15-Mellen-Mobile-Point-Of-Scam-Attacking-The-Square-Reader-wp.pdf) | Square Reader hardware encryption bypass, audio WAV card data channel |
-| [Warwick mPoS paper](https://mahshidmehr.github.io/files/mPoS.pdf) | General mPoS reverse engineering methodology (SumUp case study) |
-| [Square Developer Docs](https://developer.squareup.com/docs/pos-api/build-on-android) | Official POS SDK and intent API reference |
+Open `index.html` in a browser, or run a local server:
 
-## Tools
+```bash
+python3 -m http.server 8080
+```
 
-| Tool | Purpose |
-|------|---------|
-| [JADX](https://github.com/skylot/jadx) | DEX → Java decompilation |
-| [Apktool](https://ibotpeaches.github.io/Apktool/) | Resource decode + smali |
-| [Frida](https://frida.re/) | Runtime instrumentation |
-| [Objection](https://github.com/sensepost/objection) | Mobile exploration shell |
-| [mitmproxy](https://mitmproxy.org/) | HTTPS traffic interception |
+Then visit http://localhost:8080
 
-## References
+### Controls
 
-- [OWASP MASTG](https://mobile-security.gitbook.io/mobile-security-testing-guide/) — Mobile App Security Testing Guide
-- [Square POS API — Android](https://developer.squareup.com/docs/pos-api/build-on-android)
-- [Square Connect API](https://developer.squareup.com/docs/build-basics)
+| Input | Action |
+|-------|--------|
+| **A / D** or **← / →** | Move left / right |
+| **Space** | Jump (also wall-jump when on a building side) |
+| **Click** | Shoot web at a building and start swinging |
+| **Release click** | Let go of the web |
+
+### Features
+
+- Procedural city skyline with lit windows
+- Web-swing physics (pendulum-style rope constraint)
+- Wall climbing and rooftop landing
+- Side-scrolling camera that follows Spider-Man
+- Auto-respawn if you fall off the map
+
+Swing from building to building and see how far you can go!
