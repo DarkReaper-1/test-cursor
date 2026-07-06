@@ -1,0 +1,92 @@
+# Square app reverse engineering targets
+# Package names and metadata from public Square documentation
+
+apps:
+  square_pos:
+    name: "Square Point of Sale"
+    package: "com.squareup"
+    play_store_id: "com.squareup"
+    description: "Primary Square POS / Register application for Android"
+    min_pos_api_version: "v2.0"
+    pos_sdk_version: "2.0"
+
+  square_team:
+    name: "Square Team"
+    package: "com.squareup.team"
+    play_store_id: "com.squareup.team"
+    description: "Square Team management app"
+
+  square_dashboard:
+    name: "Square Dashboard"
+    package: "com.squareup.dashboard"
+    play_store_id: "com.squareup.dashboard"
+    description: "Square business dashboard mobile app"
+
+# Intent actions documented in Square POS API
+intent_actions:
+  charge: "com.squareup.pos.action.CHARGE"
+  refund: "com.squareup.pos.action.REFUND"
+  open: "com.squareup.pos.action.OPEN"
+
+# Intent extra keys (from Square POS API v2.0)
+intent_extras:
+  - "com.squareup.pos.WEB_CALLBACK_URI"
+  - "com.squareup.pos.CLIENT_ID"
+  - "com.squareup.pos.API_VERSION"
+  - "com.squareup.pos.TOTAL_AMOUNT"
+  - "com.squareup.pos.CURRENCY_CODE"
+  - "com.squareup.pos.TENDER_TYPES"
+  - "com.squareup.pos.NOTE"
+  - "com.squareup.pos.CUSTOMER_ID"
+  - "com.squareup.pos.SKIP_RECEIPT"
+  - "com.squareup.pos.AUTO_RETURN"
+
+tender_types:
+  - "com.squareup.pos.TENDER_CARD"
+  - "com.squareup.pos.TENDER_CASH"
+  - "com.squareup.pos.TENDER_OTHER"
+
+# Common security patterns to hunt during static analysis
+security_patterns:
+  ssl_pinning:
+    - "CertificatePinner"
+    - "TrustManager"
+    - "X509TrustManager"
+    - "OkHostnameVerifier"
+    - "network_security_config"
+  root_detection:
+    - "isDeviceRooted"
+    - "/system/bin/su"
+    - "RootBeer"
+    - "SafetyNet"
+    - "PlayIntegrity"
+  obfuscation:
+    - "ProGuard"
+    - "R8"
+    - "DexGuard"
+  encryption:
+    - "sqlcipher"
+    - "SQLCipher"
+    - "EncryptedSharedPreferences"
+    - "AndroidKeystore"
+  payment:
+    - "cardreader"
+    - "magstripe"
+    - "emv"
+    - "nfc"
+    - "tap_to_pay"
+
+# Secret / credential patterns for grep scans
+secret_patterns:
+  - pattern: 'sq0[a-z]{3}-[A-Za-z0-9_-]{20,}'
+    name: "Square OAuth token"
+  - pattern: 'AIza[0-9A-Za-z_-]{35}'
+    name: "Google API key"
+  - pattern: 'sk_live_[0-9a-zA-Z]{24,}'
+    name: "Stripe live key (cross-ref)"
+  - pattern: '-----BEGIN (RSA |EC )?PRIVATE KEY-----'
+    name: "Embedded private key"
+  - pattern: 'firebaseio\.com'
+    name: "Firebase Realtime DB URL"
+  - pattern: 'https://connect\.squareup\.com'
+    name: "Square Connect API endpoint"

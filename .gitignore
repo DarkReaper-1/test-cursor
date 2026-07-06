@@ -1,0 +1,27 @@
+# Square APK artifacts (obtained via download_apk.sh)
+*.apk
+*.aab
+
+# Decompiled output
+output/
+
+# Toolchain (installed by setup.sh)
+.tools/
+.env.tools
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets found during analysis — never commit
+**/credentials*
+**/secrets*
+*.pem
+*.key
