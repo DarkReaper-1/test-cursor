@@ -52,7 +52,8 @@ cat output/com.squareup/scan-report.txt
     ├── scan_secrets.sh    # Static security scan
     ├── analyze.sh         # End-to-end pipeline
     ├── test.sh            # Verification + demo video
-    ├── record_demo.sh     # Record demo walkthrough
+    ├── record_tutorial.sh # Generate step-by-step tutorial video
+    ├── record_demo.sh     # Record live terminal demo
     └── generate_demo_video.py
 ```
 
@@ -87,6 +88,17 @@ frida -U com.squareup -l frida/trace_pos_intents.js
 ```
 
 See [docs/methodology.md](docs/methodology.md), [docs/intent-api.md](docs/intent-api.md), and [docs/test-results.md](docs/test-results.md) for full documentation.
+
+### Tutorial Video
+
+Generate a step-by-step walkthrough video:
+
+```bash
+./scripts/record_tutorial.sh
+# → /opt/cursor/artifacts/videos/square-re-tutorial.mp4
+```
+
+The tutorial covers setup, APK download, analysis, reviewing findings, and Frida dynamic analysis.
 
 ### Verified Test Results
 
