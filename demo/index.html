@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spider Swing 3D — iOS Preview</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="device-frame">
+    <div id="screen">
+      <div id="launch-screen">
+        <h1>SPIDER SWING 3D</h1>
+        <p>Swing through the city</p>
+      </div>
+      <canvas id="game-canvas"></canvas>
+      <div id="hud">
+        <div id="hud-top">
+          <h2>SPIDER SWING 3D</h2>
+          <p id="status">Ready to swing</p>
+          <div class="stats">
+            <span id="swings">Swings: 0</span>
+            <span id="speed">0.0 m/s</span>
+          </div>
+        </div>
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
+        <button id="jump-btn">↑</button>
+        <p id="web-hint">Hold right side → shoot web</p>
+        <div id="crosshair"></div>
+      </div>
+    </div>
+  </div>
+  <script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
