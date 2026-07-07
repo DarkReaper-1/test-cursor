@@ -53,6 +53,7 @@ cat output/com.squareup/scan-report.txt
     ├── analyze.sh         # End-to-end pipeline
     ├── test.sh            # Verification + demo video
     ├── record_tutorial.sh # Generate step-by-step tutorial video
+    ├── record_ui_video.sh # Generate actual app UI walkthrough video
     ├── record_demo.sh     # Record live terminal demo
     └── generate_demo_video.py
 ```
@@ -99,6 +100,17 @@ Generate a step-by-step walkthrough video:
 ```
 
 The tutorial covers setup, APK download, analysis, reviewing findings, and Frida dynamic analysis.
+
+### Actual App UI Video
+
+See what the real Square POS app looks like (official Play Store screenshots):
+
+```bash
+./scripts/record_ui_video.sh
+# → /opt/cursor/artifacts/videos/square-app-ui.mp4
+```
+
+Shows 14 screens: register, checkout, payments, inventory, reports, appointments, and more.
 
 ### Verified Test Results
 
