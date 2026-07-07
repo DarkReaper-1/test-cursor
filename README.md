@@ -22,15 +22,19 @@ chmod +x scripts/*.sh
 source .env.tools
 
 # 2. Obtain the Square POS APK
+./scripts/download_apk.sh --apkeep          # download from APKPure
 ./scripts/download_apk.sh                    # from USB device
 ./scripts/download_apk.sh --from /path/to.apk  # manual copy
 
-# 3. Run full analysis pipeline
-./scripts/analyze.sh apks/com.squareup.apk
+# 3. Run full analysis pipeline (--fast recommended for large APKs)
+./scripts/analyze.sh apks/com.squareup.apk --fast
 
 # 4. Review results
 cat output/com.squareup/ANALYSIS.md
 cat output/com.squareup/scan-report.txt
+
+# 5. Run full test suite + generate demo video
+./scripts/test.sh
 ```
 
 ### Project Structure
@@ -46,7 +50,10 @@ cat output/com.squareup/scan-report.txt
     ├── download_apk.sh    # Pull APK from device
     ├── decompile.sh       # apktool + jadx decompilation
     ├── scan_secrets.sh    # Static security scan
-    └── analyze.sh         # End-to-end pipeline
+    ├── analyze.sh         # End-to-end pipeline
+    ├── test.sh            # Verification + demo video
+    ├── record_demo.sh     # Record demo walkthrough
+    └── generate_demo_video.py
 ```
 
 ### Target Applications
@@ -79,7 +86,11 @@ frida -U -f com.squareup \
 frida -U com.squareup -l frida/trace_pos_intents.js
 ```
 
-See [docs/methodology.md](docs/methodology.md) and [docs/intent-api.md](docs/intent-api.md) for full documentation.
+See [docs/methodology.md](docs/methodology.md), [docs/intent-api.md](docs/intent-api.md), and [docs/test-results.md](docs/test-results.md) for full documentation.
+
+### Verified Test Results
+
+Tested against **Square Point of Sale v7.13.2** (`com.squareup`). See [docs/test-results.md](docs/test-results.md) for full findings including POS intent API, SSL pinning, Play Integrity, and embedded SDK keys.
 
 ---
 

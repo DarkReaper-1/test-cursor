@@ -65,7 +65,7 @@ scan_dir() {
   echo ""
   echo "--- SSL / cert pinning ---"
   rg -n --no-heading -i \
-    'CertificatePinner|TrustManager|networkSecurityConfig|sslPinning|pin-sha256' \
+    'CertificatePinner|ReleaseCertificatePinner|TrustManager|networkSecurityConfig|sslPinning|pin-sha256|certificatepinning' \
     "$dir" 2>/dev/null | head -30 || echo "(none found)"
 
   echo ""

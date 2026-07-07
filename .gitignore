@@ -1,6 +1,8 @@
 # Square APK artifacts (obtained via download_apk.sh)
 *.apk
 *.aab
+*.xapk
+apks/xapk_extract/
 
 # Decompiled output
 output/

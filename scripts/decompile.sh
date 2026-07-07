@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Decompile a Square APK using apktool (smali/resources) and jadx (Java)
+# Decompile a Square APK using apktool (smali/resources) and optionally jadx (Java)
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -8,22 +8,40 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 usage() {
   cat <<EOF
-Usage: $(basename "$0") <apk-path> [output-dir]
+Usage: $(basename "$0") <apk-path> [output-dir] [options]
 
 Decompiles an APK into:
   <output>/apktool/   — decoded resources + smali
-  <output>/jadx/      — Java source (best effort)
+  <output>/jadx/      — Java source (best effort, optional)
   <output>/raw/       — unzipped APK contents
 
+Options:
+  --skip-jadx   Skip jadx (recommended for large APKs like com.squareup)
+
 Example:
-  $(basename "$0") apks/com.squareup.apk output/com.squareup
+  $(basename "$0") apks/com.squareup.apk output/com.squareup --skip-jadx
 EOF
 }
 
-APK="${1:-}"
-OUT="${2:-}"
+APK=""
+OUT=""
+SKIP_JADX=0
 
-if [[ -z "$APK" || "$APK" == "-h" || "$APK" == "--help" ]]; then
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage; exit 0 ;;
+    --skip-jadx) SKIP_JADX=1; shift ;;
+    *)
+      if [[ -z "$APK" ]]; then APK="$1"
+      elif [[ -z "$OUT" ]]; then OUT="$1"
+      else echo "Unknown argument: $1" >&2; exit 1
+      fi
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$APK" ]]; then
   usage
   exit 0
 fi
@@ -47,13 +65,11 @@ mkdir -p "$OUT"
 echo "[decompile] APK: $APK"
 echo "[decompile] Output: $OUT"
 
-# Raw extraction
 echo "[decompile] Extracting raw ZIP contents..."
 rm -rf "$RAW_OUT"
 mkdir -p "$RAW_OUT"
 unzip -q "$APK" -d "$RAW_OUT"
 
-# apktool
 echo "[decompile] Running apktool..."
 rm -rf "$APKTOOL_OUT"
 if command -v apktool >/dev/null 2>&1; then
@@ -62,13 +78,15 @@ else
   "$ROOT_DIR/.tools/bin/apktool" d -f -o "$APKTOOL_OUT" "$APK"
 fi
 
-# jadx
-echo "[decompile] Running jadx..."
-rm -rf "$JADX_OUT"
-JADX_BIN="$(command -v jadx || echo "$ROOT_DIR/.tools/jadx/bin/jadx")"
-"$JADX_BIN" --deobf --show-bad-code -d "$JADX_OUT" "$APK"
+if [[ "$SKIP_JADX" -eq 0 ]]; then
+  echo "[decompile] Running jadx (this may take a while on large APKs)..."
+  rm -rf "$JADX_OUT"
+  JADX_BIN="$(command -v jadx || echo "$ROOT_DIR/.tools/jadx/bin/jadx")"
+  "$JADX_BIN" --deobf --show-bad-code -d "$JADX_OUT" "$APK"
+else
+  echo "[decompile] Skipping jadx (--skip-jadx)"
+fi
 
-# Quick metadata
 MANIFEST="$APKTOOL_OUT/AndroidManifest.xml"
 if [[ -f "$MANIFEST" ]]; then
   cp "$MANIFEST" "$OUT/AndroidManifest.xml"
@@ -78,14 +96,14 @@ if command -v aapt >/dev/null 2>&1; then
   aapt dump badging "$APK" > "$OUT/badging.txt" 2>/dev/null || true
 fi
 
-# Checksums for reproducibility
 {
   echo "sha256: $(sha256sum "$APK" | awk '{print $1}')"
   echo "decompiled_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "apk_size_bytes: $(stat -c%s "$APK" 2>/dev/null || stat -f%z "$APK")"
+  echo "jadx_skipped: $SKIP_JADX"
 } > "$OUT/metadata.txt"
 
 echo "[decompile] Done."
 echo "  Manifest: $OUT/AndroidManifest.xml"
-echo "  Java:     $JADX_OUT"
+[[ "$SKIP_JADX" -eq 0 ]] && echo "  Java:     $JADX_OUT"
 echo "  Smali:    $APKTOOL_OUT"
