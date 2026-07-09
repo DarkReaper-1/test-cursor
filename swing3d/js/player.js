@@ -82,93 +82,187 @@ const POSES = {
 function buildHero() {
   const root = new THREE.Group();
 
-  const red = new THREE.MeshStandardMaterial({ color: 0xd11f2a, roughness: 0.45, metalness: 0.15 });
-  const blue = new THREE.MeshStandardMaterial({ color: 0x1f47c4, roughness: 0.5, metalness: 0.2 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x141821, roughness: 0.6 });
-  const eye = new THREE.MeshStandardMaterial({ color: 0xf4f8ff, emissive: 0xbcd4ff, emissiveIntensity: 0.6, roughness: 0.3 });
+  // Suit materials. Slight metalness + low roughness reads as a sleek tech-suit
+  // under the directional sun; navy panels break up the red for depth.
+  const red = new THREE.MeshStandardMaterial({ color: 0xc41e2f, roughness: 0.38, metalness: 0.12 });
+  const blue = new THREE.MeshStandardMaterial({ color: 0x1d3fb8, roughness: 0.42, metalness: 0.18 });
+  const navy = new THREE.MeshStandardMaterial({ color: 0x122457, roughness: 0.5, metalness: 0.15 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x10131c, roughness: 0.6, metalness: 0.1 });
+  const silver = new THREE.MeshStandardMaterial({ color: 0x9aa4b5, roughness: 0.3, metalness: 0.85 });
+  const eye = new THREE.MeshStandardMaterial({ color: 0xf4f8ff, emissive: 0xbcd4ff, emissiveIntensity: 0.7, roughness: 0.25 });
 
-  // Pelvis/torso pivot sits at ~1.7m; the group's own origin is at the feet.
+  /** Convenience: make a mesh, enable shadows, add to parent, return it. */
+  function part(geo, mat, parent, x = 0, y = 0, z = 0) {
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = true;
+    m.position.set(x, y, z);
+    parent.add(m);
+    return m;
+  }
+
+  // The rig origin is at the feet; the torso pivot sits at chest height.
   const rig = new THREE.Group();
   rig.position.y = 0;
   root.add(rig);
 
-  // Torso
+  /* ---- Pelvis & belt (attached to the rig so hips stay put when the torso
+         pitches forward while sprinting/swinging) --------------------------- */
+  const pelvis = part(new THREE.SphereGeometry(0.42, 14, 10), blue, rig, 0, 1.18, 0);
+  pelvis.scale.set(1.05, 0.72, 0.78);
+  const belt = part(new THREE.CylinderGeometry(0.43, 0.46, 0.14, 14), dark, rig, 0, 1.42, 0);
+  belt.scale.z = 0.8;
+
+  /* ---- Torso ------------------------------------------------------------ */
+  // A lathe profile gives a real sculpted trunk: narrow waist, flared chest,
+  // rounded shoulders. Flattened on Z so the cross-section is oval, not round.
   const torso = new THREE.Group();
   torso.position.y = 2.0;
   rig.add(torso);
-  const chest = new THREE.Mesh(new THREE.CapsuleGeometry(0.6, 0.9, 4, 10), red);
-  chest.castShadow = true;
-  torso.add(chest);
-  // Blue emblem panel on the chest (original: a stylised diamond).
-  const emblem = new THREE.Mesh(new THREE.OctahedronGeometry(0.28), blue);
-  emblem.scale.set(1, 1.6, 0.3);
-  emblem.position.set(0, 0.15, 0.58);
-  torso.add(emblem);
 
-  // Head
+  const profile = [];
+  // (radius, height) pairs from waist (-0.62) up to the neck line (+0.92).
+  const prof = [
+    [0.34, -0.62], [0.40, -0.42], [0.44, -0.18],
+    [0.52, 0.12], [0.58, 0.42], [0.55, 0.66],
+    [0.42, 0.84], [0.22, 0.92],
+  ];
+  for (const [r, y] of prof) profile.push(new THREE.Vector2(r, y));
+  const trunk = part(new THREE.LatheGeometry(profile, 18), red, torso);
+  trunk.scale.z = 0.72;
+
+  // Abdominal panel (navy) wrapping the waist for a two-tone suit break.
+  const abs = part(new THREE.CylinderGeometry(0.415, 0.365, 0.5, 16), navy, torso, 0, -0.42, 0);
+  abs.scale.z = 0.74;
+
+  // Pectoral plates: two shallow spheres pushed into the chest front.
+  const pecL = part(new THREE.SphereGeometry(0.21, 12, 8), red, torso, -0.2, 0.42, 0.33);
+  pecL.scale.set(1.15, 0.85, 0.55);
+  const pecR = pecL.clone(); pecR.position.x = 0.2; torso.add(pecR);
+
+  // Chest emblem: a silver stylised diamond (original design).
+  const emblem = part(new THREE.OctahedronGeometry(0.2), silver, torso, 0, 0.28, 0.47);
+  emblem.scale.set(1, 1.7, 0.35);
+
+  // Shoulder blades / upper-back plate for silhouette from behind.
+  const backPlate = part(new THREE.SphereGeometry(0.34, 12, 8), navy, torso, 0, 0.45, -0.24);
+  backPlate.scale.set(1.35, 0.9, 0.55);
+
+  /* ---- Neck & head ------------------------------------------------------ */
+  part(new THREE.CylinderGeometry(0.15, 0.19, 0.28, 10), red, torso, 0, 0.98, 0);
+
   const head = new THREE.Group();
-  head.position.y = 1.0;
+  head.position.y = 1.22;
   torso.add(head);
-  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 14), red);
-  skull.castShadow = true;
-  head.add(skull);
-  const maskL = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8), eye);
-  maskL.scale.set(1.3, 0.8, 0.6);
-  maskL.position.set(-0.17, 0.05, 0.34);
-  head.add(maskL);
-  const maskR = maskL.clone();
-  maskR.position.x = 0.17;
-  head.add(maskR);
+  // Egg-shaped skull reads more like a masked head than a plain sphere.
+  const skull = part(new THREE.SphereGeometry(0.36, 18, 14), red, head, 0, 0.06, 0.02);
+  skull.scale.set(0.92, 1.08, 1.0);
+  // Jaw/chin taper.
+  const jaw = part(new THREE.SphereGeometry(0.28, 14, 10), red, head, 0, -0.12, 0.06);
+  jaw.scale.set(0.85, 0.75, 0.9);
 
-  // Helper to create a two-segment limb (upper + fore/lower) with pivots.
-  function makeLimb(mat, upperLen, lowerLen, thick) {
+  // Angular teardrop eye lenses with dark rims — the signature of the mask.
+  function lens(side) {
+    const rim = part(new THREE.SphereGeometry(0.115, 12, 10), dark, head, side * 0.135, 0.05, 0.285);
+    rim.scale.set(1.3, 0.85, 0.35);
+    rim.rotation.z = -side * 0.35;
+    rim.rotation.y = side * 0.32;
+    const glass = part(new THREE.SphereGeometry(0.092, 12, 10), eye, head, side * 0.14, 0.055, 0.315);
+    glass.scale.set(1.25, 0.78, 0.32);
+    glass.rotation.z = -side * 0.35;
+    glass.rotation.y = side * 0.32;
+    return glass;
+  }
+  lens(-1); lens(1);
+
+  /* ---- Limb factory ------------------------------------------------------
+     Two-segment limb with real joints: tapered cylinders for the segments, a
+     sphere at the pivot and at the elbow/knee, and an optional muscle bulge on
+     the upper segment (deltoid/quad). Pivot layout matches the old rig exactly
+     so every pose/blend in the animation system keeps working. */
+  function makeLimb(upperMat, lowerMat, jointMat, upperLen, lowerLen, thick, bulge) {
     const upper = new THREE.Group();
-    const upperMesh = new THREE.Mesh(new THREE.CapsuleGeometry(thick, upperLen, 4, 8), mat);
-    upperMesh.position.y = -upperLen / 2 - thick / 2;
-    upperMesh.castShadow = true;
-    upper.add(upperMesh);
+
+    // Joint ball at the pivot (shoulder / hip).
+    part(new THREE.SphereGeometry(thick * 1.15, 10, 8), upperMat, upper);
+
+    // Upper segment tapers toward the joint below.
+    const upperMesh = part(
+      new THREE.CylinderGeometry(thick * 0.95, thick * 0.72, upperLen, 10),
+      upperMat, upper, 0, -upperLen / 2 - thick / 2, 0,
+    );
+
+    // Muscle bulge (quad / deltoid) high on the segment.
+    if (bulge) {
+      const b = part(new THREE.SphereGeometry(thick * 1.05, 10, 8), upperMat, upper, 0, -upperLen * 0.3, thick * 0.15);
+      b.scale.set(1, 1.5, 1.05);
+    }
 
     const lower = new THREE.Group();
     lower.position.y = -upperLen - thick;
     upper.add(lower);
-    const lowerMesh = new THREE.Mesh(new THREE.CapsuleGeometry(thick * 0.85, lowerLen, 4, 8), mat);
-    lowerMesh.position.y = -lowerLen / 2 - thick / 2;
-    lowerMesh.castShadow = true;
-    lower.add(lowerMesh);
+
+    // Elbow / knee ball.
+    part(new THREE.SphereGeometry(thick * 0.8, 10, 8), jointMat, lower);
+
+    // Lower segment tapers toward the wrist/ankle.
+    part(
+      new THREE.CylinderGeometry(thick * 0.7, thick * 0.5, lowerLen, 10),
+      lowerMat, lower, 0, -lowerLen / 2 - thick / 2, 0,
+    );
 
     return { upper, lower };
   }
 
-  // Arms (attached near shoulders)
-  const armL = makeLimb(blue, 0.7, 0.7, 0.2);
-  armL.upper.position.set(-0.72, 0.7, 0);
-  torso.add(armL.upper);
-  const armR = makeLimb(blue, 0.7, 0.7, 0.2);
-  armR.upper.position.set(0.72, 0.7, 0);
-  torso.add(armR.upper);
-  // Hands (web emitters)
-  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), red);
-  handL.position.y = -0.8;
-  armL.lower.add(handL);
-  const handR = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), red);
-  handR.position.y = -0.8;
-  armR.lower.add(handR);
+  /* ---- Arms --------------------------------------------------------------
+     Red shoulders fading to blue forearms, silver web-shooter cuffs, sculpted
+     glove hands. */
+  function makeArm(side) {
+    const arm = makeLimb(red, blue, dark, 0.7, 0.7, 0.2, true);
+    arm.upper.position.set(side * 0.72, 0.7, 0);
+    torso.add(arm.upper);
 
-  // Legs (attached at pelvis)
-  const legL = makeLimb(red, 0.85, 0.85, 0.24);
-  legL.upper.position.set(-0.32, 0, 0);
-  rig.add(legL.upper);
-  legL.upper.position.y = 1.05;
-  const legR = makeLimb(red, 0.85, 0.85, 0.24);
-  legR.upper.position.set(0.32, 0, 0);
-  legR.upper.position.y = 1.05;
-  rig.add(legR.upper);
-  // Boots
-  const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.5), blue);
-  bootL.position.set(0, -0.95, 0.1);
-  legL.lower.add(bootL);
-  const bootR = bootL.clone();
-  legR.lower.add(bootR);
+    // Shoulder pad shell over the joint.
+    const pad = part(new THREE.SphereGeometry(0.26, 12, 8), blue, arm.upper, side * 0.05, 0.05, 0);
+    pad.scale.set(1.1, 0.85, 1.0);
+
+    // Web-shooter cuff at the wrist.
+    const cuff = part(new THREE.CylinderGeometry(0.115, 0.125, 0.12, 10), silver, arm.lower, 0, -0.72, 0);
+
+    // Glove: palm + a knuckle block so the hand has a real shape.
+    const hand = new THREE.Group();
+    hand.position.y = -0.86;
+    arm.lower.add(hand);
+    const palm = part(new THREE.SphereGeometry(0.14, 10, 8), red, hand);
+    palm.scale.set(0.85, 1.15, 1.0);
+    const knuckles = part(new THREE.BoxGeometry(0.16, 0.14, 0.2), red, hand, 0, -0.1, 0.02);
+
+    return { ...arm, hand };
+  }
+  const armL = makeArm(-1);
+  const armR = makeArm(1);
+  const handL = armL.hand;
+  const handR = armR.hand;
+
+  /* ---- Legs --------------------------------------------------------------
+     Red thighs, navy knee joints, blue shins, sculpted red boots. */
+  function makeLeg(side) {
+    const leg = makeLimb(red, blue, navy, 0.85, 0.85, 0.24, true);
+    leg.upper.position.set(side * 0.32, 1.05, 0);
+    rig.add(leg.upper);
+
+    // Boot: main body + rounded toe cap + ankle cuff.
+    const boot = new THREE.Group();
+    boot.position.set(0, -1.0, 0.06);
+    leg.lower.add(boot);
+    part(new THREE.BoxGeometry(0.28, 0.22, 0.46), red, boot, 0, 0, 0.04);
+    const toe = part(new THREE.SphereGeometry(0.14, 10, 8), red, boot, 0, -0.02, 0.28);
+    toe.scale.set(0.95, 0.7, 1.0);
+    part(new THREE.CylinderGeometry(0.14, 0.16, 0.16, 10), navy, boot, 0, 0.17, -0.04);
+
+    return leg;
+  }
+  const legL = makeLeg(-1);
+  const legR = makeLeg(1);
 
   return {
     root, rig, torso, head,
