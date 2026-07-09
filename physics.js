@@ -63,6 +63,7 @@ export class PhysicsSystem {
       normal: surfaceNormal,
       time: 0,
     };
+    player.grounded = false;
     this.notify("KINETIC ZIP");
     return true;
   }
@@ -266,6 +267,12 @@ export class PhysicsSystem {
       return;
     }
     direction.normalize();
+    // A brief upward departure arc clears the source rooftop before the line
+    // settles into a direct pull toward lower facades.
+    if (this.zip.time < 0.36) {
+      direction.y = Math.max(direction.y, 0.2);
+      direction.normalize();
+    }
     const desiredVelocity = direction.multiplyScalar(43);
     player.velocity.lerp(desiredVelocity, 1 - Math.exp(-dt * 10));
   }
