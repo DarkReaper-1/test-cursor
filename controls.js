@@ -74,7 +74,11 @@ export class Controls {
   }
 
   requestPointerLock() {
-    this.canvas.requestPointerLock?.();
+    const request = this.canvas.requestPointerLock?.();
+    // Some embedded and automated browsers reject pointer lock. The game can
+    // still run with keyboard controls, so treat that policy decision as a
+    // graceful capability fallback rather than an unhandled promise error.
+    request?.catch?.(() => {});
   }
 
   reset() {
