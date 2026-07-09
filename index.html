@@ -1,23 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spider-Man Web Swing</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div id="ui">
-    <h1>Spider-Man Web Swing</h1>
-    <p class="controls">
-      <kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> move &nbsp;·&nbsp;
-      <kbd>Space</kbd> jump &nbsp;·&nbsp;
-      <kbd>Click</kbd> shoot web &amp; swing &nbsp;·&nbsp;
-      <kbd>Release</kbd> let go
-    </p>
-    <p id="status">Swing through the city!</p>
-  </div>
-  <canvas id="game"></canvas>
-  <script src="js/game.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Skyline Sentinel, an original procedural 3D web-swinging browser game."
+    />
+    <title>Skyline Sentinel</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Three.js renders directly into this full-screen canvas. -->
+    <canvas id="game" aria-label="Skyline Sentinel game canvas"></canvas>
+
+    <!-- The reticle changes colour when the aim ray finds a valid building. -->
+    <div id="reticle" aria-hidden="true">
+      <span></span>
+      <span></span>
+    </div>
+
+    <header id="hud">
+      <div class="brand">
+        <p class="eyebrow">NEON HARBOR // PATROL 07</p>
+        <h1>SKYLINE SENTINEL</h1>
+      </div>
+
+      <div class="meters" aria-label="Player statistics">
+        <div class="meter health">
+          <span>INTEGRITY</span>
+          <div class="track"><i id="health-fill"></i></div>
+          <b id="health-value">100</b>
+        </div>
+        <div class="meter momentum">
+          <span>MOMENTUM</span>
+          <div class="track"><i id="momentum-fill"></i></div>
+          <b id="speed-value">0</b>
+        </div>
+      </div>
+
+      <div class="telemetry">
+        <span id="time-value">18:00</span>
+        <span id="altitude-value">ALT 0m</span>
+        <span id="combo-value">COMBO x0</span>
+      </div>
+    </header>
+
+    <aside id="objective">
+      <span class="objective-icon">◇</span>
+      <div>
+        <small>OPEN CITY</small>
+        <strong id="objective-text">Build momentum across Neon Harbor</strong>
+      </div>
+    </aside>
+
+    <div id="action-toast" role="status" aria-live="polite">READY</div>
+
+    <section id="start-screen" class="panel">
+      <div class="panel-content">
+        <p class="eyebrow">AN ORIGINAL THREE.JS HERO</p>
+        <h2>OWN THE<br /><em>SKYLINE</em></h2>
+        <p class="intro">
+          Become Astra Vale, the Skyline Sentinel. Use kinetic filament lines,
+          rooftop parkour, and aerial combat to cross a living procedural city.
+        </p>
+        <button id="start-button" type="button">ENTER NEON HARBOR</button>
+        <p class="pointer-note">Click to capture the mouse · Esc pauses</p>
+      </div>
+
+      <div class="control-grid">
+        <div><kbd>WASD</kbd><span>Move / air control</span></div>
+        <div><kbd>SHIFT</kbd><span>Sprint / wall run</span></div>
+        <div><kbd>SPACE</kbd><span>Jump / wall jump</span></div>
+        <div><kbd>LMB HOLD</kbd><span>Filament swing</span></div>
+        <div><kbd>RMB</kbd><span>Web zip</span></div>
+        <div><kbd>E</kbd><span>Punch combo / air strike</span></div>
+        <div><kbd>Q</kbd><span>Web projectile</span></div>
+        <div><kbd>CTRL</kbd><span>Dodge</span></div>
+      </div>
+    </section>
+
+    <section id="pause-screen" class="panel hidden">
+      <div class="pause-card">
+        <p class="eyebrow">SIMULATION SUSPENDED</p>
+        <h2>PAUSED</h2>
+        <button id="resume-button" type="button">RESUME</button>
+        <p>Press Esc at any time to release the mouse.</p>
+      </div>
+    </section>
+
+    <div id="loading-screen">
+      <div class="loading-mark">S</div>
+      <p>GENERATING NEON HARBOR</p>
+      <div class="loading-track"><i></i></div>
+    </div>
+
+    <!-- A pinned ES-module import keeps the project runnable without a build step. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script type="module" src="main.js"></script>
+  </body>
 </html>
