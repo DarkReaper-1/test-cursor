@@ -54,7 +54,7 @@ export class PhysicsSystem {
   }
 
   startZip(player, buildingHit) {
-    if (!buildingHit || buildingHit.distance < 3 || buildingHit.distance > 82) return false;
+    if (!buildingHit || buildingHit.distance < 3 || buildingHit.distance > 95) return false;
     this.releaseWeb(player);
     const surfaceNormal = buildingHit.normal.clone().normalize();
     this.zip = {
@@ -256,7 +256,7 @@ export class PhysicsSystem {
     const attach = TEMP_A.copy(player.position).addScaledVector(UP, 1.0);
     const direction = TEMP_B.copy(this.zip.target).sub(attach);
     const distance = direction.length();
-    if (distance < 1.5 || this.zip.time > 1.4) {
+    if (distance < 1.5 || this.zip.time > 2.4) {
       const launchDirection = direction.lengthSq() > 0.01 ? direction.normalize() : player.facing;
       player.velocity.copy(launchDirection).multiplyScalar(19);
       player.velocity.y = Math.max(player.velocity.y, 7.5);
