@@ -170,6 +170,9 @@ const desiredCameraPosition = new THREE.Vector3();
 const cameraOffset = new THREE.Vector3();
 const cameraForward = new THREE.Vector3(0, 0, 1);
 const cameraRight = new THREE.Vector3(-1, 0, 0);
+const cameraLookDirection = new THREE.Vector3();
+const cameraLookTarget = new THREE.Vector3();
+const worldUp = new THREE.Vector3(0, 1, 0);
 let cameraReady = false;
 
 function updateCamera(dt) {
@@ -177,15 +180,16 @@ function updateCamera(dt) {
   const distance = THREE.MathUtils.lerp(7.2, 9.2, THREE.MathUtils.clamp(speed / 34, 0, 1));
   const pitchCos = Math.cos(controls.pitch);
 
+  // Yaw defines camera-relative movement; pitch defines the actual reticle aim
+  // rather than forcing the center ray to pass through the player.
+  cameraForward.set(-Math.sin(controls.yaw), 0, -Math.cos(controls.yaw)).normalize();
+  cameraRight.crossVectors(cameraForward, worldUp).normalize();
   cameraTarget.copy(player.position);
   cameraTarget.y += player.webAttached ? 1.3 : 1.15;
   cameraTarget.addScaledVector(player.velocity, Math.min(0.12, dt * 5));
 
-  cameraOffset.set(
-    Math.sin(controls.yaw) * pitchCos * distance,
-    2.25 - Math.sin(controls.pitch) * distance,
-    Math.cos(controls.yaw) * pitchCos * distance,
-  );
+  cameraOffset.copy(cameraForward).multiplyScalar(-distance);
+  cameraOffset.y = 2.25;
   desiredCameraPosition.copy(cameraTarget).add(cameraOffset);
 
   // Pull the camera forward when a building would otherwise block the hero.
@@ -206,16 +210,15 @@ function updateCamera(dt) {
   } else {
     camera.position.lerp(desiredCameraPosition, 1 - Math.exp(-dt * 8.5));
   }
-  camera.lookAt(cameraTarget);
+  cameraLookDirection.copy(cameraForward).multiplyScalar(pitchCos);
+  cameraLookDirection.y = Math.sin(controls.pitch);
+  cameraLookDirection.normalize();
+  cameraLookTarget.copy(camera.position).addScaledVector(cameraLookDirection, 30);
+  camera.lookAt(cameraLookTarget);
 
   const targetFov = THREE.MathUtils.lerp(66, 76, THREE.MathUtils.clamp(speed / 38, 0, 1));
   camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-dt * 4));
   camera.updateProjectionMatrix();
-
-  // Movement vectors come from camera yaw rather than player facing, allowing
-  // immediate directional air control after a swing release.
-  cameraForward.set(-Math.sin(controls.yaw), 0, -Math.cos(controls.yaw)).normalize();
-  cameraRight.crossVectors(cameraForward, new THREE.Vector3(0, 1, 0)).normalize();
 }
 
 function getAimHit() {
