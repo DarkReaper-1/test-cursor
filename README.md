@@ -3,7 +3,7 @@
 This repository contains two independent projects:
 
 1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+2. **[Skyline Sentinel](#skyline-sentinel)** — Original 3D browser traversal game
 
 ---
 
@@ -83,9 +83,11 @@ See [docs/methodology.md](docs/methodology.md) and [docs/intent-api.md](docs/int
 
 ---
 
-## Spider-Man Web Swing
+## Skyline Sentinel
 
-A basic browser-based Spider-Man web-swinging game built with HTML5 Canvas.
+An original, full-screen 3D web-swinging and parkour game built with Three.js.
+Astra Vale and the procedural city of Neon Harbor were created for this
+project; the game does not use third-party characters, stories, maps, or art.
 
 ### Play
 
@@ -95,23 +97,44 @@ Open `index.html` in a browser, or run a local server:
 python3 -m http.server 8080
 ```
 
-Then visit http://localhost:8080
+Then visit http://localhost:8080. An internet connection is required to load
+the pinned Three.js ES module from jsDelivr.
 
 ### Controls
 
 | Input | Action |
 |-------|--------|
-| **A / D** or **← / →** | Move left / right |
-| **Space** | Jump (also wall-jump when on a building side) |
-| **Click** | Shoot web at a building and start swinging |
-| **Release click** | Let go of the web |
+| **W / A / S / D** | Camera-relative movement and air control |
+| **Shift** | Sprint, wall run, and wall climb |
+| **Space** | Jump or wall kick |
+| **Hold left mouse** | Attach a kinetic filament to an aimed building |
+| **Release left mouse** | Release the filament with momentum intact |
+| **Right mouse** | Zip toward the aimed facade or roof |
+| **E** | Ground punch combo or aerial strike |
+| **Q** | Fire a snaring filament projectile |
+| **Ctrl** | Dodge |
 
 ### Features
 
-- Procedural city skyline with lit windows
-- Web-swing physics (pendulum-style rope constraint)
-- Wall climbing and rooftop landing
-- Side-scrolling camera that follows Spider-Man
-- Auto-respawn if you fall off the map
+- Large, deterministic procedural city with roads, alleys, varied towers,
+  rooftop routes, obstacles, and thousands of instanced windows
+- Rope-constraint swing physics, momentum-preserving release, and web zip
+- Sprinting, air control, wall running, climbing, vaulting, ledge grabs, and
+  automatic impact rolls
+- Original procedural hero and drone models with blended state animation
+- Punch chains, air attacks, dodges, projectiles, and respawning training drones
+- Smooth third-person camera, dynamic field of view, and camera obstruction
+  handling
+- Three-minute day/night cycle with dynamic sun, moon, stars, fog, windows,
+  and street lighting
+- Fixed-step simulation and instanced city geometry for desktop performance
 
-Swing from building to building and see how far you can go!
+### Architecture
+
+The browser game is split into focused ES modules:
+
+- `main.js` — renderer, camera, lighting, HUD, and game loop
+- `controls.js` — keyboard, mouse, and pointer-lock input
+- `city.js` — procedural generation, instanced rendering, and city queries
+- `player.js` — player model, animation blending, and combat
+- `physics.js` — character collision, parkour, swinging, and zip physics
