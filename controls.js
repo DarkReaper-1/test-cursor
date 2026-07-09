@@ -74,11 +74,16 @@ export class Controls {
   }
 
   requestPointerLock() {
-    const request = this.canvas.requestPointerLock?.();
-    // Some embedded and automated browsers reject pointer lock. The game can
-    // still run with keyboard controls, so treat that policy decision as a
-    // graceful capability fallback rather than an unhandled promise error.
-    request?.catch?.(() => {});
+    try {
+      const request = this.canvas.requestPointerLock?.();
+      // Some embedded and automated browsers reject pointer lock. The game can
+      // still run with keyboard controls, so treat that policy decision as a
+      // graceful capability fallback rather than an unhandled promise error.
+      request?.catch?.(() => {});
+    } catch {
+      // Legacy implementations may throw synchronously instead of returning a
+      // rejected promise. No action is needed for this optional capability.
+    }
   }
 
   reset() {
