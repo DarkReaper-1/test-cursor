@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Midnight Manor — A Murder Mystery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="rain-canvas" aria-hidden="true"></canvas>
+  <div id="lightning-flash" aria-hidden="true"></div>
+
+  <div id="app">
+    <!-- Title -->
+    <section id="screen-title" class="screen active">
+      <div class="manor-silhouette" aria-hidden="true"></div>
+      <div class="title-content">
+        <p class="eyebrow">An Interactive Detective Mystery</p>
+        <h1>The Midnight Manor</h1>
+        <p class="tagline">Blackwood Estate · October 1923</p>
+        <p class="subtitle">A storm. A dinner party. A body in the library.<br />Five suspects. One killer. No one leaves until dawn.</p>
+        <div class="title-actions">
+          <button id="btn-start" class="btn primary">Begin Investigation</button>
+          <button id="btn-continue" class="btn ghost hidden">Continue Case</button>
+        </div>
+        <div class="title-meta">
+          <label class="audio-toggle">
+            <input type="checkbox" id="audio-pref" checked />
+            <span>Ambient sound</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Intro Briefing -->
+    <section id="screen-intro" class="screen">
+      <div class="intro-panel">
+        <div class="intro-badge">Case File No. 1923-10</div>
+        <h2>The Ashworth Murder</h2>
+        <div id="intro-text" class="intro-text"></div>
+        <button id="btn-skip-intro" class="btn ghost">Skip briefing</button>
+      </div>
+    </section>
+
+    <!-- Main Game -->
+    <section id="screen-game" class="screen">
+      <header id="hud">
+        <div class="hud-left">
+          <span class="hud-label">Detective</span>
+          <span class="hud-case">The Ashworth Murder</span>
+        </div>
+        <div class="hud-center">
+          <div class="progress-track">
+            <div id="case-progress" class="progress-fill"></div>
+          </div>
+          <span id="progress-label" class="progress-label">0% case solved</span>
+        </div>
+        <div class="hud-right">
+          <button id="btn-audio" class="btn icon-btn" title="Toggle audio" aria-label="Toggle audio">🔊</button>
+          <button id="btn-timeline" class="btn icon-btn" title="Timeline">⏱</button>
+          <button id="btn-journal" class="btn icon-btn" title="Evidence">📓 <span id="clue-count">0</span></button>
+          <button id="btn-deduce" class="btn icon-btn" title="Deduction board">🧩</button>
+          <button id="btn-accuse" class="btn danger" disabled>Accuse</button>
+        </div>
+      </header>
+
+      <main id="game-stage">
+        <nav id="location-bar"></nav>
+
+        <div id="scene-container">
+          <div id="scene-art" class="scene-art" data-location="library">
+            <div id="scene-hotspots"></div>
+            <div class="scene-vignette"></div>
+          </div>
+          <aside id="scene-sidebar">
+            <h2 id="location-name">The Library</h2>
+            <p id="location-desc"></p>
+            <div id="location-clues-hint" class="clues-hint"></div>
+          </aside>
+        </div>
+
+        <!-- Dialogue overlay -->
+        <div id="dialogue-overlay" class="overlay hidden">
+          <div class="dialogue-panel">
+            <div class="dialogue-top">
+              <div id="suspect-card" class="suspect-card">
+                <div id="suspect-avatar" class="suspect-avatar"></div>
+                <div>
+                  <h3 id="suspect-name"></h3>
+                  <p id="suspect-role"></p>
+                  <div class="suspicion-bar"><div id="suspicion-fill"></div></div>
+                </div>
+              </div>
+              <button id="btn-close-dialogue" class="btn close-btn" aria-label="Close">×</button>
+            </div>
+            <div id="dialogue-text" class="dialogue-text"></div>
+            <div id="dialogue-options" class="dialogue-options"></div>
+          </div>
+        </div>
+
+        <!-- Suspect picker -->
+        <div id="suspect-bar"></div>
+      </main>
+
+      <footer id="status-bar">
+        <p id="status-message">Arriving at Blackwood Manor...</p>
+      </footer>
+    </section>
+
+    <!-- Result -->
+    <section id="screen-result" class="screen">
+      <div class="result-panel">
+        <div id="result-grade" class="result-grade"></div>
+        <h2 id="result-title"></h2>
+        <p id="result-subtitle"></p>
+        <div id="result-stats" class="result-stats"></div>
+        <div id="result-reveal" class="result-reveal"></div>
+        <button id="btn-replay" class="btn primary">New Investigation</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Evidence Modal -->
+  <div id="evidence-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card evidence-card">
+      <div class="evidence-stamp">EXHIBIT</div>
+      <span id="evidence-category" class="evidence-category"></span>
+      <h3 id="evidence-title"></h3>
+      <p id="evidence-body"></p>
+      <p id="evidence-location" class="evidence-location"></p>
+      <button id="btn-close-evidence" class="btn primary">Record in journal</button>
+    </div>
+  </div>
+
+  <!-- Journal Drawer -->
+  <div id="journal-drawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h3>Evidence Journal</h3>
+      <button id="btn-close-journal" class="btn close-btn">×</button>
+    </div>
+    <div id="journal-tabs" class="journal-tabs">
+      <button class="tab active" data-tab="all">All</button>
+      <button class="tab" data-tab="critical">Critical</button>
+      <button class="tab" data-tab="lies">Contradictions</button>
+    </div>
+    <ul id="journal-entries"></ul>
+  </div>
+
+  <!-- Timeline Drawer -->
+  <div id="timeline-drawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h3>Case Timeline</h3>
+      <button id="btn-close-timeline" class="btn close-btn">×</button>
+    </div>
+    <div id="timeline-events"></div>
+  </div>
+
+  <!-- Deduction Board -->
+  <div id="deduction-drawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h3>Deduction Board</h3>
+      <button id="btn-close-deduce" class="btn close-btn">×</button>
+    </div>
+    <p class="drawer-desc">Pin your conclusions. Correct deductions unlock the final accusation.</p>
+    <div id="deduction-slots"></div>
+    <button id="btn-open-accuse" class="btn danger full" disabled>Present Accusation</button>
+  </div>
+
+  <!-- Accusation Modal -->
+  <div id="accusation-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card accusation-card">
+      <h3>Final Accusation</h3>
+      <p class="accusation-warning">You have one chance. Present your case to the constable.</p>
+      <form id="accusation-form">
+        <label><span>Killer</span><select id="accuse-killer" required></select></label>
+        <label><span>Method</span><select id="accuse-method" required></select></label>
+        <label><span>Motive</span><select id="accuse-motive" required></select></label>
+        <div class="form-actions">
+          <button type="button" id="btn-cancel-accuse" class="btn ghost">Reconsider</button>
+          <button type="submit" class="btn danger">Present Case</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"><span id="toast-text"></span></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

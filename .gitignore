@@ -23,6 +23,8 @@ __pycache__/
 # Node (demo recorder)
 record/node_modules/
 demo/node_modules/
+mystery/node_modules/
+mystery/package-lock.json
 
 # Secrets found during analysis — never commit
 **/credentials*
