@@ -1,9 +1,10 @@
 # test-cursor
 
-This repository contains two independent projects:
+This repository contains three independent projects:
 
 1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+3. **[The Midnight Manor](#the-midnight-manor)** — Browser-based murder mystery detective game
 
 ---
 
@@ -115,3 +116,32 @@ Then visit http://localhost:8080
 - Auto-respawn if you fall off the map
 
 Swing from building to building and see how far you can go!
+
+---
+
+## The Midnight Manor
+
+A noir murder mystery set in a Victorian manor. Lord Ashworth is dead — examine crime scenes, interview five suspects, collect evidence, and solve the case.
+
+### Play
+
+```bash
+python3 -m http.server 8080
+```
+
+Then visit http://localhost:8080/mystery/
+
+### How to Play
+
+1. **Explore locations** — Search the library, kitchen, study, garden, and ballroom for clues
+2. **Interview suspects** — Question Elena, Marcus, Victoria, Dr. Whitmore, and Thomas
+3. **Build your case** — Clues unlock new dialogue options; watch for contradictions and lies
+4. **Make your accusation** — Once you have at least 4 clues, accuse the killer with the correct method and motive
+
+### Features
+
+- 5 explorable locations with 14 discoverable clues
+- 5 suspects with branching dialogue trees
+- Lie detection — contradict suspect statements with hard evidence
+- Evidence journal to track your findings
+- Win/lose endings with full case reveal
