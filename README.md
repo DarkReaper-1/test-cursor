@@ -131,6 +131,16 @@ python3 -m http.server 8080
 
 Then visit http://localhost:8080/mystery/
 
+### Demo Video
+
+A ~64-second gameplay walkthrough is recorded at `artifacts/midnight-manor-demo.mp4`. Re-record with:
+
+```bash
+python3 -m http.server 8080 &
+cd mystery && npm install playwright && npx playwright install chromium
+node record-demo.js
+```
+
 ### How to Play
 
 1. **Explore locations** — Search the library, kitchen, study, garden, and ballroom for clues
