@@ -1,845 +1,768 @@
-/* ═══════════════════════════════════════════════════════════
-   THE MIDNIGHT MANOR — Murder Mystery Game
-   ═══════════════════════════════════════════════════════════ */
+/* The Midnight Manor — Game Engine */
 
-const SOLUTION = {
-  killer: "elena",
-  method: "poison",
-  motive: "inheritance",
-};
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
 
-const CLUES_NEEDED_TO_ACCUSE = 4;
-
-const LOCATIONS = {
-  library: {
-    id: "library",
-    name: "The Library",
-    desc: "Lord Ashworth's body was found slumped in his leather armchair. A half-empty brandy glass rests on the side table. Rain lashes the tall windows.",
-    hotspots: [
-      {
-        id: "body",
-        icon: "🪑",
-        label: "The Body",
-        hint: "Examine the victim",
-        clue: {
-          id: "cause_of_death",
-          title: "Cause of Death",
-          text: "No visible wounds. Lord Ashworth's lips have a faint bluish tint. The coroner would call this poisoning — but the brandy glass beside him smells perfectly normal.",
-        },
-      },
-      {
-        id: "brandy",
-        icon: "🥃",
-        label: "Brandy Glass",
-        hint: "Inspect the drink",
-        clue: {
-          id: "untouched_brandy",
-          title: "Untouched Brandy",
-          text: "The brandy in the glass is genuine — expensive, untainted. Whoever poisoned Ashworth didn't use this drink. The poison was administered another way.",
-        },
-      },
-      {
-        id: "letter",
-        icon: "📜",
-        label: "Torn Letter",
-        hint: "Read the fragments",
-        clue: {
-          id: "threatening_letter",
-          title: "Threatening Letter",
-          text: "Fragments of a letter: '...your will leaves everything to that woman... if you do not amend it by week's end, you will regret it.' The handwriting matches Dr. Whitmore's medical notes.",
-        },
-      },
-      {
-        id: "book",
-        icon: "📕",
-        label: "Fallen Book",
-        hint: "Pick up the book",
-        clue: {
-          id: "poison_book",
-          title: "Toxicology Volume",
-          text: "A book on plant poisons lies open to a page on monkshood — aconitine. A passage is underlined: 'Odorless. Tasteless in small doses. Death within the hour.' A bookmark bears Dr. Whitmore's initials.",
-        },
-      },
-    ],
-  },
-  kitchen: {
-    id: "kitchen",
-    name: "The Kitchen",
-    desc: "Copper pots hang from hooks. The staff prepared dinner hours ago. Something was added to one of the courses — but which?",
-    hotspots: [
-      {
-        id: "trash",
-        icon: "🗑️",
-        label: "Waste Bin",
-        hint: "Search the trash",
-        clue: {
-          id: "glove_in_trash",
-          title: "Latex Glove",
-          text: "A single latex glove, turned inside out, buried under vegetable peels. Traces of white powder cling to the fingertips. The kitchen staff wear cloth gloves — this is surgical latex.",
-        },
-      },
-      {
-        id: "pantry",
-        icon: "🏺",
-        label: "Spice Pantry",
-        hint: "Check the shelves",
-        clue: {
-          id: "missing_monkshood",
-          title: "Missing Ingredient",
-          text: "A jar labeled 'Monkshood Extract — MEDICAL USE ONLY' sits nearly empty on a high shelf. The seal was broken tonight. Only someone with medical knowledge would know where this was kept.",
-        },
-      },
-      {
-        id: "ledger",
-        icon: "📋",
-        label: "Staff Ledger",
-        hint: "Review the log",
-        clue: {
-          id: "elena_in_kitchen",
-          title: "Kitchen Log",
-          text: "The ledger shows Elena Voss entered the kitchen at 7:15 PM — 'to speak with Cook about dietary restrictions.' Dinner was served at 7:30. Lord Ashworth fell ill at 8:45.",
-        },
-      },
-    ],
-  },
-  study: {
-    id: "study",
-    name: "Lord Ashworth's Study",
-    desc: "A private sanctuary of mahogany and leather. His will was revised here three days ago — and someone was not pleased.",
-    hotspots: [
-      {
-        id: "will",
-        icon: "📄",
-        label: "Last Will & Testament",
-        hint: "Read the will",
-        clue: {
-          id: "new_will",
-          title: "Revised Will",
-          text: "Dated three days ago: the entire Ashworth estate — manor, holdings, £2 million — goes to Elena Voss, his recently acknowledged daughter. Previous beneficiaries (Marcus, Victoria, Thomas) are cut out entirely.",
-        },
-      },
-      {
-        id: "safe",
-        icon: "🔒",
-        label: "Wall Safe",
-        hint: "Examine the safe",
-        clue: {
-          id: "safe_open",
-          title: "Opened Safe",
-          text: "The safe was opened tonight — the combination known only to Ashworth and his solicitor. Inside: a second will draft, unsigned, restoring the original beneficiaries. Someone found it too late.",
-        },
-      },
-      {
-        id: "portrait",
-        icon: "🖼️",
-        label: "Family Portrait",
-        hint: "Study the painting",
-        clue: {
-          id: "elena_portrait",
-          title: "Hidden Daughter",
-          text: "A portrait of a young woman hidden behind the main family painting — Elena Voss, Ashworth's illegitimate daughter, raised abroad. A note on the back: 'Reunited at last. My true heir.'",
-        },
-      },
-    ],
-  },
-  garden: {
-    id: "garden",
-    name: "The Moonlit Garden",
-    desc: "Rain-slicked paths wind through hedgerows. Footprints in the mud tell a story of someone who left in a hurry.",
-    hotspots: [
-      {
-        id: "footprints",
-        icon: "👣",
-        label: "Muddy Footprints",
-        hint: "Follow the tracks",
-        clue: {
-          id: "small_footprints",
-          title: "Small Footprints",
-          text: "Fresh footprints — size 6 women's heels — lead from the garden gate to the kitchen door. They match the heels Elena wore to dinner. She claimed she never left the ballroom.",
-        },
-      },
-      {
-        id: "monkshood_plant",
-        icon: "🌿",
-        label: "Garden Beds",
-        hint: "Inspect the plants",
-        clue: {
-          id: "monkshood_garden",
-          title: "Monkshood Plants",
-          text: "Monkshood grows in the medicinal herb garden — planted by Dr. Whitmore for 'research.' Several stems were recently cut. Whitmore tends these plants, but he was in the ballroom all evening.",
-        },
-      },
-      {
-        id: "cigarette",
-        icon: "🚬",
-        label: "Discarded Cigarette",
-        hint: "Pick it up",
-        clue: {
-          id: "marcus_alibi",
-          title: "Marcus's Cigarette",
-          text: "A gold-tipped cigarette stub — Marcus Ashworth's brand. Ash marks on the bench show someone sat here for at least thirty minutes during dinner. Marcus has an alibi for the ballroom, but not for this bench.",
-        },
-      },
-    ],
-  },
-  ballroom: {
-    id: "ballroom",
-    name: "The Grand Ballroom",
-    desc: "The guests gathered here after dinner. Music played. Champagne flowed. No one admits to leaving — but someone is lying.",
-    hotspots: [
-      {
-        id: "champagne",
-        icon: "🍾",
-        label: "Champagne Table",
-        hint: "Check the drinks",
-        clue: {
-          id: "elena_champagne",
-          title: "Elena's Glass",
-          text: "Elena's champagne flute sits untouched on the windowsill — she claimed she drank it during the toast. She was never at the table. Victoria noticed Elena slip out 'for air' at 7:10 PM.",
-        },
-      },
-      {
-        id: "piano",
-        icon: "🎹",
-        label: "Grand Piano",
-        hint: "Look behind the piano",
-        clue: {
-          id: "thomas_argument",
-          title: "Overheard Argument",
-          text: "Thomas the Butler was heard arguing with Lord Ashworth yesterday: 'You cannot disinherit your own son!' Thomas has served the family forty years. He had access to every room — but no medical knowledge.",
-        },
-      },
-    ],
-  },
-};
-
-const SUSPECTS = {
-  elena: {
-    id: "elena",
-    name: "Elena Voss",
-    role: "Acknowledged Daughter & Heiress",
-    portrait: "👩",
-    dialogue: {
-      greeting: "Detective. I suppose you want to know about my... father. We only met six months ago. This is all so dreadful.",
-      topics: [
-        {
-          id: "alibi",
-          label: "Where were you during dinner?",
-          response: "In the ballroom, of course. We toasted Father's birthday. I barely left my seat — ask anyone.",
-          contradicts: ["elena_in_kitchen", "small_footprints", "elena_champagne"],
-          lie: true,
-        },
-        {
-          id: "will",
-          label: "Did you know about the new will?",
-          response: "Father told me three days ago. I was shocked — I never wanted his money. I have my own career abroad.",
-          requires: ["new_will"],
-        },
-        {
-          id: "mother",
-          label: "Tell me about your mother.",
-          response: "She passed when I was young. Father never acknowledged me publicly — until now. Marcus and Victoria always resented me.",
-          requires: ["elena_portrait"],
-        },
-        {
-          id: "kitchen",
-          label: "The kitchen log says you were there at 7:15.",
-          response: "I... I only went to tell Cook about my allergies. I was back in the ballroom before the first course. It took two minutes.",
-          requires: ["elena_in_kitchen"],
-          contradicts: ["small_footprints"],
-          lie: true,
-        },
-        {
-          id: "poison",
-          label: "Do you know anything about monkshood?",
-          response: "Monkshood? That's a poison. Why would I — I'm a literature professor, not a chemist. Dr. Whitmore is the expert here.",
-          requires: ["poison_book", "missing_monkshood"],
-        },
-      ],
-    },
-  },
-  marcus: {
-    id: "marcus",
-    name: "Marcus Ashworth",
-    role: "Disinherited Son",
-    portrait: "👨",
-    dialogue: {
-      greeting: "My father is dead and I'm the prime suspect. How predictable. Yes, he cut me from the will. No, I didn't kill him.",
-      topics: [
-        {
-          id: "alibi",
-          label: "Your alibi for the evening?",
-          response: "Ballroom all night. Victoria sat beside me — she'll confirm. I stepped out once for a cigarette in the garden, but that was before dinner.",
-          contradicts: ["marcus_alibi"],
-          lie: true,
-        },
-        {
-          id: "will",
-          label: "How did you react to the new will?",
-          response: "Furious. Obviously. Forty years of Ashworth legacy, gone to a stranger. But I was in London on business until yesterday — I didn't even know about the revision until Thomas told me.",
-          requires: ["new_will"],
-        },
-        {
-          id: "elena",
-          label: "What do you think of Elena?",
-          response: "She's not a stranger — she's Father's bastard. Pardon the bluntness. She appeared from nowhere and took everything. But killing Father doesn't restore my inheritance.",
-        },
-        {
-          id: "threat",
-          label: "Did you threaten your father?",
-          response: "I may have said some harsh things at dinner last week. Everyone did. Thomas was the loudest, frankly.",
-          requires: ["threatening_letter"],
-        },
-      ],
-    },
-  },
-  victoria: {
-    id: "victoria",
-    name: "Victoria Ashworth",
-    role: "Disinherited Daughter",
-    portrait: "👩‍🦰",
-    dialogue: {
-      greeting: "I loved my father, despite everything. This manor was my home. Now it's Elena's — and he's dead. How convenient for her.",
-      topics: [
-        {
-          id: "alibi",
-          label: "Where were you tonight?",
-          response: "Ballroom. I was at the piano — Father asked me to play. I didn't leave until we found him. Elena, though... she vanished during the soup course.",
-          reveals: ["elena_champagne"],
-        },
-        {
-          id: "elena_suspicious",
-          label: "What did you see Elena do?",
-          response: "She left the ballroom before dinner. Came back flushed, wouldn't meet anyone's eyes. I thought she'd been crying. Now I wonder.",
-          requires: ["elena_champagne"],
-        },
-        {
-          id: "whitmore",
-          label: "What about Dr. Whitmore?",
-          response: "He's been Father's physician for twenty years. He knew about the will change — Father consulted him about stress. Whitmore was furious about the monkshood in the garden. Said it was irresponsible.",
-          requires: ["monkshood_garden"],
-        },
-        {
-          id: "will",
-          label: "The will disinherited you too.",
-          response: "I was to receive the London townhouse and £200,000. Now nothing. Elena gets it all. But I was in plain sight all evening — ask the servants.",
-        },
-      ],
-    },
-  },
-  whitmore: {
-    id: "whitmore",
-    name: "Dr. Reginald Whitmore",
-    role: "Family Physician",
-    portrait: "👨‍⚕️",
-    dialogue: {
-      greeting: "I warned Lord Ashworth about his heart. I did not warn him that someone in this house would poison him. Though I should have suspected.",
-      topics: [
-        {
-          id: "alibi",
-          label: "Your whereabouts tonight?",
-          response: "Ballroom. I examined Lord Ashworth at 6 PM — he was healthy. I was at the champagne table when dinner was served. I never entered the kitchen.",
-        },
-        {
-          id: "monkshood",
-          label: "You grow monkshood in the garden.",
-          response: "For legitimate research. The extract in the pantry is mine — medically sealed. I noticed it was disturbed tonight. Someone with access to this house knew exactly what to take.",
-          requires: ["monkshood_garden", "missing_monkshood"],
-        },
-        {
-          id: "letter",
-          label: "Did you write the threatening letter?",
-          response: "That is outrageous. I wrote no such letter. My concern was medical, not financial. I stood to gain nothing from Ashworth's death.",
-          requires: ["threatening_letter"],
-        },
-        {
-          id: "poison_knowledge",
-          label: "Who else knows about aconitine?",
-          response: "I taught Elena about it, actually. She visited my study last month — asked about poisons in literature. De Agatha Christie, she said. I showed her my reference books.",
-          requires: ["poison_book"],
-        },
-      ],
-    },
-  },
-  thomas: {
-    id: "thomas",
-    name: "Thomas Graves",
-    role: "Head Butler — 40 Years of Service",
-    portrait: "🧑‍🦳",
-    dialogue: {
-      greeting: "I've served the Ashworth family since before Marcus was born. This is a tragedy. I would never harm Lord Ashworth — though I begged him to reconsider the will.",
-      topics: [
-        {
-          id: "alibi",
-          label: "Where were you during dinner?",
-          response: "Supervising service in the dining room and kitchen. I was in and out — but I never left the ground floor. Cook can confirm.",
-        },
-        {
-          id: "will",
-          label: "You knew about the will change.",
-          response: "Lord Ashworth told me himself. He said Thomas, you've been loyal, but blood is blood. I was to receive a cottage and pension. Now that's void too.",
-          requires: ["new_will"],
-        },
-        {
-          id: "elena",
-          label: "Did you see Elena in the kitchen?",
-          response: "I did. At quarter past seven. She spoke with Cook briefly, then left through the garden door. I thought it odd — dinner was about to be served.",
-          requires: ["elena_in_kitchen"],
-          reveals: ["small_footprints"],
-        },
-        {
-          id: "safe",
-          label: "Who knew the safe combination?",
-          response: "Only Lord Ashworth and his solicitor, Mr. Pemberton. Though... last week I saw Dr. Whitmore leaving the study with Lord Ashworth. They were discussing 'contingencies.'",
-          requires: ["safe_open"],
-        },
-      ],
-    },
-  },
-};
-
-const ACCUSATION_OPTIONS = {
-  killer: [
-    { id: "elena", label: "Elena Voss" },
-    { id: "marcus", label: "Marcus Ashworth" },
-    { id: "victoria", label: "Victoria Ashworth" },
-    { id: "whitmore", label: "Dr. Reginald Whitmore" },
-    { id: "thomas", label: "Thomas Graves" },
-  ],
-  method: [
-    { id: "poison", label: "Monkshood poison (aconitine) in the soup" },
-    { id: "brandy", label: "Poisoned brandy in the library" },
-    { id: "stabbing", label: "Stab wound" },
-    { id: "strangling", label: "Strangulation" },
-  ],
-  motive: [
-    { id: "inheritance", label: "Secure the inheritance before the will was reversed" },
-    { id: "revenge", label: "Revenge for being disinherited" },
-    { id: "blackmail", label: "Silence a blackmail victim" },
-    { id: "jealousy", label: "Jealous rage" },
-  ],
-};
-
-/* ── State ── */
+const SAVE_KEY = "midnight-manor-save";
 
 const state = {
-  currentLocation: "library",
-  currentSuspect: null,
+  screen: "title",
+  location: "library",
+  suspect: null,
   clues: new Set(),
   examined: new Set(),
-  talkedTopics: new Set(),
-  liesFound: new Set(),
+  talked: new Set(),
+  lies: new Set(),
+  deductions: {},
+  journalTab: "all",
+  introIndex: 0,
+  startTime: null,
 };
-
-/* ── DOM refs ── */
-
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
 
 const screens = {
   title: $("#screen-title"),
+  intro: $("#screen-intro"),
   game: $("#screen-game"),
   result: $("#screen-result"),
 };
 
-const panels = {
-  location: $("#location-view"),
-  dialogue: $("#dialogue-view"),
-  journal: $("#journal-view"),
-  accusation: $("#accusation-view"),
-};
+let toastTimer;
+let typeTimer;
+let rainAnim;
 
-/* ── Helpers ── */
+/* ── Persistence ── */
 
-function showScreen(name) {
-  Object.values(screens).forEach((s) => s.classList.remove("active"));
-  screens[name].classList.add("active");
+function saveGame() {
+  const data = {
+    location: state.location,
+    clues: [...state.clues],
+    examined: [...state.examined],
+    talked: [...state.talked],
+    lies: [...state.lies],
+    deductions: state.deductions,
+    startTime: state.startTime,
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
 }
 
-function showPanel(name) {
-  Object.values(panels).forEach((p) => p.classList.remove("active"));
-  panels[name].classList.add("active");
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    state.location = data.location || "library";
+    state.clues = new Set(data.clues || []);
+    state.examined = new Set(data.examined || []);
+    state.talked = new Set(data.talked || []);
+    state.lies = new Set(data.lies || []);
+    state.deductions = data.deductions || {};
+    state.startTime = data.startTime || Date.now();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+/* ── UI helpers ── */
+
+function showScreen(name) {
+  state.screen = name;
+  Object.values(screens).forEach((s) => s.classList.remove("active"));
+  screens[name]?.classList.add("active");
 }
 
 function setStatus(msg) {
   $("#status-message").textContent = msg;
 }
 
-let toastTimer;
-function showToast(msg) {
-  const toast = $("#toast");
+function showToast(msg, type = "") {
+  const t = $("#toast");
   $("#toast-text").textContent = msg;
-  toast.classList.remove("hidden");
+  t.className = `toast ${type}`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.add("hidden"), 2800);
+  toastTimer = setTimeout(() => t.classList.add("hidden"), 3200);
 }
 
-function updateClueCount() {
-  const count = state.clues.size;
-  $("#clue-count").textContent = `${count} clue${count !== 1 ? "s" : ""}`;
-  $("#btn-accuse").disabled = count < CLUES_NEEDED_TO_ACCUSE;
-}
-
-function addClue(clue) {
-  if (state.clues.has(clue.id)) return;
-  state.clues.add(clue.id);
-  updateClueCount();
-  showToast(`Evidence found: ${clue.title}`);
-  setStatus(`New evidence recorded: "${clue.title}"`);
-}
-
-/* ── Location rendering ── */
-
-function renderLocationList() {
-  const list = $("#location-list");
-  list.innerHTML = "";
-  Object.values(LOCATIONS).forEach((loc) => {
-    const li = document.createElement("li");
-    li.textContent = loc.name.replace("The ", "");
-    li.dataset.id = loc.id;
-    if (loc.id === state.currentLocation) li.classList.add("active");
-    li.addEventListener("click", () => visitLocation(loc.id));
-    list.appendChild(li);
+function typeText(el, text, speed = 22) {
+  clearInterval(typeTimer);
+  el.textContent = "";
+  el.classList.add("typing");
+  let i = 0;
+  return new Promise((resolve) => {
+    typeTimer = setInterval(() => {
+      el.textContent += text[i] || "";
+      i++;
+      if (i >= text.length) {
+        clearInterval(typeTimer);
+        el.classList.remove("typing");
+        resolve();
+      }
+    }, speed);
   });
 }
 
-function renderSuspectList() {
-  const list = $("#suspect-list");
-  list.innerHTML = "";
-  Object.values(SUSPECTS).forEach((sus) => {
-    const li = document.createElement("li");
-    li.textContent = sus.name.split(" ")[0];
-    li.dataset.id = sus.id;
-    if (sus.id === state.currentSuspect) li.classList.add("active");
-
-    const lies = countLiesForSuspect(sus.id);
-    if (lies > 0) {
-      const badge = document.createElement("span");
-      badge.className = "badge";
-      badge.textContent = `${lies} lie${lies > 1 ? "s" : ""}`;
-      li.appendChild(badge);
-    }
-
-    li.addEventListener("click", () => talkToSuspect(sus.id));
-    list.appendChild(li);
-  });
+function calcProgress() {
+  const totalClues = Object.keys(CLUES).length;
+  const cluePct = (state.clues.size / totalClues) * 50;
+  const dedCount = Object.values(state.deductions).filter((v) => v).length;
+  const dedPct = (dedCount / DEDUCTIONS.length) * 30;
+  const liePct = Math.min(state.lies.size * 4, 20);
+  return Math.min(Math.round(cluePct + dedPct + liePct), 100);
 }
 
-function countLiesForSuspect(suspectId) {
-  const suspect = SUSPECTS[suspectId];
-  let count = 0;
-  for (const topic of suspect.dialogue.topics) {
-    if (topic.lie && state.talkedTopics.has(`${suspectId}:${topic.id}`)) {
+function updateHUD() {
+  const progress = calcProgress();
+  $("#case-progress").style.width = `${progress}%`;
+  $("#progress-label").textContent = `${progress}% case assembled`;
+  $("#clue-count").textContent = state.clues.size;
+  $("#btn-accuse").disabled = !canAccuse();
+  $("#btn-open-accuse") && ($("#btn-open-accuse").disabled = !canAccuse());
+  if ($("#btn-continue")) {
+    $("#btn-continue").classList.toggle("hidden", !localStorage.getItem(SAVE_KEY));
+  }
+}
+
+function canAccuse() {
+  const dedOk = DEDUCTIONS.every((d) => state.deductions[d.id] === d.correct);
+  return state.clues.size >= CLUES_NEEDED && dedOk;
+}
+
+function getSuspicion(suspectId) {
+  let score = 10;
+  const sus = SUSPECTS[suspectId];
+  for (const topic of sus.topics) {
+    if (topic.lie && state.talked.has(`${suspectId}:${topic.id}`)) {
       const exposed = topic.contradicts?.some((c) => state.clues.has(c));
-      if (exposed) count++;
+      if (exposed) score += 18;
+      else score += 6;
     }
   }
-  return count;
+  if (suspectId === "elena") {
+    if (state.clues.has("elena_in_kitchen")) score += 12;
+    if (state.clues.has("small_footprints")) score += 15;
+    if (state.clues.has("elena_champagne")) score += 10;
+  }
+  return Math.min(score, 100);
+}
+
+/* ── Rain canvas ── */
+
+function initRain() {
+  const canvas = $("#rain-canvas");
+  const ctx = canvas.getContext("2d");
+  const drops = [];
+  const count = 180;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  for (let i = 0; i < count; i++) {
+    drops.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      len: 8 + Math.random() * 14,
+      speed: 4 + Math.random() * 6,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "rgba(180, 200, 220, 0.15)";
+    ctx.lineWidth = 1;
+    for (const d of drops) {
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - 1, d.y + d.len);
+      ctx.stroke();
+      d.y += d.speed;
+      d.x -= 0.5;
+      if (d.y > canvas.height) {
+        d.y = -d.len;
+        d.x = Math.random() * canvas.width;
+      }
+    }
+    rainAnim = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ── Intro ── */
+
+async function playIntro() {
+  showScreen("intro");
+  const el = $("#intro-text");
+  el.innerHTML = "";
+
+  for (const line of INTRO_LINES) {
+    const p = document.createElement("p");
+    p.className = "intro-line";
+    el.appendChild(p);
+    await typeText(p, line, 18);
+    await delay(400);
+  }
+
+  await delay(600);
+  startGame(false);
+}
+
+function delay(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/* ── Game start ── */
+
+function startGame(fresh = true) {
+  if (fresh) {
+    state.clues = new Set();
+    state.examined = new Set();
+    state.talked = new Set();
+    state.lies = new Set();
+    state.deductions = {};
+    state.location = "library";
+    state.startTime = Date.now();
+    clearSave();
+  }
+
+  gameAudio.init();
+  gameAudio.resume();
+  if (gameAudio.enabled) gameAudio.startAmbient();
+
+  showScreen("game");
+  renderLocationBar();
+  renderSuspectBar();
+  visitLocation(state.location);
+  updateHUD();
+  setStatus("The manor is locked down. Begin your investigation.");
+  saveGame();
+}
+
+/* ── Locations ── */
+
+function renderLocationBar() {
+  const bar = $("#location-bar");
+  bar.innerHTML = "";
+  Object.values(LOCATIONS).forEach((loc) => {
+    const btn = document.createElement("button");
+    btn.className = "loc-btn" + (loc.id === state.location ? " active" : "");
+    btn.textContent = loc.name.replace("The ", "").replace("Lord Ashworth's ", "");
+    btn.addEventListener("click", () => {
+      gameAudio.playClick();
+      closeDialogue();
+      visitLocation(loc.id);
+    });
+    bar.appendChild(btn);
+  });
 }
 
 function visitLocation(id) {
-  state.currentLocation = id;
-  state.currentSuspect = null;
-  showPanel("location");
-  renderLocationList();
-  renderSuspectList();
-
+  state.location = id;
+  state.suspect = null;
   const loc = LOCATIONS[id];
+
+  $("#scene-art").dataset.location = loc.scene;
   $("#location-name").textContent = loc.name;
   $("#location-desc").textContent = loc.desc;
 
-  const container = $("#hotspots");
+  const remaining = loc.hotspots.filter((h) => !state.examined.has(`${id}:${h.id}`)).length;
+  $("#location-clues-hint").textContent = remaining
+    ? `${remaining} area${remaining > 1 ? "s" : ""} left to examine`
+    : "Fully searched";
+
+  renderHotspots(loc);
+  renderLocationBar();
+  updateHUD();
+  saveGame();
+}
+
+function renderHotspots(loc) {
+  const container = $("#scene-hotspots");
   container.innerHTML = "";
 
   loc.hotspots.forEach((hs) => {
-    const key = `${id}:${hs.id}`;
-    const div = document.createElement("div");
-    div.className = "hotspot" + (state.examined.has(key) ? " examined" : "");
-    div.innerHTML = `
-      <div class="hotspot-icon">${hs.icon}</div>
-      <div class="hotspot-label">${hs.label}</div>
-      <div class="hotspot-hint">${hs.hint}</div>
-    `;
-    div.addEventListener("click", () => examineHotspot(id, hs));
-    container.appendChild(div);
+    const key = `${loc.id}:${hs.id}`;
+    const btn = document.createElement("button");
+    btn.className = "scene-hotspot" + (state.examined.has(key) ? " found" : "");
+    btn.style.left = `${hs.x}%`;
+    btn.style.top = `${hs.y}%`;
+    btn.innerHTML = `<span class="hotspot-pulse"></span><span class="hotspot-label">${hs.label}</span>`;
+    btn.addEventListener("click", () => examineHotspot(loc.id, hs));
+    container.appendChild(btn);
   });
-
-  setStatus(`Searching: ${loc.name}`);
 }
 
-function examineHotspot(locId, hotspot) {
-  const key = `${locId}:${hotspot.id}`;
+function examineHotspot(locId, hs) {
+  const key = `${locId}:${hs.id}`;
   if (state.examined.has(key)) {
-    showToast("You've already examined this.");
+    const clue = CLUES[hs.clue];
+    showEvidenceModal(clue);
     return;
   }
 
   state.examined.add(key);
-  addClue(hotspot.clue);
+  const clue = CLUES[hs.clue];
+  state.clues.add(clue.id);
+  gameAudio.playChime();
+  showEvidenceModal(clue, true);
   visitLocation(locId);
+  updateHUD();
+  saveGame();
 }
 
-/* ── Dialogue ── */
+function showEvidenceModal(clue, isNew = false) {
+  const modal = $("#evidence-modal");
+  $("#evidence-category").textContent = CATEGORY_LABELS[clue.category] || "Evidence";
+  $("#evidence-category").className = `evidence-category cat-${clue.category}`;
+  $("#evidence-title").textContent = clue.title;
+  $("#evidence-body").textContent = clue.text;
+  $("#evidence-location").textContent = `Found in: ${LOCATIONS[clue.location]?.name || clue.location}`;
+  modal.classList.remove("hidden");
 
-function talkToSuspect(id) {
-  state.currentSuspect = id;
-  showPanel("dialogue");
-  renderLocationList();
-  renderSuspectList();
+  if (isNew) {
+    setStatus(`Evidence recorded: ${clue.title}`);
+    showToast(`New evidence: ${clue.title}`, clue.category === "critical" ? "critical" : "");
+  }
 
+  $("#btn-close-evidence").onclick = () => {
+    modal.classList.add("hidden");
+    gameAudio.playClick();
+  };
+}
+
+/* ── Suspects ── */
+
+function renderSuspectBar() {
+  const bar = $("#suspect-bar");
+  bar.innerHTML = "";
+  Object.values(SUSPECTS).forEach((sus) => {
+    const btn = document.createElement("button");
+    btn.className = "suspect-btn" + (state.suspect === sus.id ? " active" : "");
+    btn.innerHTML = `
+      <span class="suspect-mini" style="background:${sus.color}">${sus.initials}</span>
+      <span>${sus.name.split(" ")[0]}</span>
+      ${state.lies.size && countLies(sus.id) ? `<span class="lie-tag">${countLies(sus.id)}</span>` : ""}
+    `;
+    btn.addEventListener("click", () => {
+      gameAudio.playClick();
+      openDialogue(sus.id);
+    });
+    bar.appendChild(btn);
+  });
+}
+
+function countLies(susId) {
+  let n = 0;
+  for (const topic of SUSPECTS[susId].topics) {
+    if (topic.lie && state.talked.has(`${susId}:${topic.id}`)) {
+      if (topic.contradicts?.some((c) => state.clues.has(c))) n++;
+    }
+  }
+  return n;
+}
+
+function openDialogue(id) {
+  state.suspect = id;
   const sus = SUSPECTS[id];
+  const overlay = $("#dialogue-overlay");
+  overlay.classList.remove("hidden");
+
+  $("#suspect-avatar").textContent = sus.initials;
+  $("#suspect-avatar").style.background = sus.color;
   $("#suspect-name").textContent = sus.name;
   $("#suspect-role").textContent = sus.role;
-  $("#suspect-portrait").textContent = sus.portrait;
+  $("#suspicion-fill").style.width = `${getSuspicion(id)}%`;
 
-  const talked = state.talkedTopics.has(`${id}:greeting`);
-  $("#dialogue-text").textContent = talked
-    ? `"Is there anything else, Detective?"`
-    : `"${sus.dialogue.greeting}"`;
+  const greeted = state.talked.has(`${id}:greeting`);
+  const greeting = greeted ? "Is there anything else, Detective?" : sus.greeting;
+  if (!greeted) state.talked.add(`${id}:greeting`);
 
-  if (!talked) state.talkedTopics.add(`${id}:greeting`);
-
+  typeText($("#dialogue-text"), `"${greeting}"`);
   renderDialogueOptions(sus);
-  setStatus(`Interviewing: ${sus.name}`);
+  renderSuspectBar();
+  setStatus(`Interviewing ${sus.name}`);
+  saveGame();
+}
+
+function closeDialogue() {
+  state.suspect = null;
+  $("#dialogue-overlay").classList.add("hidden");
+  renderSuspectBar();
 }
 
 function renderDialogueOptions(sus) {
   const container = $("#dialogue-options");
   container.innerHTML = "";
 
-  sus.dialogue.topics.forEach((topic) => {
-    const topicKey = `${sus.id}:${topic.id}`;
-    const alreadyAsked = state.talkedTopics.has(topicKey);
+  sus.topics.forEach((topic) => {
+    const key = `${sus.id}:${topic.id}`;
+    const asked = state.talked.has(key);
+    const missing = (topic.requires || []).filter((c) => !state.clues.has(c));
+    const locked = missing.length > 0;
 
     const btn = document.createElement("button");
-    btn.className = "dialogue-option";
-
-    const missingClues = (topic.requires || []).filter((c) => !state.clues.has(c));
-    const locked = missingClues.length > 0;
+    btn.className = "dialogue-opt";
 
     if (locked) {
       btn.disabled = true;
-      btn.innerHTML = `${topic.label}<span class="lock-reason">Requires more evidence</span>`;
-    } else if (alreadyAsked) {
-      btn.textContent = `(Asked) ${topic.label}`;
-      btn.addEventListener("click", () => {
-        $("#dialogue-text").textContent = `"${topic.response}"`;
-        highlightContradictions(topic, sus);
-      });
+      btn.innerHTML = `${topic.label}<span class="opt-hint">Requires more evidence</span>`;
     } else {
-      btn.textContent = topic.label;
+      const lieExposed = topic.lie && topic.contradicts?.some((c) => state.clues.has(c));
+      btn.innerHTML = asked
+        ? `<span class="asked">↩</span> ${topic.label}`
+        : topic.label;
+      if (lieExposed && asked) btn.classList.add("lie-exposed");
+      if (topic.confrontation) btn.classList.add("confront");
       btn.addEventListener("click", () => askTopic(sus, topic));
     }
-
     container.appendChild(btn);
   });
-
-  const backBtn = document.createElement("button");
-  backBtn.className = "dialogue-option";
-  backBtn.textContent = "End interview";
-  backBtn.addEventListener("click", () => {
-    state.currentSuspect = null;
-    showPanel("location");
-    renderSuspectList();
-    visitLocation(state.currentLocation);
-  });
-  container.appendChild(backBtn);
 }
 
-function askTopic(sus, topic) {
-  const topicKey = `${sus.id}:${topic.id}`;
-  state.talkedTopics.add(topicKey);
+async function askTopic(sus, topic) {
+  const key = `${sus.id}:${topic.id}`;
+  state.talked.add(key);
+  gameAudio.playClick();
 
-  $("#dialogue-text").textContent = `"${topic.response}"`;
+  await typeText($("#dialogue-text"), `"${topic.response}"`, 16);
 
   if (topic.reveals) {
-    topic.reveals.forEach((clueId) => {
-      if (!state.clues.has(clueId)) {
-        const clue = findClueById(clueId);
-        if (clue) addClue(clue);
+    topic.reveals.forEach((id) => {
+      if (!state.clues.has(id)) {
+        state.clues.add(id);
+        gameAudio.playChime();
+        showToast(`Testimony reveals: ${CLUES[id].title}`, "critical");
       }
     });
   }
 
-  highlightContradictions(topic, sus);
+  if (topic.lie && topic.contradicts) {
+    const exposed = topic.contradicts.filter((c) => state.clues.has(c));
+    if (exposed.length) {
+      const lieKey = `${sus.id}:${topic.id}`;
+      if (!state.lies.has(lieKey)) {
+        state.lies.add(lieKey);
+        gameAudio.playDramatic();
+        showToast(`${sus.name} contradicted by evidence!`, "lie");
+        setStatus(`Contradiction: ${sus.name}'s statement doesn't match the evidence.`);
+      }
+    }
+  }
+
+  $("#suspicion-fill").style.width = `${getSuspicion(sus.id)}%`;
   renderDialogueOptions(sus);
-  renderSuspectList();
-}
-
-function highlightContradictions(topic, sus) {
-  if (!topic.lie || !topic.contradicts) return;
-
-  const exposed = topic.contradicts.filter((c) => state.clues.has(c));
-  if (exposed.length > 0) {
-    const lieKey = `${sus.id}:${topic.id}`;
-    if (!state.liesFound.has(lieKey)) {
-      state.liesFound.add(lieKey);
-      showToast(`${sus.name} may be lying!`);
-      setStatus(`Contradiction detected in ${sus.name}'s statement.`);
-    }
-  }
-}
-
-function findClueById(id) {
-  for (const loc of Object.values(LOCATIONS)) {
-    for (const hs of loc.hotspots) {
-      if (hs.clue.id === id) return hs.clue;
-    }
-  }
-  return null;
+  renderSuspectBar();
+  updateHUD();
+  saveGame();
 }
 
 /* ── Journal ── */
 
-function renderJournal() {
-  const entries = $("#journal-entries");
-  const empty = $("#journal-empty");
-  entries.innerHTML = "";
+function openJournal() {
+  $("#journal-drawer").classList.remove("hidden");
+  renderJournal();
+}
 
-  if (state.clues.size === 0) {
-    empty.style.display = "block";
+function renderJournal() {
+  const list = $("#journal-entries");
+  list.innerHTML = "";
+  const tab = state.journalTab;
+
+  const entries = Object.values(CLUES).filter((c) => {
+    if (!state.clues.has(c.id)) return false;
+    if (tab === "critical") return c.category === "critical";
+    if (tab === "lies") return false;
+    return true;
+  });
+
+  if (tab === "lies") {
+    state.lies.forEach((lieKey) => {
+      const [susId, topicId] = lieKey.split(":");
+      const topic = SUSPECTS[susId]?.topics.find((t) => t.id === topicId);
+      if (!topic) return;
+      const li = document.createElement("li");
+      li.className = "journal-lie";
+      li.innerHTML = `<strong>${SUSPECTS[susId].name}</strong> lied about: "${topic.label}"<p>${topic.response}</p>`;
+      list.appendChild(li);
+    });
+    if (!list.children.length) {
+      list.innerHTML = '<li class="empty">No contradictions exposed yet.</li>';
+    }
     return;
   }
-  empty.style.display = "none";
 
-  const clueList = [];
-  for (const loc of Object.values(LOCATIONS)) {
-    for (const hs of loc.hotspots) {
-      if (state.clues.has(hs.clue.id)) {
-        clueList.push({ clue: hs.clue, location: loc.name });
-      }
-    }
+  if (!entries.length) {
+    list.innerHTML = '<li class="empty">No evidence collected yet.</li>';
+    return;
   }
 
-  clueList.forEach(({ clue, location }) => {
+  entries.forEach((clue) => {
     const li = document.createElement("li");
+    li.className = `journal-item cat-${clue.category}`;
     li.innerHTML = `
-      <div class="clue-title">${clue.title}</div>
-      <div class="clue-location">Found in: ${location}</div>
-      <div>${clue.text}</div>
+      <span class="j-cat">${CATEGORY_LABELS[clue.category]}</span>
+      <strong>${clue.title}</strong>
+      <span class="j-loc">${LOCATIONS[clue.location]?.name}</span>
+      <p>${clue.text}</p>
     `;
-    entries.appendChild(li);
+    list.appendChild(li);
   });
+}
+
+/* ── Timeline ── */
+
+function openTimeline() {
+  $("#timeline-drawer").classList.remove("hidden");
+  const container = $("#timeline-events");
+  container.innerHTML = "";
+
+  TIMELINE.forEach((ev) => {
+    const unlocked = !ev.requires || state.clues.has(ev.requires);
+    const div = document.createElement("div");
+    div.className = "timeline-event" + (unlocked ? " unlocked" : " locked");
+    div.innerHTML = `
+      <span class="t-time">${ev.time}</span>
+      <span class="t-event">${unlocked ? ev.event : "???"}</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+/* ── Deduction board ── */
+
+function openDeduction() {
+  $("#deduction-drawer").classList.remove("hidden");
+  renderDeductions();
+}
+
+function renderDeductions() {
+  const container = $("#deduction-slots");
+  container.innerHTML = "";
+
+  DEDUCTIONS.forEach((ded) => {
+    const unlocked = ded.requires.every((r) => state.clues.has(r));
+    const div = document.createElement("div");
+    div.className = "deduction-slot" + (unlocked ? "" : " locked");
+
+    const label = document.createElement("label");
+    label.innerHTML = `<span>${ded.label}</span>`;
+
+    const select = document.createElement("select");
+    select.disabled = !unlocked;
+    select.innerHTML = '<option value="">— Deduce —</option>';
+    ded.options.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt.id;
+      o.textContent = opt.label;
+      if (state.deductions[ded.id] === opt.id) o.selected = true;
+      select.appendChild(o);
+    });
+
+    select.addEventListener("change", () => {
+      state.deductions[ded.id] = select.value;
+      const correct = select.value === ded.correct;
+      div.classList.toggle("correct", correct && select.value);
+      div.classList.toggle("wrong", select.value && !correct);
+      if (correct) gameAudio.playChime();
+      updateHUD();
+      saveGame();
+    });
+
+    if (state.deductions[ded.id]) {
+      const correct = state.deductions[ded.id] === ded.correct;
+      div.classList.toggle("correct", correct);
+      div.classList.toggle("wrong", !correct);
+    }
+
+    if (!unlocked) {
+      const hint = document.createElement("p");
+      hint.className = "ded-hint";
+      hint.textContent = `Requires ${ded.requires.length - ded.requires.filter((r) => state.clues.has(r)).length} more clue(s)`;
+      div.appendChild(label);
+      div.appendChild(hint);
+    } else {
+      div.appendChild(label);
+      div.appendChild(select);
+    }
+
+    container.appendChild(div);
+  });
+
+  $("#btn-open-accuse").disabled = !canAccuse();
 }
 
 /* ── Accusation ── */
 
-function populateAccusationForm() {
+function openAccusation() {
   ["killer", "method", "motive"].forEach((field) => {
-    const select = $(`#accuse-${field}`);
-    select.innerHTML = '<option value="">— Select —</option>';
+    const sel = $(`#accuse-${field}`);
+    sel.innerHTML = '<option value="">— Select —</option>';
     ACCUSATION_OPTIONS[field].forEach((opt) => {
       const o = document.createElement("option");
       o.value = opt.id;
       o.textContent = opt.label;
-      select.appendChild(o);
+      if (state.deductions[field === "killer" ? "who" : field === "method" ? "how" : "why"] === opt.id) {
+        o.selected = true;
+      }
+      sel.appendChild(o);
     });
   });
+  $("#accusation-modal").classList.remove("hidden");
 }
 
 function handleAccusation(e) {
   e.preventDefault();
-
   const killer = $("#accuse-killer").value;
   const method = $("#accuse-method").value;
   const motive = $("#accuse-motive").value;
 
-  const correct =
+  const won =
     killer === SOLUTION.killer &&
     method === SOLUTION.method &&
     motive === SOLUTION.motive;
 
-  showResult(correct, { killer, method, motive });
+  showResult(won, { killer, method, motive });
 }
 
 function showResult(won, choices) {
+  gameAudio.stopAmbient();
+  clearSave();
   showScreen("result");
-  const resultScreen = screens.result;
+
+  const elapsed = state.startTime ? Math.round((Date.now() - state.startTime) / 60000) : 0;
+  const grade = won
+    ? state.clues.size >= 12 && state.lies.size >= 3 ? "S" : state.clues.size >= 8 ? "A" : "B"
+    : "F";
+
+  $("#result-grade").textContent = grade;
+  $("#result-grade").className = `result-grade grade-${grade}`;
+  $("#result-title").textContent = won ? "Case Closed" : "Justice Undone";
+  $("#result-subtitle").textContent = won
+    ? "The constable arrives at dawn. Your accusation holds."
+    : "The killer walks free. The truth dies with the night.";
+
+  $("#result-stats").innerHTML = `
+    <div><span>${state.clues.size}</span> clues found</div>
+    <div><span>${state.lies.size}</span> lies exposed</div>
+    <div><span>${elapsed}</span> min elapsed</div>
+  `;
 
   if (won) {
-    resultScreen.classList.remove("failure");
-    $("#result-icon").textContent = "⚖️";
-    $("#result-title").textContent = "Case Closed";
-    $("#result-text").textContent =
-      "Your evidence was irrefutable. The constables have arrested the killer.";
+    gameAudio.playChime();
     $("#result-reveal").innerHTML = `
-      <strong>The Truth:</strong> Elena Voss poisoned her father's soup with monkshood extract
-      she stole from Dr. Whitmore's pantry. She knew a second will was being drafted to
-      reverse her inheritance. With Marcus, Victoria, and Thomas disinherited, she acted
-      before Lord Ashworth could sign the new document.<br><br>
-      Her footprints, the kitchen log, and Victoria's testimony exposed her lies.
-      Justice is served.
+      <p><strong>The truth:</strong> Elena Voss poisoned her father's soup with monkshood extract
+      stolen from Dr. Whitmore's pantry. She knew an unsigned will reversal sat in the study safe.
+      With Marcus, Victoria, and Thomas disinherited, she acted before Lord Ashworth could sign.</p>
+      <p>Her garden footprints, the kitchen log, Victoria's testimony, and the missing extract
+      formed an unbreakable chain. The heiress became the accused.</p>
     `;
   } else {
-    resultScreen.classList.add("failure");
-    $("#result-icon").textContent = "❌";
-    $("#result-title").textContent = "Wrong Accusation";
-    const killerName = ACCUSATION_OPTIONS.killer.find((k) => k.id === choices.killer)?.label;
-    $("#result-text").textContent = `You accused ${killerName}, but the evidence tells a different story.`;
+    gameAudio.playDramatic();
+    const name = ACCUSATION_OPTIONS.killer.find((k) => k.id === choices.killer)?.label;
     $("#result-reveal").innerHTML = `
-      <strong>What really happened:</strong> Elena Voss poisoned Lord Ashworth's soup with
-      aconitine (monkshood extract) from the kitchen pantry. She needed the inheritance secured
-      before he signed a reversal of the will.<br><br>
-      Key evidence you may have missed: her footprints in the garden, the kitchen log placing
-      her there at 7:15 PM, the missing monkshood extract, and her contradictory alibi about
-      staying in the ballroom all evening.
+      <p>You accused <strong>${name}</strong>, but the evidence told a different story.</p>
+      <p><strong>What happened:</strong> Elena Voss administered aconitine in the soup course.
+      The brandy glass was a deliberate misdirection. She left the ballroom at 7:10, entered the
+      kitchen at 7:15, and returned before anyone noticed — but the mud remembered.</p>
     `;
   }
 }
 
-/* ── Reset ── */
+/* ── Event bindings ── */
 
-function resetGame() {
-  state.currentLocation = "library";
-  state.currentSuspect = null;
-  state.clues = new Set();
-  state.examined = new Set();
-  state.talkedTopics = new Set();
-  state.liesFound = new Set();
-
-  updateClueCount();
-  showScreen("game");
-  showPanel("location");
-  visitLocation("library");
-  setStatus("Arrived at Blackwood Manor. The storm has trapped everyone inside.");
-}
-
-/* ── Event listeners ── */
-
-$("#btn-start").addEventListener("click", resetGame);
-
-$("#btn-journal").addEventListener("click", () => {
-  renderJournal();
-  showPanel("journal");
+$("#btn-start").addEventListener("click", () => {
+  gameAudio.init();
+  gameAudio.resume();
+  if ($("#audio-pref").checked) {
+    gameAudio.enabled = true;
+    gameAudio.startAmbient();
+  }
+  playIntro();
 });
 
-$("#btn-close-journal").addEventListener("click", () => {
-  showPanel(state.currentSuspect ? "dialogue" : "location");
+$("#btn-continue")?.addEventListener("click", () => {
+  if (loadGame()) {
+    gameAudio.init();
+    gameAudio.resume();
+    if (gameAudio.enabled) gameAudio.startAmbient();
+    startGame(false);
+  }
 });
+
+$("#btn-skip-intro").addEventListener("click", () => startGame(true));
 
 $("#btn-close-dialogue").addEventListener("click", () => {
-  state.currentSuspect = null;
-  showPanel("location");
-  renderSuspectList();
+  gameAudio.playClick();
+  closeDialogue();
 });
 
-$("#btn-accuse").addEventListener("click", () => {
-  if (state.clues.size < CLUES_NEEDED_TO_ACCUSE) return;
-  populateAccusationForm();
-  showPanel("accusation");
-});
+$("#btn-journal").addEventListener("click", () => { gameAudio.playClick(); openJournal(); });
+$("#btn-close-journal").addEventListener("click", () => $("#journal-drawer").classList.add("hidden"));
 
-$("#btn-cancel-accuse").addEventListener("click", () => {
-  showPanel("location");
-});
+$("#btn-timeline").addEventListener("click", () => { gameAudio.playClick(); openTimeline(); });
+$("#btn-close-timeline").addEventListener("click", () => $("#timeline-drawer").classList.add("hidden"));
 
+$("#btn-deduce").addEventListener("click", () => { gameAudio.playClick(); openDeduction(); });
+$("#btn-close-deduce").addEventListener("click", () => $("#deduction-drawer").classList.add("hidden"));
+
+$("#btn-accuse").addEventListener("click", () => { if (canAccuse()) openAccusation(); });
+$("#btn-open-accuse").addEventListener("click", () => { if (canAccuse()) openAccusation(); });
+$("#btn-cancel-accuse").addEventListener("click", () => $("#accusation-modal").classList.add("hidden"));
 $("#accusation-form").addEventListener("submit", handleAccusation);
 
 $("#btn-replay").addEventListener("click", () => {
   screens.result.classList.remove("failure");
-  resetGame();
+  showScreen("title");
+  if (gameAudio.enabled) gameAudio.startAmbient();
+});
+
+$("#btn-audio").addEventListener("click", () => {
+  gameAudio.enabled = !gameAudio.enabled;
+  gameAudio.setEnabled(gameAudio.enabled);
+  $("#btn-audio").textContent = gameAudio.enabled ? "🔊" : "🔇";
+  $("#audio-pref").checked = gameAudio.enabled;
+});
+
+$("#audio-pref").addEventListener("change", (e) => {
+  gameAudio.enabled = e.target.checked;
+  if (!gameAudio.ctx) gameAudio.init();
+  gameAudio.setEnabled(gameAudio.enabled);
+});
+
+$$("#journal-tabs .tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    $$("#journal-tabs .tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    state.journalTab = tab.dataset.tab;
+    renderJournal();
+  });
+});
+
+document.querySelectorAll(".modal-backdrop").forEach((bd) => {
+  bd.addEventListener("click", () => bd.closest(".modal")?.classList.add("hidden"));
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    $("#evidence-modal").classList.add("hidden");
+    $("#accusation-modal").classList.add("hidden");
+    $("#journal-drawer").classList.add("hidden");
+    $("#timeline-drawer").classList.add("hidden");
+    $("#deduction-drawer").classList.add("hidden");
+    closeDialogue();
+  }
 });
 
 /* ── Init ── */
 
-updateClueCount();
+initRain();
+updateHUD();
+if (localStorage.getItem(SAVE_KEY)) {
+  $("#btn-continue")?.classList.remove("hidden");
+}

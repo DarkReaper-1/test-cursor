@@ -140,8 +140,12 @@ Then visit http://localhost:8080/mystery/
 
 ### Features
 
-- 5 explorable locations with 14 discoverable clues
-- 5 suspects with branching dialogue trees
-- Lie detection — contradict suspect statements with hard evidence
-- Evidence journal to track your findings
-- Win/lose endings with full case reveal
+- Cinematic intro briefing with typewriter narrative
+- Illustrated scene exploration with interactive hotspots
+- 5 locations, 14 clues (critical evidence vs. red herrings)
+- 5 suspects with branching dialogue, lie detection, and confrontation options
+- Evidence journal, case timeline, and deduction board
+- Suspicion meter and case progress tracking
+- Ambient rain/thunder audio (procedural Web Audio)
+- Save/resume via localStorage
+- Letter-grade scoring (S/A/B/F) on completion
