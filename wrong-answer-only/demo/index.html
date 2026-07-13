@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wrong Answer Only — Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --purple: #c850ff;
+      --purple-deep: #19082d;
+      --gold: #ffd700;
+      --danger: #ff3b3b;
+      --safe: #3cff7a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #0a0612;
+      font-family: "Space Grotesk", sans-serif;
+      color: #fff;
+    }
+    #stage {
+      position: relative;
+      width: 1280px;
+      height: 720px;
+      margin: 0 auto;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(140, 40, 220, 0.35), transparent 55%),
+        linear-gradient(180deg, #1a0a2e 0%, #0a0612 55%, #12061c 100%);
+    }
+    .screen {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .screen.active { opacity: 1; pointer-events: auto; }
+
+    .brand {
+      font-family: "Bungee", cursive;
+      font-size: 64px;
+      letter-spacing: 1px;
+      color: var(--purple);
+      text-shadow: 0 0 28px rgba(200, 80, 255, 0.8), 0 0 60px rgba(170, 0, 255, 0.45);
+      text-align: center;
+      line-height: 1.05;
+      animation: brandPulse 1.4s ease-in-out infinite alternate;
+    }
+    @keyframes brandPulse {
+      from { color: #aa3cff; text-shadow: 0 0 18px rgba(170, 60, 255, 0.6); }
+      to { color: #ff8cff; text-shadow: 0 0 36px rgba(255, 140, 255, 0.9); }
+    }
+    .subtitle {
+      margin-top: 18px;
+      font-size: 28px;
+      font-style: italic;
+      color: #dfc8ff;
+      opacity: 0.95;
+    }
+    .meta {
+      margin-top: 34px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .bar {
+      margin-top: 16px;
+      width: 420px;
+      height: 14px;
+      border-radius: 999px;
+      background: #2a1545;
+      overflow: hidden;
+    }
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #8a2be2, #ff7af5);
+      transition: width 0.5s ease;
+    }
+    .countdown-num {
+      margin-top: 28px;
+      font-family: "Bungee", cursive;
+      font-size: 96px;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(255, 215, 0, 0.55);
+    }
+
+    .floaters span {
+      position: absolute;
+      font-size: 42px;
+      opacity: 0.55;
+      animation: floatUp 7s linear infinite;
+    }
+    @keyframes floatUp {
+      from { transform: translateY(0); opacity: 0.55; }
+      to { transform: translateY(-760px); opacity: 0; }
+    }
+
+    .round-kicker {
+      font-family: "Bungee", cursive;
+      font-size: 54px;
+      color: var(--purple);
+      transform: translateX(-120%);
+      transition: transform 0.55s cubic-bezier(.2,1.4,.4,1);
+    }
+    .round-kicker.in { transform: translateX(0); }
+    .fake-rule {
+      margin-top: 28px;
+      max-width: 1000px;
+      text-align: center;
+      font-family: "Bungee", cursive;
+      font-size: 42px;
+      line-height: 1.2;
+      color: #fff;
+      text-shadow: 0 0 0 4px transparent;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border: 4px solid transparent;
+      padding: 18px 28px;
+      border-radius: 18px;
+    }
+    .fake-rule.show {
+      opacity: 1;
+      animation: pulseBorder 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes pulseBorder {
+      from { border-color: rgba(255, 40, 40, 0.35); box-shadow: 0 0 0 rgba(255,40,40,0); }
+      to { border-color: rgba(255, 40, 40, 1); box-shadow: 0 0 28px rgba(255,40,40,0.45); }
+    }
+
+    .hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .hud-panel {
+      position: absolute;
+      background: rgba(20, 10, 35, 0.82);
+      border: 2px solid rgba(170, 80, 255, 0.75);
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 20px;
+    }
+    #hud-round { top: 24px; left: 24px; }
+    #hud-timer {
+      top: 18px; right: 24px;
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-family: "Bungee", cursive;
+      font-size: 22px;
+    }
+    #hud-timer.danger { color: var(--danger); border-color: var(--danger); }
+    #hud-alive { bottom: 24px; left: 24px; }
+
+    .arena {
+      position: absolute;
+      inset: 110px 80px 90px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #181818;
+      border: 2px solid rgba(255,255,255,0.08);
+    }
+    .arena-label {
+      position: absolute;
+      top: 14px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      background: rgba(0,0,0,0.55);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Platform map */
+    .lava { position: absolute; inset: 0; background: linear-gradient(180deg, #ff5a18, #8b1200); }
+    .plat {
+      position: absolute;
+      width: 160px; height: 90px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      border: 3px solid rgba(255,255,255,0.35);
+      box-shadow: 0 0 18px rgba(0,0,0,0.35);
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .plat.green { background: #28c84a; left: 18%; top: 48%; }
+    .plat.red { background: #d62828; right: 18%; top: 48%; }
+    .plat.yellow { background: #f0c828; left: 18%; bottom: 14%; }
+    .plat.blue { background: #2870ff; right: 18%; bottom: 14%; }
+    .plat.kill { animation: boom 0.55s ease; filter: brightness(1.8) saturate(1.4); }
+    @keyframes boom {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+    .start-pad {
+      position: absolute;
+      left: 50%; top: 22%;
+      transform: translateX(-50%);
+      width: 220px; height: 100px;
+      background: #8a8a8a;
+      border-radius: 12px;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .start-pad.drop { opacity: 0.25; transform: translateX(-50%) translateY(20px); }
+
+    .player {
+      position: absolute;
+      width: 36px; height: 52px;
+      border-radius: 10px 10px 6px 6px;
+      background: linear-gradient(180deg, #ffb6ff, #7a2cff);
+      box-shadow: 0 0 12px rgba(180, 80, 255, 0.7);
+      transition: left 0.9s ease, top 0.9s ease, opacity 0.4s ease, filter 0.4s ease;
+      z-index: 4;
+    }
+    .player::after {
+      content: attr(data-name);
+      position: absolute;
+      top: -22px; left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 700;
+      text-shadow: 0 1px 3px #000;
+    }
+    .player.ghost {
+      opacity: 0.4;
+      filter: hue-rotate(40deg);
+      box-shadow: 0 0 18px #a000ff;
+    }
+    .player.p1 { left: 47%; top: 26%; background: linear-gradient(180deg, #ffe08a, #ff7a18); }
+    .player.p2 { left: 52%; top: 28%; background: linear-gradient(180deg, #8ad7ff, #2860ff); }
+    .player.p3 { left: 42%; top: 30%; background: linear-gradient(180deg, #8affb0, #18a05a); }
+    .player.p4 { left: 57%; top: 30%; background: linear-gradient(180deg, #ff9ad4, #d01870); }
+
+    .toast {
+      position: absolute;
+      top: 130px; right: 28px;
+      background: rgba(40, 8, 18, 0.9);
+      border: 2px solid #ff5050;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      transform: translateX(120%);
+      transition: transform 0.35s ease;
+      z-index: 20;
+    }
+    .toast.show { transform: translateX(0); }
+
+    .elim-banner {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(90, 0, 0, 0.35);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 30;
+      text-align: center;
+    }
+    .elim-banner.show { opacity: 1; }
+    .elim-banner h2 {
+      font-family: "Bungee", cursive;
+      font-size: 48px;
+      color: #ff6a6a;
+    }
+    .elim-banner p { margin-top: 10px; font-size: 24px; color: #ffd0d0; }
+
+    .reveal-card {
+      max-width: 920px;
+      text-align: center;
+      padding: 28px 36px;
+      border-radius: 20px;
+      background: rgba(10, 35, 18, 0.88);
+      border: 2px solid #3cff7a;
+    }
+    .reveal-card h2 {
+      font-family: "Bungee", cursive;
+      font-size: 42px;
+      color: var(--safe);
+      margin-bottom: 14px;
+    }
+    .reveal-card .twist {
+      font-size: 24px;
+      color: #ffe878;
+      margin-bottom: 18px;
+    }
+    .survivors { font-size: 22px; font-weight: 700; line-height: 1.6; }
+
+    .winner h1 {
+      font-family: "Bungee", cursive;
+      font-size: 64px;
+      color: var(--gold);
+      text-shadow: 0 0 30px rgba(255,215,0,0.55);
+      animation: bounceIn 0.7s cubic-bezier(.2,1.5,.4,1);
+    }
+    @keyframes bounceIn {
+      0% { transform: scale(0.2); opacity: 0; }
+      60% { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+    .burst {
+      position: absolute;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 215, 0, 0.55);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      animation: burst 0.8s ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes burst {
+      to { transform: translate(-50%, -50%) scale(28); opacity: 0; }
+    }
+    .winner .sub { margin-top: 16px; font-size: 24px; color: #ffe9a8; }
+
+    .caption {
+      position: absolute;
+      left: 24px; bottom: 18px;
+      z-index: 50;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      font-weight: 700;
+    }
+
+    /* Buttons map peeks */
+    .grid-buttons {
+      position: absolute;
+      inset: 70px 120px 60px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+    }
+    .btn-pad {
+      background: #5a5a5a;
+      border-radius: 12px;
+      display: grid;
+      place-items: end center;
+      padding-bottom: 10px;
+    }
+    .btn-pad i {
+      width: 54px; height: 34px;
+      border-radius: 999px;
+      background: #fff;
+      display: block;
+      box-shadow: 0 0 10px rgba(255,255,255,0.35);
+    }
+    .btn-pad.correct i {
+      background: var(--gold);
+      box-shadow: 0 0 20px rgba(255,215,0,0.8);
+    }
+    .btn-pad.wrong i { background: #ff4040; }
+
+    .warn {
+      position: absolute;
+      top: 18px; left: 50%; transform: translateX(-50%);
+      background: #000;
+      color: #ff3030;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 18px;
+      z-index: 3;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div class="caption" id="caption">DEMO · Wrong Answer Only</div>
+
+    <!-- LOBBY -->
+    <section class="screen active" id="lobby">
+      <div class="floaters" id="floaters" aria-hidden="true"></div>
+      <div class="brand">WRONG ANSWER ONLY</div>
+      <div class="subtitle">Survive by doing the WRONG thing 🧠</div>
+      <div class="meta" id="lobby-count">Players: 1/2</div>
+      <div class="bar"><i id="lobby-bar"></i></div>
+      <div class="countdown-num" id="lobby-cd"></div>
+    </section>
+
+    <!-- RULE REVEAL -->
+    <section class="screen" id="reveal">
+      <div class="round-kicker" id="round-kicker">ROUND 1</div>
+      <div class="fake-rule" id="fake-rule">STEP ON THE SAFE PLATFORM ✅</div>
+    </section>
+
+    <!-- IN ROUND ARENA -->
+    <section class="screen" id="ingame">
+      <div class="hud">
+        <div class="hud-panel" id="hud-round">ROUND 1 of 5</div>
+        <div class="hud-panel" id="hud-timer">0:30</div>
+        <div class="hud-panel" id="hud-alive">👤 4 players alive</div>
+      </div>
+      <div class="arena" id="arena"></div>
+      <div class="toast" id="toast">💀 Nova was eliminated</div>
+      <div class="elim-banner" id="elim-banner">
+        <div>
+          <h2>YOU WERE ELIMINATED 💀</h2>
+          <p id="elim-reason">Touched the wrong platform</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROUND COMPLETE -->
+    <section class="screen" id="complete">
+      <div class="reveal-card">
+        <h2 id="complete-title">ROUND 1 COMPLETE ✅</h2>
+        <div class="twist" id="complete-twist">😱 TWIST: The green 'SAFE' platform was lava!</div>
+        <div class="survivors" id="complete-list">Survivors:<br>✅ Alex<br>✅ Rio<br>✅ Kai</div>
+      </div>
+    </section>
+
+    <!-- WINNER -->
+    <section class="screen" id="winner">
+      <div class="burst" id="burst" hidden></div>
+      <div class="winner">
+        <h1 id="winner-title">🏆 RIO WINS!</h1>
+        <div class="sub">Last player standing — by doing the wrong thing</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    function show(id) {
+      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+      $(id).classList.add("active");
+    }
+
+    function setCaption(text) {
+      $("caption").textContent = text;
+    }
+
+    // Floating lobby emojis
+    (function spawnFloaters() {
+      const emojis = ["❓", "🤔", "💀", "🧠"];
+      const root = $("floaters");
+      for (let i = 0; i < 14; i++) {
+        const s = document.createElement("span");
+        s.textContent = emojis[i % emojis.length];
+        s.style.left = `${8 + Math.random() * 84}%`;
+        s.style.bottom = `${-10 - Math.random() * 40}%`;
+        s.style.animationDelay = `${Math.random() * 6}s`;
+        s.style.animationDuration = `${6 + Math.random() * 4}s`;
+        root.appendChild(s);
+      }
+    })();
+
+    function fmt(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    async function lobbySequence() {
+      setCaption("Lobby · waiting for players");
+      show("lobby");
+      $("lobby-cd").textContent = "";
+      for (let n = 1; n <= 4; n++) {
+        $("lobby-count").textContent = `Players: ${n}/2`;
+        $("lobby-bar").style.width = `${Math.min(100, (n / 2) * 100)}%`;
+        await sleep(350);
+      }
+      setCaption("Lobby · 30s countdown (demo sped up)");
+      for (let t = 5; t >= 1; t--) {
+        $("lobby-cd").textContent = String(t);
+        $("lobby-cd").style.color = t <= 3 ? "#ff5050" : "#ffd700";
+        await sleep(450);
+      }
+    }
+
+    async function ruleReveal(round, rule) {
+      setCaption(`Round ${round} · fake rule reveal`);
+      show("reveal");
+      const kicker = $("round-kicker");
+      const ruleEl = $("fake-rule");
+      kicker.textContent = `ROUND ${round}`;
+      ruleEl.textContent = rule;
+      kicker.classList.remove("in");
+      ruleEl.classList.remove("show");
+      void kicker.offsetWidth;
+      await sleep(80);
+      kicker.classList.add("in");
+      await sleep(400);
+      ruleEl.classList.add("show");
+      await sleep(2200);
+    }
+
+    function buildPlatformArena() {
+      const arena = $("arena");
+      arena.innerHTML = `
+        <div class="lava"></div>
+        <div class="arena-label">Map_Platform · neon lava below</div>
+        <div class="start-pad" id="start-pad"></div>
+        <div class="plat green" id="plat-safe">SAFE ✅</div>
+        <div class="plat red" id="plat-danger">DANGER ☠️</div>
+        <div class="plat yellow">MAYBE 🤔</div>
+        <div class="plat blue">RISKY ❓</div>
+        <div class="player p1" data-name="You" id="pl-you"></div>
+        <div class="player p2" data-name="Nova" id="pl-nova"></div>
+        <div class="player p3" data-name="Rio" id="pl-rio"></div>
+        <div class="player p4" data-name="Kai" id="pl-kai"></div>
+      `;
+    }
+
+    function buildButtonArena() {
+      const cells = Array.from({ length: 20 }, (_, i) => {
+        const correct = i === 7 ? " correct" : "";
+        return `<div class="btn-pad${correct}" id="b${i}"><i></i></div>`;
+      }).join("");
+      $("arena").innerHTML = `
+        <div class="warn">⛔ WARNING — DO NOT PRESS BUTTONS ⛔</div>
+        <div class="arena-label">Map_Button · one button saves you</div>
+        <div class="grid-buttons">${cells}</div>
+        <div class="player p1" data-name="You" id="pl-you" style="left:20%;top:78%"></div>
+        <div class="player p3" data-name="Rio" id="pl-rio" style="left:48%;top:78%"></div>
+        <div class="player p4" data-name="Kai" id="pl-kai" style="left:72%;top:78%"></div>
+      `;
+    }
+
+    async function tickTimer(from, to, stepMs = 280) {
+      const el = $("hud-timer");
+      for (let t = from; t >= to; t--) {
+        el.textContent = fmt(t);
+        el.classList.toggle("danger", t <= 10);
+        await sleep(stepMs);
+      }
+    }
+
+    async function showToast(text) {
+      const t = $("toast");
+      t.textContent = text;
+      t.classList.add("show");
+      await sleep(1400);
+      t.classList.remove("show");
+    }
+
+    async function round1() {
+      await ruleReveal(1, "STEP ON THE SAFE PLATFORM ✅");
+      setCaption("Round 1 · opposite action = survive");
+      show("ingame");
+      $("elim-banner").classList.remove("show");
+      buildPlatformArena();
+      $("hud-round").textContent = "ROUND 1 of 5";
+      $("hud-alive").textContent = "👤 4 players alive";
+      $("hud-timer").textContent = "0:30";
+
+      await sleep(600);
+      $("start-pad").classList.add("drop");
+
+      // Players move — most trust the lie
+      $("pl-nova").style.left = "22%";
+      $("pl-nova").style.top = "52%";
+      $("pl-kai").style.left = "24%";
+      $("pl-kai").style.top = "58%";
+      $("pl-you").style.left = "70%";
+      $("pl-you").style.top = "52%";
+      $("pl-rio").style.left = "68%";
+      $("pl-rio").style.top = "60%";
+
+      const timerP = tickTimer(30, 24, 220);
+      await sleep(1000);
+      $("plat-safe").classList.add("kill");
+      $("pl-nova").classList.add("ghost");
+      $("hud-alive").textContent = "👤 3 players alive";
+      await showToast("💀 Nova was eliminated");
+      await sleep(350);
+      $("pl-kai").classList.add("ghost");
+      $("hud-alive").textContent = "👤 2 players alive";
+      await showToast("💀 Kai was eliminated");
+      await timerP;
+
+      // Local player almost dies then recovers to red — wait, You already on red.
+      // Show local near-miss toast only for others. Proceed to complete.
+      show("complete");
+      setCaption("Round 1 · twist reveal");
+      $("complete-title").textContent = "ROUND 1 COMPLETE ✅";
+      $("complete-twist").textContent = "😱 TWIST: The green 'SAFE' platform was lava! Red was safe.";
+      $("complete-list").innerHTML = "Survivors:<br>✅ You<br>✅ Rio";
+      await sleep(2400);
+    }
+
+    async function round2() {
+      await ruleReveal(2, "DO NOT PRESS ANY BUTTONS ⛔");
+      setCaption("Round 2 · press the one correct button");
+      show("ingame");
+      $("elim-banner").classList.remove("show");
+      buildButtonArena();
+      $("hud-round").textContent = "ROUND 2 of 5";
+      $("hud-alive").textContent = "👤 2 players alive";
+
+      const timerP = tickTimer(40, 34, 200);
+      await sleep(700);
+      $("pl-you").style.left = "38%";
+      $("pl-you").style.top = "42%";
+      $("pl-rio").style.left = "55%";
+      $("pl-rio").style.top = "28%";
+      await sleep(800);
+      // You press wrong briefly? Actually You presses correct (index 7)
+      // Kai already gone. Rio presses wrong.
+      $("b3").classList.add("wrong");
+      // Nobody is Kai. Make Rio press wrong then get saved? Better: show eliminated local if they follow rule.
+      // Spec demo: You wrongly stood still → eliminated overlay, Rio pressed gold.
+      await sleep(400);
+      $("elim-banner").classList.add("show");
+      $("elim-reason").textContent = "Pressed the wrong button";
+      $("pl-you").classList.add("ghost");
+      $("hud-alive").textContent = "👤 1 player alive";
+      await sleep(1600);
+      $("elim-banner").classList.remove("show");
+      $("b7").classList.add("correct");
+      $("pl-rio").style.left = "38%";
+      $("pl-rio").style.top = "42%";
+      await timerP;
+
+      show("complete");
+      setCaption("Round 2 · twist reveal");
+      $("complete-title").textContent = "ROUND 2 COMPLETE ✅";
+      $("complete-twist").textContent = "😱 TWIST: One button saved you! Standing still eliminated you.";
+      $("complete-list").innerHTML = "Survivors:<br>✅ Rio";
+      await sleep(2200);
+    }
+
+    async function finale() {
+      setCaption("Game over · last player standing");
+      show("winner");
+      $("burst").hidden = false;
+      void $("burst").offsetWidth;
+      $("winner-title").textContent = "🏆 RIO WINS!";
+      await sleep(3200);
+    }
+
+    async function runDemo() {
+      await lobbySequence();
+      await round1();
+      await round2();
+      await finale();
+      setCaption("Demo complete · Wrong Answer Only");
+      await sleep(1200);
+      document.body.dataset.demoDone = "1";
+    }
+
+    runDemo();
+  </script>
+</body>
+</html>
