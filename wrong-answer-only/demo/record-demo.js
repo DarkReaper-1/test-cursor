@@ -56,9 +56,9 @@ async function main() {
   const page = await context.newPage();
   await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: "networkidle" });
 
-  // Wait until the self-running demo finishes (lobby + 2 rounds + winner)
+  // Wait until the self-running gameplay demo finishes (all 5 rounds + winner)
   await page.waitForFunction(() => document.body.dataset.demoDone === "1", null, {
-    timeout: 60000,
+    timeout: 120000,
   });
   await sleep(800);
 

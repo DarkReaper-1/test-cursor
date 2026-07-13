@@ -3,662 +3,853 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wrong Answer Only — Demo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+  <title>Wrong Answer Only — Gameplay Demo</title>
   <style>
-    :root {
-      --purple: #c850ff;
-      --purple-deep: #19082d;
-      --gold: #ffd700;
-      --danger: #ff3b3b;
-      --safe: #3cff7a;
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      background: #0a0612;
-      font-family: "Space Grotesk", sans-serif;
-      color: #fff;
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #050308; }
+    #wrap {
+      width: 1280px; height: 720px; margin: 0 auto; position: relative;
+      background: #08050e; overflow: hidden;
     }
-    #stage {
-      position: relative;
-      width: 1280px;
-      height: 720px;
-      margin: 0 auto;
-      overflow: hidden;
-      background:
-        radial-gradient(ellipse at 50% 20%, rgba(140, 40, 220, 0.35), transparent 55%),
-        linear-gradient(180deg, #1a0a2e 0%, #0a0612 55%, #12061c 100%);
+    canvas { display: block; width: 1280px; height: 720px; }
+    #overlay {
+      position: absolute; inset: 0; pointer-events: none;
+      font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
     }
-    .screen {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.45s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    #titlebar {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      color: #d060ff; font-size: 28px; letter-spacing: 2px;
+      text-shadow: 0 0 18px #a040ff; white-space: nowrap;
     }
-    .screen.active { opacity: 1; pointer-events: auto; }
-
-    .brand {
-      font-family: "Bungee", cursive;
-      font-size: 64px;
-      letter-spacing: 1px;
-      color: var(--purple);
-      text-shadow: 0 0 28px rgba(200, 80, 255, 0.8), 0 0 60px rgba(170, 0, 255, 0.45);
-      text-align: center;
-      line-height: 1.05;
-      animation: brandPulse 1.4s ease-in-out infinite alternate;
+    #ruleflash {
+      position: absolute; left: 50%; top: 78px; transform: translateX(-50%);
+      max-width: 980px; text-align: center;
+      background: rgba(0,0,0,0.72); border: 3px solid #ff3030;
+      color: #fff; font-size: 26px; padding: 10px 22px; border-radius: 12px;
+      opacity: 0; transition: opacity 0.25s ease;
     }
-    @keyframes brandPulse {
-      from { color: #aa3cff; text-shadow: 0 0 18px rgba(170, 60, 255, 0.6); }
-      to { color: #ff8cff; text-shadow: 0 0 36px rgba(255, 140, 255, 0.9); }
+    #ruleflash.show { opacity: 1; animation: pulse 0.45s ease-in-out infinite alternate; }
+    @keyframes pulse {
+      from { border-color: #ff303055; }
+      to { border-color: #ff3030; box-shadow: 0 0 22px #ff303088; }
     }
-    .subtitle {
-      margin-top: 18px;
-      font-size: 28px;
-      font-style: italic;
-      color: #dfc8ff;
-      opacity: 0.95;
+    #hud-left, #hud-right, #hud-bot {
+      position: absolute; background: rgba(15,8,28,0.82);
+      border: 2px solid #a050ff; border-radius: 12px; color: #fff;
+      font-family: "Trebuchet MS", sans-serif; font-weight: 700; font-size: 18px;
+      padding: 10px 14px;
     }
-    .meta {
-      margin-top: 34px;
-      font-size: 22px;
-      font-weight: 700;
+    #hud-left { top: 16px; left: 16px; }
+    #hud-right {
+      top: 12px; right: 16px; width: 78px; height: 78px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 20px;
     }
-    .bar {
-      margin-top: 16px;
-      width: 420px;
-      height: 14px;
-      border-radius: 999px;
-      background: #2a1545;
-      overflow: hidden;
+    #hud-right.low { color: #ff4040; border-color: #ff4040; }
+    #hud-bot { bottom: 16px; left: 16px; }
+    #toast {
+      position: absolute; top: 150px; right: 20px;
+      background: rgba(40,8,16,0.92); border: 2px solid #ff5050;
+      color: #fff; padding: 10px 14px; border-radius: 10px;
+      font-family: "Trebuchet MS", sans-serif; font-weight: 700;
+      transform: translateX(120%); transition: transform 0.3s ease;
     }
-    .bar > i {
-      display: block;
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #8a2be2, #ff7af5);
-      transition: width 0.5s ease;
+    #toast.show { transform: translateX(0); }
+    #elim {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      background: rgba(120,0,0,0.45); opacity: 0; transition: opacity 0.15s;
+      text-align: center; color: #ff8080;
+      font-family: Impact, sans-serif;
     }
-    .countdown-num {
-      margin-top: 28px;
-      font-family: "Bungee", cursive;
-      font-size: 96px;
-      color: var(--gold);
-      text-shadow: 0 0 24px rgba(255, 215, 0, 0.55);
+    #elim.show { opacity: 1; }
+    #elim h2 { font-size: 52px; }
+    #elim p { font-size: 24px; margin-top: 8px; font-family: "Trebuchet MS", sans-serif; color: #ffd0d0; }
+    #twist {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%) scale(0.85);
+      width: 720px; background: rgba(8,28,14,0.94); border: 3px solid #3cff7a;
+      border-radius: 16px; padding: 28px; text-align: center; color: #fff;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s;
+      font-family: "Trebuchet MS", sans-serif;
     }
-
-    .floaters span {
-      position: absolute;
-      font-size: 42px;
-      opacity: 0.55;
-      animation: floatUp 7s linear infinite;
-    }
-    @keyframes floatUp {
-      from { transform: translateY(0); opacity: 0.55; }
-      to { transform: translateY(-760px); opacity: 0; }
-    }
-
-    .round-kicker {
-      font-family: "Bungee", cursive;
-      font-size: 54px;
-      color: var(--purple);
-      transform: translateX(-120%);
-      transition: transform 0.55s cubic-bezier(.2,1.4,.4,1);
-    }
-    .round-kicker.in { transform: translateX(0); }
-    .fake-rule {
-      margin-top: 28px;
-      max-width: 1000px;
-      text-align: center;
-      font-family: "Bungee", cursive;
-      font-size: 42px;
-      line-height: 1.2;
-      color: #fff;
-      text-shadow: 0 0 0 4px transparent;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      border: 4px solid transparent;
-      padding: 18px 28px;
-      border-radius: 18px;
-    }
-    .fake-rule.show {
-      opacity: 1;
-      animation: pulseBorder 0.5s ease-in-out infinite alternate;
-    }
-    @keyframes pulseBorder {
-      from { border-color: rgba(255, 40, 40, 0.35); box-shadow: 0 0 0 rgba(255,40,40,0); }
-      to { border-color: rgba(255, 40, 40, 1); box-shadow: 0 0 28px rgba(255,40,40,0.45); }
-    }
-
-    .hud {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-    .hud-panel {
-      position: absolute;
-      background: rgba(20, 10, 35, 0.82);
-      border: 2px solid rgba(170, 80, 255, 0.75);
-      border-radius: 16px;
-      padding: 12px 18px;
-      font-weight: 700;
-      font-size: 20px;
-    }
-    #hud-round { top: 24px; left: 24px; }
-    #hud-timer {
-      top: 18px; right: 24px;
-      width: 96px; height: 96px;
-      border-radius: 50%;
-      display: grid; place-items: center;
-      font-family: "Bungee", cursive;
-      font-size: 22px;
-    }
-    #hud-timer.danger { color: var(--danger); border-color: var(--danger); }
-    #hud-alive { bottom: 24px; left: 24px; }
-
-    .arena {
-      position: absolute;
-      inset: 110px 80px 90px;
-      border-radius: 22px;
-      overflow: hidden;
-      background: #181818;
-      border: 2px solid rgba(255,255,255,0.08);
-    }
-    .arena-label {
-      position: absolute;
-      top: 14px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 5;
-      background: rgba(0,0,0,0.55);
-      padding: 8px 16px;
-      border-radius: 999px;
-      font-size: 16px;
-      letter-spacing: 0.04em;
-    }
-
-    /* Platform map */
-    .lava { position: absolute; inset: 0; background: linear-gradient(180deg, #ff5a18, #8b1200); }
-    .plat {
-      position: absolute;
-      width: 160px; height: 90px;
-      border-radius: 10px;
-      display: grid; place-items: center;
-      font-weight: 700;
-      font-size: 18px;
-      border: 3px solid rgba(255,255,255,0.35);
-      box-shadow: 0 0 18px rgba(0,0,0,0.35);
-      transition: transform 0.2s ease, filter 0.2s ease;
-    }
-    .plat.green { background: #28c84a; left: 18%; top: 48%; }
-    .plat.red { background: #d62828; right: 18%; top: 48%; }
-    .plat.yellow { background: #f0c828; left: 18%; bottom: 14%; }
-    .plat.blue { background: #2870ff; right: 18%; bottom: 14%; }
-    .plat.kill { animation: boom 0.55s ease; filter: brightness(1.8) saturate(1.4); }
-    @keyframes boom {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.12); }
-      100% { transform: scale(1); }
-    }
-    .start-pad {
-      position: absolute;
-      left: 50%; top: 22%;
-      transform: translateX(-50%);
-      width: 220px; height: 100px;
-      background: #8a8a8a;
-      border-radius: 12px;
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .start-pad.drop { opacity: 0.25; transform: translateX(-50%) translateY(20px); }
-
-    .player {
-      position: absolute;
-      width: 36px; height: 52px;
-      border-radius: 10px 10px 6px 6px;
-      background: linear-gradient(180deg, #ffb6ff, #7a2cff);
-      box-shadow: 0 0 12px rgba(180, 80, 255, 0.7);
-      transition: left 0.9s ease, top 0.9s ease, opacity 0.4s ease, filter 0.4s ease;
-      z-index: 4;
-    }
-    .player::after {
-      content: attr(data-name);
-      position: absolute;
-      top: -22px; left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      font-size: 12px;
-      font-weight: 700;
-      text-shadow: 0 1px 3px #000;
-    }
-    .player.ghost {
-      opacity: 0.4;
-      filter: hue-rotate(40deg);
-      box-shadow: 0 0 18px #a000ff;
-    }
-    .player.p1 { left: 47%; top: 26%; background: linear-gradient(180deg, #ffe08a, #ff7a18); }
-    .player.p2 { left: 52%; top: 28%; background: linear-gradient(180deg, #8ad7ff, #2860ff); }
-    .player.p3 { left: 42%; top: 30%; background: linear-gradient(180deg, #8affb0, #18a05a); }
-    .player.p4 { left: 57%; top: 30%; background: linear-gradient(180deg, #ff9ad4, #d01870); }
-
-    .toast {
-      position: absolute;
-      top: 130px; right: 28px;
-      background: rgba(40, 8, 18, 0.9);
-      border: 2px solid #ff5050;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-weight: 700;
-      transform: translateX(120%);
-      transition: transform 0.35s ease;
-      z-index: 20;
-    }
-    .toast.show { transform: translateX(0); }
-
-    .elim-banner {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      background: rgba(90, 0, 0, 0.35);
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      z-index: 30;
+    #twist.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+    #twist h2 { color: #3cff7a; font-size: 36px; font-family: Impact, sans-serif; margin-bottom: 10px; }
+    #twist .t { color: #ffe878; font-size: 22px; margin-bottom: 12px; }
+    #winner {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      background: rgba(20,10,0,0.72); opacity: 0; transition: opacity 0.3s;
       text-align: center;
     }
-    .elim-banner.show { opacity: 1; }
-    .elim-banner h2 {
-      font-family: "Bungee", cursive;
-      font-size: 48px;
-      color: #ff6a6a;
+    #winner.show { opacity: 1; }
+    #winner h1 {
+      font-family: Impact, sans-serif; font-size: 72px; color: #ffd700;
+      text-shadow: 0 0 30px #ffd70088;
     }
-    .elim-banner p { margin-top: 10px; font-size: 24px; color: #ffd0d0; }
-
-    .reveal-card {
-      max-width: 920px;
-      text-align: center;
-      padding: 28px 36px;
-      border-radius: 20px;
-      background: rgba(10, 35, 18, 0.88);
-      border: 2px solid #3cff7a;
-    }
-    .reveal-card h2 {
-      font-family: "Bungee", cursive;
-      font-size: 42px;
-      color: var(--safe);
-      margin-bottom: 14px;
-    }
-    .reveal-card .twist {
-      font-size: 24px;
-      color: #ffe878;
-      margin-bottom: 18px;
-    }
-    .survivors { font-size: 22px; font-weight: 700; line-height: 1.6; }
-
-    .winner h1 {
-      font-family: "Bungee", cursive;
-      font-size: 64px;
-      color: var(--gold);
-      text-shadow: 0 0 30px rgba(255,215,0,0.55);
-      animation: bounceIn 0.7s cubic-bezier(.2,1.5,.4,1);
-    }
-    @keyframes bounceIn {
-      0% { transform: scale(0.2); opacity: 0; }
-      60% { transform: scale(1.12); opacity: 1; }
-      100% { transform: scale(1); }
-    }
-    .burst {
-      position: absolute;
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 215, 0, 0.55);
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%) scale(1);
-      animation: burst 0.8s ease-out forwards;
-      pointer-events: none;
-    }
-    @keyframes burst {
-      to { transform: translate(-50%, -50%) scale(28); opacity: 0; }
-    }
-    .winner .sub { margin-top: 16px; font-size: 24px; color: #ffe9a8; }
-
-    .caption {
-      position: absolute;
-      left: 24px; bottom: 18px;
-      z-index: 50;
-      font-size: 14px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.55);
-      font-weight: 700;
-    }
-
-    /* Buttons map peeks */
-    .grid-buttons {
-      position: absolute;
-      inset: 70px 120px 60px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 18px;
-    }
-    .btn-pad {
-      background: #5a5a5a;
-      border-radius: 12px;
-      display: grid;
-      place-items: end center;
-      padding-bottom: 10px;
-    }
-    .btn-pad i {
-      width: 54px; height: 34px;
-      border-radius: 999px;
-      background: #fff;
-      display: block;
-      box-shadow: 0 0 10px rgba(255,255,255,0.35);
-    }
-    .btn-pad.correct i {
-      background: var(--gold);
-      box-shadow: 0 0 20px rgba(255,215,0,0.8);
-    }
-    .btn-pad.wrong i { background: #ff4040; }
-
-    .warn {
-      position: absolute;
-      top: 18px; left: 50%; transform: translateX(-50%);
-      background: #000;
-      color: #ff3030;
-      font-weight: 700;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 18px;
-      z-index: 3;
+    #winner p { color: #ffe9a8; font-size: 24px; margin-top: 10px; font-family: "Trebuchet MS", sans-serif; }
+    #caption {
+      position: absolute; left: 16px; bottom: 58px;
+      color: rgba(255,255,255,0.5); font-size: 13px; letter-spacing: 1px;
+      text-transform: uppercase; font-family: "Trebuchet MS", sans-serif; font-weight: 700;
     }
   </style>
 </head>
 <body>
-  <div id="stage">
-    <div class="caption" id="caption">DEMO · Wrong Answer Only</div>
-
-    <!-- LOBBY -->
-    <section class="screen active" id="lobby">
-      <div class="floaters" id="floaters" aria-hidden="true"></div>
-      <div class="brand">WRONG ANSWER ONLY</div>
-      <div class="subtitle">Survive by doing the WRONG thing 🧠</div>
-      <div class="meta" id="lobby-count">Players: 1/2</div>
-      <div class="bar"><i id="lobby-bar"></i></div>
-      <div class="countdown-num" id="lobby-cd"></div>
-    </section>
-
-    <!-- RULE REVEAL -->
-    <section class="screen" id="reveal">
-      <div class="round-kicker" id="round-kicker">ROUND 1</div>
-      <div class="fake-rule" id="fake-rule">STEP ON THE SAFE PLATFORM ✅</div>
-    </section>
-
-    <!-- IN ROUND ARENA -->
-    <section class="screen" id="ingame">
-      <div class="hud">
-        <div class="hud-panel" id="hud-round">ROUND 1 of 5</div>
-        <div class="hud-panel" id="hud-timer">0:30</div>
-        <div class="hud-panel" id="hud-alive">👤 4 players alive</div>
-      </div>
-      <div class="arena" id="arena"></div>
-      <div class="toast" id="toast">💀 Nova was eliminated</div>
-      <div class="elim-banner" id="elim-banner">
-        <div>
-          <h2>YOU WERE ELIMINATED 💀</h2>
-          <p id="elim-reason">Touched the wrong platform</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ROUND COMPLETE -->
-    <section class="screen" id="complete">
-      <div class="reveal-card">
-        <h2 id="complete-title">ROUND 1 COMPLETE ✅</h2>
-        <div class="twist" id="complete-twist">😱 TWIST: The green 'SAFE' platform was lava!</div>
-        <div class="survivors" id="complete-list">Survivors:<br>✅ Alex<br>✅ Rio<br>✅ Kai</div>
-      </div>
-    </section>
-
-    <!-- WINNER -->
-    <section class="screen" id="winner">
-      <div class="burst" id="burst" hidden></div>
-      <div class="winner">
-        <h1 id="winner-title">🏆 RIO WINS!</h1>
-        <div class="sub">Last player standing — by doing the wrong thing</div>
-      </div>
-    </section>
+  <div id="wrap">
+    <canvas id="c" width="1280" height="720"></canvas>
+    <div id="overlay">
+      <div id="titlebar">WRONG ANSWER ONLY</div>
+      <div id="ruleflash"></div>
+      <div id="hud-left">ROUND 1 of 5</div>
+      <div id="hud-right">0:30</div>
+      <div id="hud-bot">👤 4 alive</div>
+      <div id="toast"></div>
+      <div id="elim"><div><h2>YOU WERE ELIMINATED 💀</h2><p id="elim-reason"></p></div></div>
+      <div id="twist"><h2 id="twist-h">ROUND COMPLETE ✅</h2><div class="t" id="twist-t"></div><div id="twist-s"></div></div>
+      <div id="winner"><div><h1 id="win-h">🏆 RIO WINS!</h1><p>Last standing — did the opposite</p></div></div>
+      <div id="caption">GAMEPLAY DEMO</div>
+    </div>
   </div>
-
   <script>
-    const $ = (id) => document.getElementById(id);
+    const canvas = document.getElementById("c");
+    const ctx = canvas.getContext("2d");
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-    function show(id) {
-      document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
-      $(id).classList.add("active");
+    const ui = {
+      rule: document.getElementById("ruleflash"),
+      left: document.getElementById("hud-left"),
+      right: document.getElementById("hud-right"),
+      bot: document.getElementById("hud-bot"),
+      toast: document.getElementById("toast"),
+      elim: document.getElementById("elim"),
+      elimReason: document.getElementById("elim-reason"),
+      twist: document.getElementById("twist"),
+      twistH: document.getElementById("twist-h"),
+      twistT: document.getElementById("twist-t"),
+      twistS: document.getElementById("twist-s"),
+      winner: document.getElementById("winner"),
+      winH: document.getElementById("win-h"),
+      caption: document.getElementById("caption"),
+      title: document.getElementById("titlebar"),
+    };
+
+    let scene = "lobby";
+    let players = [];
+    let platforms = [];
+    let buttons = [];
+    let coins = [];
+    let zones = { red: null, blue: null, safe: "BLUE" };
+    let chase = { archX: 980, speed: 4 };
+    let lavaY = 620;
+    let camShake = 0;
+    let particles = [];
+    let timeLeft = 30;
+    let aliveCount = 4;
+    let startPad = { x: 540, y: 220, w: 200, h: 90, dropping: false, alpha: 1 };
+    let mapName = "lobby";
+
+    function setAlive(n) {
+      aliveCount = n;
+      ui.bot.textContent = `👤 ${n} alive`;
     }
-
-    function setCaption(text) {
-      $("caption").textContent = text;
+    function setTimer(t) {
+      timeLeft = t;
+      const m = Math.floor(t / 60);
+      const s = t % 60;
+      ui.right.textContent = `${m}:${String(s).padStart(2, "0")}`;
+      ui.right.classList.toggle("low", t <= 10);
     }
-
-    // Floating lobby emojis
-    (function spawnFloaters() {
-      const emojis = ["❓", "🤔", "💀", "🧠"];
-      const root = $("floaters");
-      for (let i = 0; i < 14; i++) {
-        const s = document.createElement("span");
-        s.textContent = emojis[i % emojis.length];
-        s.style.left = `${8 + Math.random() * 84}%`;
-        s.style.bottom = `${-10 - Math.random() * 40}%`;
-        s.style.animationDelay = `${Math.random() * 6}s`;
-        s.style.animationDuration = `${6 + Math.random() * 4}s`;
-        root.appendChild(s);
-      }
-    })();
-
-    function fmt(sec) {
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${m}:${String(s).padStart(2, "0")}`;
+    function flashRule(text, show = true) {
+      ui.rule.textContent = text;
+      ui.rule.classList.toggle("show", show);
     }
-
-    async function lobbySequence() {
-      setCaption("Lobby · waiting for players");
-      show("lobby");
-      $("lobby-cd").textContent = "";
-      for (let n = 1; n <= 4; n++) {
-        $("lobby-count").textContent = `Players: ${n}/2`;
-        $("lobby-bar").style.width = `${Math.min(100, (n / 2) * 100)}%`;
-        await sleep(350);
-      }
-      setCaption("Lobby · 30s countdown (demo sped up)");
-      for (let t = 5; t >= 1; t--) {
-        $("lobby-cd").textContent = String(t);
-        $("lobby-cd").style.color = t <= 3 ? "#ff5050" : "#ffd700";
-        await sleep(450);
-      }
-    }
-
-    async function ruleReveal(round, rule) {
-      setCaption(`Round ${round} · fake rule reveal`);
-      show("reveal");
-      const kicker = $("round-kicker");
-      const ruleEl = $("fake-rule");
-      kicker.textContent = `ROUND ${round}`;
-      ruleEl.textContent = rule;
-      kicker.classList.remove("in");
-      ruleEl.classList.remove("show");
-      void kicker.offsetWidth;
-      await sleep(80);
-      kicker.classList.add("in");
-      await sleep(400);
-      ruleEl.classList.add("show");
-      await sleep(2200);
-    }
-
-    function buildPlatformArena() {
-      const arena = $("arena");
-      arena.innerHTML = `
-        <div class="lava"></div>
-        <div class="arena-label">Map_Platform · neon lava below</div>
-        <div class="start-pad" id="start-pad"></div>
-        <div class="plat green" id="plat-safe">SAFE ✅</div>
-        <div class="plat red" id="plat-danger">DANGER ☠️</div>
-        <div class="plat yellow">MAYBE 🤔</div>
-        <div class="plat blue">RISKY ❓</div>
-        <div class="player p1" data-name="You" id="pl-you"></div>
-        <div class="player p2" data-name="Nova" id="pl-nova"></div>
-        <div class="player p3" data-name="Rio" id="pl-rio"></div>
-        <div class="player p4" data-name="Kai" id="pl-kai"></div>
-      `;
-    }
-
-    function buildButtonArena() {
-      const cells = Array.from({ length: 20 }, (_, i) => {
-        const correct = i === 7 ? " correct" : "";
-        return `<div class="btn-pad${correct}" id="b${i}"><i></i></div>`;
-      }).join("");
-      $("arena").innerHTML = `
-        <div class="warn">⛔ WARNING — DO NOT PRESS BUTTONS ⛔</div>
-        <div class="arena-label">Map_Button · one button saves you</div>
-        <div class="grid-buttons">${cells}</div>
-        <div class="player p1" data-name="You" id="pl-you" style="left:20%;top:78%"></div>
-        <div class="player p3" data-name="Rio" id="pl-rio" style="left:48%;top:78%"></div>
-        <div class="player p4" data-name="Kai" id="pl-kai" style="left:72%;top:78%"></div>
-      `;
-    }
-
-    async function tickTimer(from, to, stepMs = 280) {
-      const el = $("hud-timer");
-      for (let t = from; t >= to; t--) {
-        el.textContent = fmt(t);
-        el.classList.toggle("danger", t <= 10);
-        await sleep(stepMs);
-      }
-    }
-
-    async function showToast(text) {
-      const t = $("toast");
-      t.textContent = text;
-      t.classList.add("show");
-      await sleep(1400);
-      t.classList.remove("show");
-    }
-
-    async function round1() {
-      await ruleReveal(1, "STEP ON THE SAFE PLATFORM ✅");
-      setCaption("Round 1 · opposite action = survive");
-      show("ingame");
-      $("elim-banner").classList.remove("show");
-      buildPlatformArena();
-      $("hud-round").textContent = "ROUND 1 of 5";
-      $("hud-alive").textContent = "👤 4 players alive";
-      $("hud-timer").textContent = "0:30";
-
-      await sleep(600);
-      $("start-pad").classList.add("drop");
-
-      // Players move — most trust the lie
-      $("pl-nova").style.left = "22%";
-      $("pl-nova").style.top = "52%";
-      $("pl-kai").style.left = "24%";
-      $("pl-kai").style.top = "58%";
-      $("pl-you").style.left = "70%";
-      $("pl-you").style.top = "52%";
-      $("pl-rio").style.left = "68%";
-      $("pl-rio").style.top = "60%";
-
-      const timerP = tickTimer(30, 24, 220);
-      await sleep(1000);
-      $("plat-safe").classList.add("kill");
-      $("pl-nova").classList.add("ghost");
-      $("hud-alive").textContent = "👤 3 players alive";
-      await showToast("💀 Nova was eliminated");
-      await sleep(350);
-      $("pl-kai").classList.add("ghost");
-      $("hud-alive").textContent = "👤 2 players alive";
-      await showToast("💀 Kai was eliminated");
-      await timerP;
-
-      // Local player almost dies then recovers to red — wait, You already on red.
-      // Show local near-miss toast only for others. Proceed to complete.
-      show("complete");
-      setCaption("Round 1 · twist reveal");
-      $("complete-title").textContent = "ROUND 1 COMPLETE ✅";
-      $("complete-twist").textContent = "😱 TWIST: The green 'SAFE' platform was lava! Red was safe.";
-      $("complete-list").innerHTML = "Survivors:<br>✅ You<br>✅ Rio";
-      await sleep(2400);
-    }
-
-    async function round2() {
-      await ruleReveal(2, "DO NOT PRESS ANY BUTTONS ⛔");
-      setCaption("Round 2 · press the one correct button");
-      show("ingame");
-      $("elim-banner").classList.remove("show");
-      buildButtonArena();
-      $("hud-round").textContent = "ROUND 2 of 5";
-      $("hud-alive").textContent = "👤 2 players alive";
-
-      const timerP = tickTimer(40, 34, 200);
-      await sleep(700);
-      $("pl-you").style.left = "38%";
-      $("pl-you").style.top = "42%";
-      $("pl-rio").style.left = "55%";
-      $("pl-rio").style.top = "28%";
-      await sleep(800);
-      // You press wrong briefly? Actually You presses correct (index 7)
-      // Kai already gone. Rio presses wrong.
-      $("b3").classList.add("wrong");
-      // Nobody is Kai. Make Rio press wrong then get saved? Better: show eliminated local if they follow rule.
-      // Spec demo: You wrongly stood still → eliminated overlay, Rio pressed gold.
-      await sleep(400);
-      $("elim-banner").classList.add("show");
-      $("elim-reason").textContent = "Pressed the wrong button";
-      $("pl-you").classList.add("ghost");
-      $("hud-alive").textContent = "👤 1 player alive";
-      await sleep(1600);
-      $("elim-banner").classList.remove("show");
-      $("b7").classList.add("correct");
-      $("pl-rio").style.left = "38%";
-      $("pl-rio").style.top = "42%";
-      await timerP;
-
-      show("complete");
-      setCaption("Round 2 · twist reveal");
-      $("complete-title").textContent = "ROUND 2 COMPLETE ✅";
-      $("complete-twist").textContent = "😱 TWIST: One button saved you! Standing still eliminated you.";
-      $("complete-list").innerHTML = "Survivors:<br>✅ Rio";
-      await sleep(2200);
-    }
-
-    async function finale() {
-      setCaption("Game over · last player standing");
-      show("winner");
-      $("burst").hidden = false;
-      void $("burst").offsetWidth;
-      $("winner-title").textContent = "🏆 RIO WINS!";
-      await sleep(3200);
-    }
-
-    async function runDemo() {
-      await lobbySequence();
-      await round1();
-      await round2();
-      await finale();
-      setCaption("Demo complete · Wrong Answer Only");
+    async function toast(text) {
+      ui.toast.textContent = text;
+      ui.toast.classList.add("show");
       await sleep(1200);
+      ui.toast.classList.remove("show");
+    }
+    function spawnBurst(x, y, color, n = 18) {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = 2 + Math.random() * 5;
+        particles.push({
+          x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+          life: 1, color, size: 3 + Math.random() * 4,
+        });
+      }
+    }
+
+    function makePlayers(names, positions) {
+      players = names.map((name, i) => ({
+        name,
+        x: positions[i].x,
+        y: positions[i].y,
+        tx: positions[i].x,
+        ty: positions[i].y,
+        color: ["#ff9a3c", "#4db7ff", "#44e08a", "#ff6ec7"][i],
+        alive: true,
+        you: name === "You",
+        bob: Math.random() * Math.PI * 2,
+      }));
+    }
+
+    function moveTo(name, x, y) {
+      const p = players.find((pl) => pl.name === name);
+      if (!p || !p.alive) return;
+      p.tx = x; p.ty = y;
+    }
+
+    function eliminate(name, reason, isYou = false) {
+      const p = players.find((pl) => pl.name === name);
+      if (!p || !p.alive) return;
+      p.alive = false;
+      spawnBurst(p.x, p.y, "#c040ff", 28);
+      camShake = 8;
+      setAlive(players.filter((pl) => pl.alive).length);
+      if (isYou) {
+        ui.elimReason.textContent = reason;
+        ui.elim.classList.add("show");
+        setTimeout(() => ui.elim.classList.remove("show"), 1400);
+      }
+    }
+
+    // ------------ drawing ------------
+    function drawBackground() {
+      const g = ctx.createLinearGradient(0, 0, 0, 720);
+      if (mapName === "lobby") {
+        g.addColorStop(0, "#1a0a30"); g.addColorStop(1, "#07040c");
+      } else if (mapName === "platform") {
+        g.addColorStop(0, "#2a1010"); g.addColorStop(1, "#120606");
+      } else if (mapName === "button") {
+        g.addColorStop(0, "#121212"); g.addColorStop(1, "#080808");
+      } else if (mapName === "chase") {
+        g.addColorStop(0, "#0e1a12"); g.addColorStop(1, "#060a08");
+      } else if (mapName === "coins") {
+        g.addColorStop(0, "#1a1408"); g.addColorStop(1, "#0a0804");
+      } else {
+        g.addColorStop(0, "#10182a"); g.addColorStop(1, "#060814");
+      }
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 1280, 720);
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function drawLobby() {
+      // floor
+      ctx.fillStyle = "#5a5560";
+      roundRect(340, 280, 600, 320, 18);
+      ctx.fill();
+      // neon border
+      ctx.strokeStyle = "#b040ff";
+      ctx.lineWidth = 8;
+      ctx.shadowColor = "#b040ff";
+      ctx.shadowBlur = 20;
+      roundRect(340, 280, 600, 320, 18);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      // title sign
+      ctx.fillStyle = "#14081f";
+      roundRect(420, 120, 440, 70, 10);
+      ctx.fill();
+      ctx.fillStyle = "#d060ff";
+      ctx.font = "bold 34px Impact";
+      ctx.textAlign = "center";
+      ctx.fillText("WRONG ANSWER ONLY", 640, 168);
+      // spawns
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 4; c++) {
+          const x = 420 + c * 110;
+          const y = 340 + r * 70;
+          ctx.fillStyle = "#7a40b0";
+          ctx.globalAlpha = 0.55;
+          roundRect(x, y, 50, 28, 6);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+      // floating emojis as simple text particles
+      const t = performance.now() / 1000;
+      ["❓", "🤔", "💀", "🧠"].forEach((e, i) => {
+        const x = 200 + i * 220 + Math.sin(t + i) * 20;
+        const y = 620 - ((t * 40 + i * 80) % 520);
+        ctx.globalAlpha = 0.45;
+        ctx.font = "36px serif";
+        ctx.fillText(e, x, y);
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    function drawPlatformMap() {
+      // lava
+      const lg = ctx.createLinearGradient(0, 360, 0, 720);
+      lg.addColorStop(0, "#ff5a18");
+      lg.addColorStop(1, "#7a1000");
+      ctx.fillStyle = lg;
+      ctx.fillRect(80, 360, 1120, 300);
+      // lava shimmer
+      ctx.fillStyle = "rgba(255,200,80,0.25)";
+      for (let i = 0; i < 12; i++) {
+        const x = 100 + (i * 97 + performance.now() / 30) % 1080;
+        ctx.beginPath();
+        ctx.ellipse(x, 420 + (i % 3) * 60, 40, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // starting pad
+      ctx.globalAlpha = startPad.alpha;
+      ctx.fillStyle = "#8a8a8a";
+      roundRect(startPad.x, startPad.y, startPad.w, startPad.h, 10);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      platforms.forEach((p) => {
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 16;
+        roundRect(p.x, p.y, p.w, p.h, 12);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // neon trim
+        ctx.strokeStyle = "#ffffff88";
+        ctx.lineWidth = 3;
+        roundRect(p.x, p.y, p.w, p.h, 12);
+        ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 20px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(p.label, p.x + p.w / 2, p.y - 12);
+        if (p.flash > 0) {
+          ctx.fillStyle = `rgba(255,140,0,${p.flash})`;
+          roundRect(p.x, p.y, p.w, p.h, 12);
+          ctx.fill();
+        }
+      });
+    }
+
+    function drawButtonMap() {
+      // room
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(160, 130, 960, 520);
+      ctx.strokeStyle = "#444";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(160, 130, 960, 520);
+      // doorway
+      ctx.fillStyle = "#08050e";
+      ctx.fillRect(580, 130, 120, 70);
+      // warning
+      ctx.fillStyle = "#000";
+      roundRect(300, 160, 680, 50, 8);
+      ctx.fill();
+      ctx.fillStyle = "#ff3030";
+      ctx.font = "bold 24px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText("⛔ WARNING — DO NOT PRESS BUTTONS ⛔", 640, 194);
+
+      buttons.forEach((b) => {
+        // pedestal
+        ctx.fillStyle = "#5a5a5a";
+        roundRect(b.x - 18, b.y + 8, 56, 40, 6);
+        ctx.fill();
+        // button
+        ctx.fillStyle = b.color;
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = b.glow ? 22 : 0;
+        ctx.beginPath();
+        ctx.ellipse(b.x + 10, b.y + 8, 28, 14, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    function drawChaseMap() {
+      // corridor floor
+      ctx.fillStyle = "#6a6a6a";
+      ctx.fillRect(40, 280, 1200, 200);
+      ctx.fillStyle = "#444";
+      ctx.fillRect(40, 260, 1200, 24);
+      ctx.fillRect(40, 476, 1200, 24);
+      // arrows pointing right (the LIE direction)
+      ctx.fillStyle = "#ffe028";
+      for (let i = 0; i < 5; i++) {
+        const x = 180 + i * 140;
+        ctx.beginPath();
+        ctx.moveTo(x, 370);
+        ctx.lineTo(x + 50, 370);
+        ctx.lineTo(x + 50, 355);
+        ctx.lineTo(x + 80, 380);
+        ctx.lineTo(x + 50, 405);
+        ctx.lineTo(x + 50, 390);
+        ctx.lineTo(x, 390);
+        ctx.closePath();
+        ctx.fill();
+      }
+      // finish arch
+      const ax = chase.archX;
+      ctx.fillStyle = "#28ff60";
+      ctx.shadowColor = "#28ff60";
+      ctx.shadowBlur = 18;
+      ctx.fillRect(ax, 250, 18, 220);
+      ctx.fillRect(ax + 90, 250, 18, 220);
+      ctx.fillRect(ax, 232, 108, 22);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText("FINISH 🏁", ax + 54, 248);
+      // kill zone (subtle)
+      ctx.fillStyle = "rgba(255,40,40,0.18)";
+      ctx.fillRect(ax - 10, 240, 130, 240);
+    }
+
+    function drawCoinsMap() {
+      // arena octagon-ish floor
+      ctx.fillStyle = "#5a5a5a";
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 - Math.PI / 8;
+        const x = 640 + Math.cos(a) * 320;
+        const y = 400 + Math.sin(a) * 220;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 10;
+      ctx.stroke();
+
+      // raised pads
+      [[420, 300], [780, 300], [420, 460], [780, 460]].forEach(([x, y]) => {
+        ctx.fillStyle = "#7a7a90";
+        roundRect(x, y, 90, 60, 8);
+        ctx.fill();
+      });
+
+      coins.forEach((c) => {
+        if (!c.alive) return;
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.rot);
+        ctx.fillStyle = "#ffd000";
+        ctx.shadowColor = "#ffd000";
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 16, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#fff6a0";
+        ctx.beginPath();
+        ctx.ellipse(-3, -2, 5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function drawSwapMap() {
+      const red = zones.red;
+      const blue = zones.blue;
+      const pulse = 0.5 + Math.sin(performance.now() / 400) * 0.5;
+      ctx.fillStyle = zones.safe === "RED" ? `rgb(${180 + pulse * 60},40,40)` : `rgb(${140 + pulse * 40},20,20)`;
+      roundRect(red.x, red.y, red.w, red.h, 10);
+      ctx.fill();
+      ctx.fillStyle = zones.safe === "BLUE" ? `rgb(40,${100 + pulse * 80},255)` : `rgb(20,50,140)`;
+      roundRect(blue.x, blue.y, blue.w, blue.h, 10);
+      ctx.fill();
+      // bridge
+      ctx.fillStyle = "#2a2a2a";
+      roundRect(610, 280, 60, 280, 6);
+      ctx.fill();
+      // signs
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 22px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText(zones.safe === "RED" ? "RED ZONE ✅" : "RED ZONE ❌", red.x + red.w / 2, red.y - 16);
+      ctx.fillText(zones.safe === "BLUE" ? "BLUE ZONE ✅" : "BLUE ZONE ❌", blue.x + blue.w / 2, blue.y - 16);
+    }
+
+    function drawPlayers() {
+      players.forEach((p) => {
+        // lerp
+        p.x += (p.tx - p.x) * 0.08;
+        p.y += (p.ty - p.y) * 0.08;
+        p.bob += 0.12;
+        const bob = Math.sin(p.bob) * (p.alive ? 3 : 0);
+        ctx.save();
+        ctx.globalAlpha = p.alive ? 1 : 0.35;
+        // body
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.alive ? p.color : "#a000ff";
+        ctx.shadowBlur = p.alive ? 10 : 18;
+        roundRect(p.x - 14, p.y - 34 + bob, 28, 40, 8);
+        ctx.fill();
+        // head
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 42 + bob, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // name
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 14px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(p.name, p.x, p.y - 58 + bob);
+        if (!p.alive) {
+          ctx.fillStyle = "#c060ff";
+          ctx.font = "16px serif";
+          ctx.fillText("👻", p.x, p.y - 72 + bob);
+        }
+        ctx.restore();
+      });
+    }
+
+    function drawParticles() {
+      particles = particles.filter((pt) => pt.life > 0);
+      particles.forEach((pt) => {
+        pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.12; pt.life -= 0.03;
+        ctx.globalAlpha = Math.max(0, pt.life);
+        ctx.fillStyle = pt.color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+
+    function frame() {
+      ctx.save();
+      if (camShake > 0) {
+        ctx.translate((Math.random() - 0.5) * camShake, (Math.random() - 0.5) * camShake);
+        camShake *= 0.86;
+        if (camShake < 0.4) camShake = 0;
+      }
+      drawBackground();
+      if (mapName === "lobby") drawLobby();
+      else if (mapName === "platform") drawPlatformMap();
+      else if (mapName === "button") drawButtonMap();
+      else if (mapName === "chase") drawChaseMap();
+      else if (mapName === "coins") drawCoinsMap();
+      else if (mapName === "swap") drawSwapMap();
+      drawPlayers();
+      drawParticles();
+
+      // rotate coins
+      coins.forEach((c) => { if (c.alive) c.rot += 0.08; });
+      // chase arch movement if active
+      if (mapName === "chase" && scene === "play") {
+        const alive = players.filter((p) => p.alive);
+        if (alive.length) {
+          const avgX = alive.reduce((s, p) => s + p.x, 0) / alive.length;
+          const dir = Math.sign(avgX - (chase.archX + 54));
+          chase.archX += dir * chase.speed * 0.35;
+        }
+      }
+      ctx.restore();
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // ------------ scripted gameplay ------------
+    async function countdownTimer(from, to, step = 250) {
+      for (let t = from; t >= to; t--) {
+        setTimer(t);
+        await sleep(step);
+      }
+    }
+
+    async function run() {
+      // LOBBY
+      mapName = "lobby";
+      scene = "lobby";
+      ui.caption.textContent = "Lobby · players joining";
+      ui.left.textContent = "LOBBY";
+      setTimer(0);
+      makePlayers(
+        ["You", "Nova", "Rio", "Kai"],
+        [{ x: 480, y: 400 }, { x: 580, y: 430 }, { x: 700, y: 400 }, { x: 800, y: 430 }]
+      );
+      setAlive(4);
+      flashRule("", false);
+      for (let i = 5; i >= 1; i--) {
+        setTimer(i);
+        ui.right.classList.toggle("low", i <= 3);
+        await sleep(400);
+      }
+
+      // ===== ROUND 1: PLATFORM =====
+      mapName = "platform";
+      scene = "reveal";
+      ui.caption.textContent = "Round 1 · Platform Panic — gameplay";
+      ui.left.textContent = "ROUND 1 of 5";
+      platforms = [
+        { x: 220, y: 360, w: 170, h: 90, color: "#28c84a", label: "SAFE ✅", flash: 0 },
+        { x: 890, y: 360, w: 170, h: 90, color: "#d62828", label: "DANGER ☠️", flash: 0 },
+        { x: 220, y: 520, w: 170, h: 90, color: "#f0c828", label: "MAYBE 🤔", flash: 0 },
+        { x: 890, y: 520, w: 170, h: 90, color: "#2870ff", label: "RISKY ❓", flash: 0 },
+      ];
+      startPad = { x: 540, y: 200, w: 200, h: 90, dropping: false, alpha: 1 };
+      makePlayers(
+        ["You", "Nova", "Rio", "Kai"],
+        [{ x: 580, y: 230 }, { x: 630, y: 250 }, { x: 680, y: 230 }, { x: 720, y: 250 }]
+      );
+      setAlive(4);
+      flashRule("STEP ON THE SAFE PLATFORM ✅", true);
+      await sleep(1800);
+      flashRule("", false);
+      scene = "play";
+      setTimer(30);
+      const t1 = countdownTimer(30, 22, 220);
+
+      await sleep(500);
+      startPad.alpha = 0.25; // platform drops
+      // Trust the lie → green
+      moveTo("Nova", 300, 390);
+      moveTo("Kai", 340, 400);
+      // Do the opposite → red "danger"
+      moveTo("You", 970, 390);
+      moveTo("Rio", 1000, 410);
+      await sleep(1100);
+      platforms[0].flash = 1;
+      spawnBurst(305, 400, "#ff7000", 40);
+      eliminate("Nova", "Touched the wrong platform");
+      await toast("💀 Nova touched SAFE — eliminated");
+      platforms[0].flash = 0.5;
+      eliminate("Kai", "Touched the wrong platform");
+      await toast("💀 Kai eliminated");
+      platforms[0].flash = 0;
+      await t1;
+
+      ui.twistH.textContent = "ROUND 1 COMPLETE ✅";
+      ui.twistT.textContent = "😱 Green SAFE was lava — red DANGER was safe!";
+      ui.twistS.textContent = "Survivors: ✅ You   ✅ Rio";
+      ui.twist.classList.add("show");
+      ui.caption.textContent = "Twist reveal";
+      await sleep(2000);
+      ui.twist.classList.remove("show");
+
+      // ===== ROUND 2: BUTTONS =====
+      mapName = "button";
+      scene = "reveal";
+      ui.caption.textContent = "Round 2 · Button room — gameplay";
+      ui.left.textContent = "ROUND 2 of 5";
+      buttons = [];
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 5; c++) {
+          const i = r * 5 + c;
+          buttons.push({
+            x: 280 + c * 160,
+            y: 280 + r * 90,
+            color: "#ffffff",
+            glow: false,
+            correct: i === 7,
+          });
+        }
+      }
+      makePlayers(
+        ["You", "Rio"],
+        [{ x: 400, y: 620 }, { x: 860, y: 620 }]
+      );
+      players.forEach((p) => { p.alive = true; });
+      // keep dead ones off? Spec: only survivors. Just 2.
+      setAlive(2);
+      flashRule("DO NOT PRESS ANY BUTTONS ⛔", true);
+      await sleep(1600);
+      flashRule("", false);
+      scene = "play";
+      const t2 = countdownTimer(40, 33, 200);
+
+      // Rio presses correct button (#7)
+      moveTo("Rio", buttons[7].x + 10, buttons[7].y);
+      await sleep(900);
+      buttons[7].color = "#ffd000";
+      buttons[7].glow = true;
+      spawnBurst(buttons[7].x + 10, buttons[7].y, "#ffd000", 20);
+      await toast("✨ Rio pressed a button…");
+
+      // You follow the lie (stand still) then panic-press wrong
+      await sleep(600);
+      moveTo("You", buttons[3].x + 10, buttons[3].y);
+      await sleep(800);
+      buttons[3].color = "#ff4040";
+      eliminate("You", "Pressed the wrong button", true);
+      await toast("💀 Wrong button!");
+      await t2;
+
+      // reveal gold
+      buttons.forEach((b, i) => {
+        if (i === 7) { b.color = "#ffd000"; b.glow = true; }
+        else b.color = "#ffffff";
+      });
+      ui.twistH.textContent = "ROUND 2 COMPLETE ✅";
+      ui.twistT.textContent = "😱 One button saved you — standing still killed!";
+      ui.twistS.textContent = "Survivors: ✅ Rio";
+      ui.twist.classList.add("show");
+      await sleep(1800);
+      ui.twist.classList.remove("show");
+
+      // ===== ROUND 3: CHASE =====
+      mapName = "chase";
+      scene = "reveal";
+      ui.caption.textContent = "Round 3 · Finish line chases you";
+      ui.left.textContent = "ROUND 3 of 5";
+      chase = { archX: 980, speed: 5 };
+      makePlayers(["Rio", "GhostYou"], [{ x: 700, y: 380 }, { x: 200, y: 600 }]);
+      players[0].alive = true;
+      players[1].alive = false;
+      players[1].name = "You";
+      setAlive(1);
+      flashRule("REACH THE FINISH LINE TO WIN 🏁", true);
+      await sleep(1500);
+      flashRule("", false);
+      scene = "play";
+      const t3 = countdownTimer(60, 52, 160);
+
+      // Rio runs AWAY from arch (left). Arch chases.
+      moveTo("Rio", 180, 380);
+      await sleep(700);
+      chase.speed = 7;
+      moveTo("Rio", 120, 400);
+      await sleep(900);
+      chase.speed = 10;
+      // A decoy "bot" dashed into finish earlier — spawn a fake runner eliminated
+      players.push({
+        name: "Bot", x: 860, y: 390, tx: 1020, ty: 390,
+        color: "#aaaaaa", alive: true, you: false, bob: 0,
+      });
+      setAlive(2);
+      await sleep(1000);
+      eliminate("Bot", "Ran the wrong direction");
+      await toast("💀 Bot ran to FINISH — eliminated");
+      moveTo("Rio", 100, 370);
+      await t3;
+
+      ui.twistH.textContent = "ROUND 3 COMPLETE ✅";
+      ui.twistT.textContent = "😱 The finish arch hunted players — running away won!";
+      ui.twistS.textContent = "Survivors: ✅ Rio";
+      ui.twist.classList.add("show");
+      await sleep(1700);
+      ui.twist.classList.remove("show");
+
+      // ===== ROUND 4: COINS =====
+      mapName = "coins";
+      scene = "reveal";
+      ui.caption.textContent = "Round 4 · Avoid the coins";
+      ui.left.textContent = "ROUND 4 of 5";
+      coins = [];
+      for (let i = 0; i < 28; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = 40 + Math.random() * 260;
+        coins.push({
+          x: 640 + Math.cos(a) * r * 0.9,
+          y: 400 + Math.sin(a) * r * 0.65,
+          rot: Math.random() * Math.PI,
+          alive: true,
+        });
+      }
+      makePlayers(["Rio"], [{ x: 640, y: 400 }]);
+      setAlive(1);
+      flashRule("COLLECT 10 COINS TO SURVIVE 🪙", true);
+      await sleep(1400);
+      flashRule("", false);
+      scene = "play";
+      const t4 = countdownTimer(45, 38, 160);
+
+      // Rio weaves between coins
+      moveTo("Rio", 500, 320);
+      await sleep(500);
+      moveTo("Rio", 760, 340);
+      await sleep(500);
+      moveTo("Rio", 800, 480);
+      await sleep(500);
+      moveTo("Rio", 500, 500);
+      await sleep(500);
+      moveTo("Rio", 640, 400);
+      // Spawn a fool collector
+      players.push({
+        name: "Greed", x: 300, y: 400, tx: coins[0].x, ty: coins[0].y,
+        color: "#ffcc44", alive: true, you: false, bob: 1,
+      });
+      setAlive(2);
+      await sleep(800);
+      coins[0].alive = false;
+      spawnBurst(coins[0].x, coins[0].y, "#ff4040", 24);
+      eliminate("Greed", "Collected a forbidden coin");
+      await toast("💀 Coin was a trap!");
+      await t4;
+
+      ui.twistH.textContent = "ROUND 4 COMPLETE ✅";
+      ui.twistT.textContent = "😱 Every coin killed — avoiding them was survival!";
+      ui.twistS.textContent = "Survivors: ✅ Rio";
+      ui.twist.classList.add("show");
+      await sleep(1600);
+      ui.twist.classList.remove("show");
+
+      // ===== ROUND 5: SWAP =====
+      mapName = "swap";
+      scene = "reveal";
+      ui.caption.textContent = "Round 5 · Zones swap mid-round";
+      ui.left.textContent = "ROUND 5 of 5";
+      zones = {
+        red: { x: 180, y: 260, w: 400, h: 300 },
+        blue: { x: 700, y: 260, w: 400, h: 300 },
+        safe: "BLUE",
+      };
+      makePlayers(["Rio"], [{ x: 900, y: 400 }]);
+      setAlive(1);
+      flashRule("STAY IN THE BLUE ZONE ✅", true);
+      await sleep(1400);
+      flashRule("", false);
+      scene = "play";
+      setTimer(60);
+      await sleep(800);
+
+      // Show swap warning + move
+      flashRule("⚠️ ZONES SWAPPING — MOVE NOW!", true);
+      zones.safe = "BLUE";
+      await sleep(1000);
+      flashRule("", false);
+      zones.safe = "RED";
+      ui.caption.textContent = "Safe zone is now RED";
+      moveTo("Rio", 360, 400);
+      spawnBurst(640, 400, "#ffffff", 30);
+      await sleep(1200);
+
+      // Fool stays on blue and dies
+      players.push({
+        name: "Stuck", x: 900, y: 420, tx: 900, ty: 420,
+        color: "#8899ff", alive: true, you: false, bob: 0,
+      });
+      setAlive(2);
+      await sleep(700);
+      eliminate("Stuck", "Could not adapt in time");
+      await toast("💀 Stuck stayed on blue after swap");
+      setTimer(20);
+      await sleep(900);
+
+      ui.twistH.textContent = "ROUND 5 COMPLETE ✅";
+      ui.twistT.textContent = "😱 Zones swapped — adapt or die!";
+      ui.twistS.textContent = "Survivors: ✅ Rio";
+      ui.twist.classList.add("show");
+      await sleep(1600);
+      ui.twist.classList.remove("show");
+
+      // WINNER
+      scene = "win";
+      ui.caption.textContent = "Game over";
+      ui.winner.classList.add("show");
+      ui.winH.textContent = "🏆 RIO WINS!";
+      await sleep(2800);
       document.body.dataset.demoDone = "1";
     }
 
-    runDemo();
+    run().catch((e) => {
+      console.error(e);
+      document.body.dataset.demoDone = "1";
+    });
   </script>
 </body>
 </html>
