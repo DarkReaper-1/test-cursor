@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO } from "./data.js";
+import { BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO, WEAPONS } from "./data.js";
 import { AudioBus } from "./audio.js";
 import { buildWorld, playerCollides, spawnHitSparks, createBoss, createAdd } from "./world.js";
 import {
   createDust, updateDust, createProjectile, spawnDamageNumber, updateFloating,
-  spawnBulletHole, spawnShell, updatePhysicsBits,
+  spawnBulletHole, spawnShell, updatePhysicsBits, spawnBlood,
 } from "./fx.js";
 
 const $ = (s) => document.querySelector(s);
@@ -14,10 +14,15 @@ const state = {
   playing: false,
   locked: false,
   health: 100,
-  ammo: 12,
-  reserve: 48,
+  weapon: "pistol",
+  hasShotgun: false,
+  weapons: {
+    pistol: { ammo: 12, reserve: 48 },
+    shotgun: { ammo: 6, reserve: 18 },
+  },
   reloading: false,
   reloadT: 0,
+  reloadDuration: 0.85,
   clues: new Set(),
   kills: 0,
   startTime: 0,
@@ -28,6 +33,7 @@ const state = {
   journalOpen: false,
   journalTab: "evidence",
   flashlightOn: true,
+  battery: 100,
   aiming: false,
   crouching: false,
   shake: 0,
@@ -35,6 +41,7 @@ const state = {
   spread: 0,
   fov: 72,
   studyUnlocked: false,
+  studyDoorT: 0,
   bossSpawned: false,
   bossDefeated: false,
   radioFired: new Set(),
@@ -45,6 +52,8 @@ const state = {
   lookSwayX: 0,
   lookSwayY: 0,
   standY: 1.65,
+  timeScale: 1,
+  slowMoT: 0,
 };
 
 const keys = {};
@@ -92,10 +101,39 @@ function showRoomBanner(name) {
   }, 1600);
 }
 
+function currentWeapon() {
+  return WEAPONS[state.weapon];
+}
+
+function currentMag() {
+  return state.weapons[state.weapon];
+}
+
+function switchWeapon(id) {
+  if (id === "shotgun" && !state.hasShotgun) {
+    toast("Shotgun not recovered yet — check the kitchen");
+    return;
+  }
+  if (state.reloading) return;
+  if (state.weapon === id) return;
+  // save current? already in state.weapons
+  state.weapon = id;
+  const root = world.weapon;
+  root.userData.pistol.visible = id === "pistol";
+  root.userData.shotgun.visible = id === "shotgun";
+  root.userData.muzzle = id === "shotgun" ? root.userData.shotgun.userData.muzzle : root.userData.pistol.userData.muzzle;
+  audio.click();
+  toast(WEAPONS[id].name);
+  updateHUD();
+}
+
 function updateHUD() {
+  const mag = currentMag();
+  const wpn = currentWeapon();
   $("#health-fill").style.width = `${Math.max(0, state.health)}%`;
-  $("#ammo-count").textContent = state.ammo;
-  $("#ammo-reserve").textContent = state.reserve;
+  $("#ammo-count").textContent = mag.ammo;
+  $("#ammo-reserve").textContent = mag.reserve;
+  $("#weapon-name").textContent = wpn.ammoLabel;
   $("#clue-stat").textContent = `Evidence ${state.clues.size}/8`;
   $("#kill-stat").textContent = `Hostiles ${state.kills}`;
   const acc = state.shotsFired ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0;
@@ -106,6 +144,9 @@ function updateHUD() {
   const flash = $("#flash-stat");
   flash.textContent = state.flashlightOn ? "🔦 ON" : "🔦 OFF";
   flash.className = state.flashlightOn ? "flash-on" : "flash-off";
+  const bat = $("#battery-fill");
+  bat.style.width = `${Math.max(0, state.battery)}%`;
+  bat.classList.toggle("low", state.battery < 25);
 
   if (state.bossSpawned && !state.bossDefeated) setObjective("Confront Elena Voss in the ballroom.");
   else if (state.clues.size >= 5) setObjective("Open journal (Tab) and accuse — or face her.");
@@ -205,63 +246,94 @@ function onMouseUp(e) {
 }
 
 function toggleFlashlight() {
+  if (state.battery <= 0 && !state.flashlightOn) {
+    toast("Lamp dead — wait for charge");
+    return;
+  }
   state.flashlightOn = !state.flashlightOn;
-  if (world.flashlight) world.flashlight.intensity = state.flashlightOn ? 2.8 : 0;
+  syncFlashlight();
   audio.click();
   updateHUD();
 }
 
+function syncFlashlight() {
+  if (!world.flashlight) return;
+  if (!state.flashlightOn || state.battery <= 0) {
+    world.flashlight.intensity = 0;
+    if (state.battery <= 0) state.flashlightOn = false;
+  } else {
+    world.flashlight.intensity = 1.2 + (state.battery / 100) * 1.8;
+  }
+}
+
+function alertNearby(radius = 14) {
+  world.enemies.forEach((e) => {
+    if (!e.userData.alive || e.userData.dying) return;
+    const dist = e.position.distanceTo(camera.position);
+    const hear = e.userData.hearRadius || radius;
+    if (dist < hear * 0.7) e.userData.alert = "combat";
+    else if (dist < hear && e.userData.alert === "patrol") e.userData.alert = "suspicious";
+  });
+}
+
 function fire() {
   if (state.modalOpen || state.journalOpen || state.reloading || shootCooldown > 0) return;
-  if (state.ammo <= 0) {
+  const wpn = currentWeapon();
+  const mag = currentMag();
+  if (mag.ammo <= 0) {
     toast("Empty — press R to reload");
     audio.tone(90, 0.05, "square", 0.03);
     return;
   }
 
-  state.ammo--;
-  state.shotsFired++;
-  shootCooldown = state.aiming ? 0.2 : 0.15;
-  world.weapon.userData.recoil = state.aiming ? 0.06 : 0.14;
-  state.shake = state.aiming ? 0.02 : 0.045;
-  state.spread = Math.min(18, state.spread + (state.aiming ? 3 : 8));
-  audio.gunshot();
+  mag.ammo--;
+  state.shotsFired += wpn.pellets;
+  shootCooldown = state.aiming ? wpn.adsFireRate : wpn.fireRate;
+  world.weapon.userData.recoil = state.aiming ? wpn.adsRecoil : wpn.recoil;
+  state.shake = state.aiming ? 0.02 : wpn.id === "shotgun" ? 0.08 : 0.045;
+  state.spread = Math.min(22, state.spread + (wpn.id === "shotgun" ? 12 : state.aiming ? 3 : 8));
+  if (wpn.id === "shotgun") audio.shotgun();
+  else audio.gunshot();
+  alertNearby(16);
 
   if (world.weapon.userData.muzzle) {
-    world.weapon.userData.muzzle.intensity = 3.5;
-    setTimeout(() => { if (world.weapon.userData.muzzle) world.weapon.userData.muzzle.intensity = 0; }, 40);
+    world.weapon.userData.muzzle.intensity = wpn.id === "shotgun" ? 5 : 3.5;
+    setTimeout(() => { if (world.weapon.userData.muzzle) world.weapon.userData.muzzle.intensity = 0; }, 45);
   }
   $("#muzzle-flash").classList.add("flash");
   setTimeout(() => $("#muzzle-flash").classList.remove("flash"), 45);
 
-  // Eject casing to the right
   const right = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw));
   const shellOrigin = camera.position.clone().add(new THREE.Vector3(0, -0.1, 0)).addScaledVector(right, 0.25);
   shells.push(spawnShell(scene, shellOrigin, right));
   updateHUD();
 
-  // Bloom / ADS accuracy
-  const bloom = state.aiming ? 0.004 : 0.004 + state.spread * 0.0012;
-  const ray = new THREE.Raycaster();
-  const ndc = new THREE.Vector2(
-    (Math.random() - 0.5) * bloom * 20,
-    (Math.random() - 0.5) * bloom * 20
-  );
-  ray.setFromCamera(ndc, camera);
-  const targets = world.enemies.filter((e) => e.userData.alive && !e.userData.dying);
-  const hits = ray.intersectObjects([...targets, ...world.colliders], true);
-  if (hits.length && hits[0].distance < 32) {
+  const pellets = wpn.pellets;
+  let hitSomething = false;
+  for (let i = 0; i < pellets; i++) {
+    const bloom = (state.aiming ? 0.003 : 0.004 + state.spread * 0.001) * (wpn.id === "shotgun" ? 3.5 : 1);
+    const ray = new THREE.Raycaster();
+    const ndc = new THREE.Vector2(
+      (Math.random() - 0.5) * bloom * 20,
+      (Math.random() - 0.5) * bloom * 20
+    );
+    ray.setFromCamera(ndc, camera);
+    const targets = world.enemies.filter((e) => e.userData.alive && !e.userData.dying);
+    const hits = ray.intersectObjects([...targets, ...world.colliders], true);
+    if (!hits.length || hits[0].distance > wpn.range) continue;
     let obj = hits[0].object;
     while (obj.parent && !obj.userData?.kind) obj = obj.parent;
     if (obj.userData?.kind === "enemy") {
       const headY = obj.userData.boss ? 2.1 : 1.7;
       const headshot = hits[0].point.y - obj.position.y > headY;
       state.shotsHit++;
-      damageEnemy(obj, headshot ? 2 : 1, hits[0].point, headshot);
+      hitSomething = true;
+      damageEnemy(obj, headshot ? 2 : wpn.damage, hits[0].point, headshot);
     } else {
       decals.push(spawnBulletHole(scene, hits[0].point, hits[0].face?.normal));
     }
   }
+  if (hitSomething) updateHUD();
 }
 
 function melee() {
@@ -303,8 +375,10 @@ function damageEnemy(enemy, dmg, point, headshot = false) {
 
   if (point) {
     sparks.push(spawnHitSparks(scene, point));
+    sparks.push(spawnBlood(scene, point));
     floaters.push(spawnDamageNumber(scene, point, headshot ? `${dmg} HS` : `${dmg}`, headshot ? "#ffee88" : "#ffcc66"));
   }
+  enemy.userData.alert = "combat";
 
   const away = enemy.position.clone().sub(camera.position);
   away.y = 0;
@@ -329,6 +403,8 @@ function beginDeath(enemy, headshot) {
   state.kills++;
   if (enemy.userData.boss) {
     state.bossDefeated = true;
+    state.timeScale = 0.35;
+    state.slowMoT = 1.4;
     toast("Elena is down — open your journal and accuse.");
     setObjective("Open journal (Tab) and make your accusation.");
   } else {
@@ -357,19 +433,24 @@ function triggerBossPhase2() {
 }
 
 function reload() {
-  if (state.reloading || state.ammo === 12 || state.reserve <= 0) return;
+  const wpn = currentWeapon();
+  const mag = currentMag();
+  if (state.reloading || mag.ammo === wpn.magSize || mag.reserve <= 0) return;
   state.reloading = true;
-  state.reloadT = 0.85;
+  state.reloadDuration = wpn.id === "shotgun" ? 1.35 : 0.85;
+  state.reloadT = state.reloadDuration;
   audio.reload();
   $("#reload-bar").classList.remove("hidden");
   toast("Reloading...");
 }
 
 function finishReload() {
-  const need = 12 - state.ammo;
-  const take = Math.min(need, state.reserve);
-  state.ammo += take;
-  state.reserve -= take;
+  const wpn = currentWeapon();
+  const mag = currentMag();
+  const need = wpn.magSize - mag.ammo;
+  const take = Math.min(need, mag.reserve);
+  mag.ammo += take;
+  mag.reserve -= take;
   state.reloading = false;
   $("#reload-bar").classList.add("hidden");
   updateHUD();
@@ -413,15 +494,26 @@ function updateCompass() {
 function unlockStudy() {
   if (state.studyUnlocked) return;
   state.studyUnlocked = true;
+  state.studyDoorT = 1.2;
   if (world.studyDoor) {
-    world.studyDoor.visible = false;
     const idx = world.colliders.indexOf(world.studyDoor);
     if (idx >= 0) world.colliders.splice(idx, 1);
+    world.studyDoor.userData.openFrom = world.studyDoor.position.z;
   }
   if (world.studySeal) world.studySeal.visible = false;
   audio.unlock();
   toast("Study door unsealed");
   pushRadio("HQ: Study seal broken. Check the will.");
+}
+
+function updateStudyDoor(dt) {
+  if (!state.studyUnlocked || !world.studyDoor || state.studyDoorT <= 0) return;
+  state.studyDoorT -= dt;
+  // Swing open around hinge — slide + rotate
+  world.studyDoor.rotation.y = Math.min(1.4, world.studyDoor.rotation.y + dt * 1.4);
+  world.studyDoor.position.x = 6 + Math.sin(world.studyDoor.rotation.y) * 0.8;
+  world.studyDoor.position.z = 2 + (1 - Math.cos(world.studyDoor.rotation.y)) * 0.6;
+  if (state.studyDoorT <= 0) world.studyDoor.visible = false;
 }
 
 function maybeSpawnBoss() {
@@ -564,14 +656,34 @@ function updatePickups() {
       if (p.type === "health") {
         state.health = Math.min(100, state.health + p.amount);
         toast(`+${p.amount} Vital`);
+      } else if (p.type === "shotgun") {
+        state.hasShotgun = true;
+        state.weapons.shotgun.ammo = WEAPONS.shotgun.magSize;
+        state.weapons.shotgun.reserve = WEAPONS.shotgun.reserveStart;
+        toast("Remington 870 — press 2");
+        switchWeapon("shotgun");
       } else {
-        state.reserve += p.amount;
+        state.weapons.pistol.reserve += p.amount;
+        if (state.hasShotgun) state.weapons.shotgun.reserve += Math.ceil(p.amount / 2);
         toast(`+${p.amount} rounds`);
       }
       audio.itemGet();
       updateHUD();
     }
   }
+}
+
+function updateBattery(dt) {
+  if (state.flashlightOn && state.battery > 0) {
+    state.battery = Math.max(0, state.battery - dt * 4.2);
+    if (state.battery <= 0) {
+      state.flashlightOn = false;
+      toast("Lamp dead — wait for charge");
+    }
+  } else if (!state.flashlightOn && state.battery < 100) {
+    state.battery = Math.min(100, state.battery + dt * 12);
+  }
+  syncFlashlight();
 }
 
 function updatePlayer(dt) {
@@ -664,7 +776,7 @@ function updatePlayer(dt) {
 
   if (state.reloading) {
     state.reloadT -= dt;
-    const pct = Math.max(0, 1 - state.reloadT / 0.85) * 100;
+    const pct = Math.max(0, 1 - state.reloadT / state.reloadDuration) * 100;
     $("#reload-fill").style.width = `${pct}%`;
     if (state.reloadT <= 0) finishReload();
   }
@@ -706,7 +818,7 @@ function updateEnemies(dt) {
     e.userData.bob += dt * 5;
     e.userData.stagger = Math.max(0, e.userData.stagger - dt);
 
-    const swing = Math.sin(e.userData.bob) * 0.35;
+    const swing = Math.sin(e.userData.bob) * (e.userData.alert === "patrol" ? 0.18 : 0.35);
     if (e.userData.armL) e.userData.armL.rotation.x = swing;
     if (e.userData.armR) e.userData.armR.rotation.x = -swing;
     if (e.userData.legL) e.userData.legL.rotation.x = -swing;
@@ -717,25 +829,82 @@ function updateEnemies(dt) {
       e.userData.hurtFlash -= dt;
       e.userData.eyes?.forEach((eye) => eye.material.color.setHex(0xffffff));
     } else {
-      e.userData.eyes?.forEach((eye) => eye.material.color.setHex(eyeIdle));
+      e.userData.eyes?.forEach((eye) => eye.material.color.setHex(
+        e.userData.alert === "combat" ? eyeIdle : 0x446688
+      ));
     }
 
     const toPlayer = playerPos.clone().sub(e.position);
     toPlayer.y = 0;
     const dist = toPlayer.length();
-    if (dist > 22) return;
+    if (dist > 26) return;
 
+    // Acquire target: sight cone, proximity, or flashlight glare
+    if (e.userData.alert !== "combat") {
+      const seeR = e.userData.seeRadius || 14;
+      const hearR = e.userData.hearRadius || 12;
+      const fwd = new THREE.Vector3(Math.sin(e.userData.patrolAngle), 0, Math.cos(e.userData.patrolAngle));
+      const dir = toPlayer.clone().normalize();
+      const facing = fwd.dot(dir);
+      const lit = state.flashlightOn && dist < 9;
+      if (dist < 2.4 || (dist < seeR && facing > 0.35) || (lit && dist < 7 && facing > 0.1)) {
+        e.userData.alert = "combat";
+      } else if (e.userData.alert === "suspicious" || (dist < hearR * 0.45 && state.flashlightOn)) {
+        e.userData.alert = "suspicious";
+      }
+    }
+
+    if (e.userData.alert === "patrol") {
+      e.userData.patrolT = (e.userData.patrolT || 0) + dt;
+      if (e.userData.patrolT > 2.6) {
+        e.userData.patrolT = 0;
+        e.userData.patrolAngle += (Math.random() - 0.5) * 1.8;
+      }
+      const home = e.userData.home || e.position;
+      const hx = home.x + Math.sin(e.userData.patrolAngle) * 1.8;
+      const hz = home.z + Math.cos(e.userData.patrolAngle) * 1.8;
+      const toHome = new THREE.Vector3(hx - e.position.x, 0, hz - e.position.z);
+      if (toHome.length() > 0.2) {
+        toHome.normalize().multiplyScalar(e.userData.speed * 0.35 * dt);
+        const next = e.position.clone().add(toHome);
+        if (!playerCollides(next, world.colliders, 0.4)) {
+          e.position.x = next.x;
+          e.position.z = next.z;
+        } else {
+          e.userData.patrolAngle += Math.PI * 0.55;
+        }
+      }
+      e.lookAt(
+        e.position.x + Math.sin(e.userData.patrolAngle),
+        e.position.y,
+        e.position.z + Math.cos(e.userData.patrolAngle)
+      );
+      return;
+    }
+
+    if (e.userData.alert === "suspicious") {
+      e.lookAt(playerPos.x, e.position.y, playerPos.z);
+      e.userData.patrolAngle = Math.atan2(toPlayer.x, toPlayer.z);
+      if (dist < (e.userData.seeRadius || 14) * 0.7) e.userData.alert = "combat";
+      const step = toPlayer.normalize().multiplyScalar(e.userData.speed * 0.55 * dt);
+      const next = e.position.clone().add(step);
+      if (!playerCollides(next, world.colliders, 0.4)) {
+        e.position.x = next.x;
+        e.position.z = next.z;
+      }
+      return;
+    }
+
+    // Combat
     e.lookAt(playerPos.x, e.position.y, playerPos.z);
     if (e.userData.stagger > 0) return;
 
-    // Ranged fire
     if (e.userData.ranged && dist > 3 && dist < 16) {
       e.userData.shootCd -= dt;
       if (e.userData.shootCd <= 0) {
         e.userData.shootCd = e.userData.boss ? 0.7 : 1.4 + Math.random() * 0.6;
         const origin = e.position.clone().add(new THREE.Vector3(0, 1.5, 0));
         const dir = playerPos.clone().sub(origin);
-        // slight inaccuracy
         dir.x += (Math.random() - 0.5) * 0.4;
         dir.y += (Math.random() - 0.5) * 0.2;
         dir.z += (Math.random() - 0.5) * 0.4;
@@ -952,13 +1121,24 @@ function endGame(won, text) {
 
 function loop() {
   requestAnimationFrame(loop);
-  const dt = Math.min(clock.getDelta(), 0.05);
+  let dt = Math.min(clock.getDelta(), 0.05);
+
+  if (state.slowMoT > 0) {
+    state.slowMoT -= dt;
+    if (state.slowMoT <= 0) {
+      state.slowMoT = 0;
+      state.timeScale = 1;
+    }
+  }
+  dt *= state.timeScale;
   shootCooldown = Math.max(0, shootCooldown - dt);
 
   if (state.playing) {
     updatePlayer(dt);
     updateEnemies(dt);
     updateProjectiles(dt);
+    updateBattery(dt);
+    updateStudyDoor(dt);
     updateRain(dt);
     updateDust(dust, dt, camera);
     updateSparks(dt);
@@ -968,6 +1148,18 @@ function loop() {
     updateMarkers(dt);
     updateStorm(dt);
     drawMinimap();
+
+    const nearCombat = world.enemies.some(
+      (e) => e.userData.alive && !e.userData.dying && e.userData.alert === "combat"
+        && e.position.distanceTo(camera.position) < 14
+    );
+    const tension = Math.min(
+      1,
+      (nearCombat ? 0.55 : 0.1)
+        + (1 - state.health / 100) * 0.3
+        + (state.bossSpawned && !state.bossDefeated ? 0.25 : 0)
+    );
+    audio.setTension(tension);
 
     world.lights.forEach((l, i) => {
       if (l === world.flashlight) return;
@@ -1067,9 +1259,15 @@ async function playBrief() {
 function startMission() {
   state.playing = true;
   state.health = 100;
-  state.ammo = 12;
-  state.reserve = 48;
+  state.weapon = "pistol";
+  state.hasShotgun = false;
+  state.weapons = {
+    pistol: { ammo: WEAPONS.pistol.magSize, reserve: WEAPONS.pistol.reserveStart },
+    shotgun: { ammo: 0, reserve: 0 },
+  };
   state.reloading = false;
+  state.reloadT = 0;
+  state.reloadDuration = 0.85;
   state.clues = new Set();
   state.kills = 0;
   state.startTime = Date.now();
@@ -1079,12 +1277,14 @@ function startMission() {
   state.modalOpen = false;
   state.journalOpen = false;
   state.flashlightOn = true;
+  state.battery = 100;
   state.aiming = false;
   state.crouching = false;
   state.shake = 0;
   state.spread = 0;
   state.fov = 72;
   state.studyUnlocked = false;
+  state.studyDoorT = 0;
   state.bossSpawned = false;
   state.bossDefeated = false;
   state.radioFired = new Set();
@@ -1093,11 +1293,16 @@ function startMission() {
   state.shotsFired = 0;
   state.shotsHit = 0;
   state.standY = 1.65;
+  state.timeScale = 1;
+  state.slowMoT = 0;
   camera.position.set(0, 1.65, 2);
   camera.fov = 72;
   camera.updateProjectionMatrix();
   world.weapon.position.set(0.22, -0.24, -0.4);
-  if (world.flashlight) world.flashlight.intensity = 2.8;
+  world.weapon.userData.pistol.visible = true;
+  world.weapon.userData.shotgun.visible = false;
+  world.weapon.userData.muzzle = world.weapon.userData.pistol.userData.muzzle;
+  syncFlashlight();
   boss = null;
   projectiles.splice(0).forEach((p) => scene.remove(p));
   $("#radio-log").innerHTML = "";
@@ -1105,7 +1310,10 @@ function startMission() {
   $("#boss-bar").classList.add("hidden");
 
   if (world.studyDoor) {
+    const lock = STUDY_LOCK.block;
     world.studyDoor.visible = true;
+    world.studyDoor.rotation.y = 0;
+    world.studyDoor.position.set(lock.x, lock.h / 2, lock.z);
     if (!world.colliders.includes(world.studyDoor)) world.colliders.push(world.studyDoor);
   }
   if (world.studySeal) world.studySeal.visible = true;
@@ -1127,11 +1335,18 @@ function startMission() {
     e.visible = true;
     e.rotation.x = 0;
     e.position.y = 0;
+    if (e.userData.home) {
+      e.position.x = e.userData.home.x;
+      e.position.z = e.userData.home.z;
+    }
     e.userData.alive = true;
     e.userData.dying = false;
     e.userData.hp = e.userData.maxHp || 4;
     e.userData.stagger = 0;
     e.userData.shootCd = 0.5;
+    e.userData.alert = e.userData.boss ? "combat" : "patrol";
+    e.userData.patrolT = Math.random() * 3;
+    e.userData.patrolAngle = Math.random() * Math.PI * 2;
     if (e.userData.boss) {
       e.userData.phase = 1;
       e.userData.summoned = false;
@@ -1219,6 +1434,8 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyR") reload();
   if (e.code === "KeyF") toggleFlashlight();
   if (e.code === "KeyV") melee();
+  if (e.code === "Digit1" || e.code === "Numpad1") switchWeapon("pistol");
+  if (e.code === "Digit2" || e.code === "Numpad2") switchWeapon("shotgun");
   if (e.code === "Tab") { e.preventDefault(); toggleJournal(); }
   if (e.code === "Escape" && state.journalOpen) toggleJournal();
 });

@@ -34,6 +34,26 @@ export function updateDust(dust, dt, cam) {
   dust.geometry.attributes.position.needsUpdate = true;
 }
 
+export function spawnBlood(scene, point) {
+  const group = new THREE.Group();
+  for (let i = 0; i < 10; i++) {
+    const p = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035 + Math.random() * 0.03, 4, 4),
+      new THREE.MeshBasicMaterial({ color: 0x8b1528, transparent: true, opacity: 0.9 })
+    );
+    p.position.copy(point);
+    p.userData.vel = new THREE.Vector3(
+      (Math.random() - 0.5) * 4,
+      Math.random() * 2.5,
+      (Math.random() - 0.5) * 4
+    );
+    p.userData.life = 0.45 + Math.random() * 0.2;
+    group.add(p);
+  }
+  scene.add(group);
+  return group;
+}
+
 export function createProjectile(origin, direction) {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(0.08, 6, 6),

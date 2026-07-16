@@ -26,6 +26,7 @@
           <span><kbd>RMB</kbd> Aim</span>
           <span><kbd>V</kbd> Melee</span>
           <span><kbd>C</kbd> Crouch</span>
+          <span><kbd>1</kbd>/<kbd>2</kbd> Weapons</span>
           <span><kbd>E</kbd> Examine</span>
           <span><kbd>R</kbd> Reload</span>
           <span><kbd>F</kbd> Flashlight</span>
@@ -94,10 +95,14 @@
           </div>
           <div id="reload-bar" class="reload-bar hidden"><div id="reload-fill"></div></div>
           <div class="ammo-block">
+            <span id="weapon-name" class="stat-label">.45 ACP</span>
             <span id="ammo-count">12</span>
             <span class="ammo-sep">/</span>
             <span id="ammo-reserve">36</span>
-            <span class="stat-label">.45 ACP</span>
+            <div class="battery-wrap">
+              <span class="stat-label">Lamp</span>
+              <div class="bar battery"><div id="battery-fill"></div></div>
+            </div>
           </div>
         </div>
 

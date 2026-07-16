@@ -134,6 +134,34 @@ export class AudioBus {
     this.tone(200, 0.08, "triangle", 0.05, 0.02);
   }
 
+  shotgun() {
+    if (!this.ctx || !this.enabled) return;
+    this.gunshot();
+    this.tone(60, 0.2, "sawtooth", 0.12);
+    this.tone(40, 0.25, "square", 0.08, 0.02);
+  }
+
+  setTension(level) {
+    // level 0..1
+    if (!this.ctx || !this.enabled) return;
+    if (!this._tension) {
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = "sawtooth";
+      o.frequency.value = 45;
+      g.gain.value = 0.0001;
+      o.connect(g);
+      g.connect(this.master);
+      o.start();
+      this._tension = { o, g };
+    }
+    const target = 0.0001 + level * 0.05;
+    const now = this.ctx.currentTime;
+    this._tension.g.gain.cancelScheduledValues(now);
+    this._tension.g.gain.linearRampToValueAtTime(target, now + 0.3);
+    this._tension.o.frequency.linearRampToValueAtTime(40 + level * 35, now + 0.3);
+  }
+
   startAmbience() {
     if (!this.ctx || !this.enabled || this._amb) return;
     const bufferSize = this.ctx.sampleRate * 2;

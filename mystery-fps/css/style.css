@@ -457,6 +457,17 @@ kbd {
 #ammo-count { font-size: 2.4rem; line-height: 1; }
 .ammo-sep { color: var(--dim); font-size: 1.4rem; margin: 0 0.2rem; }
 #ammo-reserve { font-size: 1.4rem; color: var(--dim); }
+#weapon-name { margin-bottom: 0.15rem; color: var(--accent); }
+
+.battery-wrap { margin-top: 0.45rem; }
+.battery-wrap .bar { width: 100px; margin-left: auto; height: 4px; }
+#battery-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #3a6a8a, #c9a14a);
+  transition: width 0.2s, background 0.2s;
+}
+#battery-fill.low { background: linear-gradient(90deg, #8a2030, #c43d4f); }
 
 #damage-vignette {
   position: absolute;

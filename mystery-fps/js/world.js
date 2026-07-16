@@ -88,6 +88,7 @@ function enemyStats(e, overrides = {}) {
     hp: def.hp,
     maxHp: def.hp,
     speed: def.speed,
+    baseSpeed: def.speed,
     meleeDmg: def.dmg,
     cooldown: 0,
     shootCd: 0.5 + Math.random(),
@@ -98,6 +99,12 @@ function enemyStats(e, overrides = {}) {
     ranged: def.ranged,
     dying: false,
     deathT: 0,
+    alert: "patrol", // patrol | suspicious | combat
+    home: e.position.clone(),
+    patrolAngle: Math.random() * Math.PI * 2,
+    patrolT: Math.random() * 3,
+    hearRadius: 12,
+    seeRadius: 14,
     ...overrides,
   });
   return e;
@@ -112,10 +119,12 @@ export function createBoss(scene) {
     hp: 22,
     maxHp: 22,
     speed: 2.8,
+    baseSpeed: 2.8,
     meleeDmg: 18,
     ranged: true,
     phase: 1,
     summoned: false,
+    alert: "combat",
   });
   scene.add(e);
   return e;
@@ -124,12 +133,12 @@ export function createBoss(scene) {
 export function createAdd(scene, x, z, type = "runner") {
   const e = makeEnemy({ type });
   e.position.set(x, 0, z);
-  enemyStats(e, { add: true });
+  enemyStats(e, { add: true, alert: "combat" });
   scene.add(e);
   return e;
 }
 
-function makeWeapon() {
+function makePistol() {
   const w = new THREE.Group();
   const metal = applyMap(boxMat(0x2a3038, { metalness: 0.6, roughness: 0.35 }), TEX.metal, 1);
   const dark = boxMat(0x111418, { metalness: 0.5, roughness: 0.4 });
@@ -146,7 +155,28 @@ function makeWeapon() {
   muzzle.position.set(0, 0, -0.5);
 
   w.add(slide, barrel, grip, trigger, sight, muzzle);
-  w.userData = { recoil: 0, muzzle, baseY: -0.22 };
+  w.userData = { recoil: 0, muzzle, id: "pistol" };
+  w.visible = true;
+  return w;
+}
+
+function makeShotgun() {
+  const w = new THREE.Group();
+  const metal = applyMap(boxMat(0x3a4038, { metalness: 0.55, roughness: 0.4 }), TEX.metal, 1);
+  const wood = applyMap(boxMat(0x3a2818), TEX.wood, 1);
+  const dark = boxMat(0x151820, { metalness: 0.5, roughness: 0.4 });
+
+  const receiver = mesh(new THREE.BoxGeometry(0.14, 0.16, 0.45), metal, 0, 0, -0.05);
+  const barrel = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.55, 10), dark, 0, 0.02, -0.55);
+  barrel.rotation.x = Math.PI / 2;
+  const stock = mesh(new THREE.BoxGeometry(0.12, 0.14, 0.35), wood, 0, -0.05, 0.28);
+  const pump = mesh(new THREE.BoxGeometry(0.1, 0.1, 0.2), wood, 0, -0.02, -0.35);
+  const muzzle = new THREE.PointLight(0xff9944, 0, 3);
+  muzzle.position.set(0, 0, -0.85);
+
+  w.add(receiver, barrel, stock, pump, muzzle);
+  w.userData = { recoil: 0, muzzle, id: "shotgun" };
+  w.visible = false;
   return w;
 }
 
@@ -337,26 +367,25 @@ export function buildWorld(scene) {
   // Pickups (medkits / ammo)
   PICKUPS.forEach((p) => {
     const isHealth = p.type === "health";
-    const m = box(
-      0.35, 0.25, 0.35,
-      isHealth ? 0x2a6a40 : 0x3a3a20,
-      p.x, 0.35, p.z,
-      { emissive: isHealth ? 0x114422 : 0x332200, emissiveIntensity: 0.5 }
+    const isShotgun = p.type === "shotgun";
+    const color = isHealth ? 0x2a6a40 : isShotgun ? 0x4a3820 : 0x3a3a20;
+    const emissive = isHealth ? 0x114422 : isShotgun ? 0x3a2810 : 0x332200;
+    const m = box(isShotgun ? 0.55 : 0.35, 0.25, isShotgun ? 0.2 : 0.35, color, p.x, 0.35, p.z, {
+      emissive, emissiveIntensity: 0.55,
+    });
+    const cross = box(
+      isShotgun ? 0.4 : 0.25, 0.06, 0.06,
+      isHealth ? 0xff4444 : ACCENT,
+      p.x, 0.5, p.z
     );
-    const cross = box(0.25, 0.06, 0.06, isHealth ? 0xff4444 : ACCENT, p.x, 0.5, p.z);
-    const group = new THREE.Group();
-    group.add(m, cross);
-    group.position.set(0, 0, 0);
-    // Keep meshes in world; store ref
     scene.add(m, cross);
-    const pickup = {
+    pickups.push({
       type: p.type,
       amount: p.amount,
       meshes: [m, cross],
       position: new THREE.Vector3(p.x, 0.35, p.z),
       taken: false,
-    };
-    pickups.push(pickup);
+    });
   });
 
   // Locked study door (removed when library body is examined)
@@ -377,10 +406,15 @@ export function buildWorld(scene) {
     enemies.push(e);
   });
 
-  const weapon = makeWeapon();
+  const pistol = makePistol();
+  const shotgun = makeShotgun();
+  const weaponRoot = new THREE.Group();
+  weaponRoot.add(pistol, shotgun);
+  weaponRoot.userData = { recoil: 0, muzzle: pistol.userData.muzzle, pistol, shotgun };
 
   return {
-    colliders, interactables, enemies, lights, weapon, flashlight, pickups, fx,
+    colliders, interactables, enemies, lights,
+    weapon: weaponRoot, flashlight, pickups, fx,
     studyDoor, studySeal: seal, projectiles: [],
   };
 }

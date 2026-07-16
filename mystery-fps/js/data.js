@@ -107,6 +107,23 @@ export const ENEMY_SPAWNS = [
   { x: -8, z: 10, type: "shooter" },
 ];
 
+export const WEAPONS = {
+  pistol: {
+    id: "pistol", name: ".45 ACP",
+    magSize: 12, reserveStart: 48,
+    fireRate: 0.15, adsFireRate: 0.2,
+    damage: 1, pellets: 1, range: 32,
+    recoil: 0.14, adsRecoil: 0.06, spreadLabel: ".45 ACP",
+  },
+  shotgun: {
+    id: "shotgun", name: "12-GAUGE",
+    magSize: 6, reserveStart: 18,
+    fireRate: 0.7, adsFireRate: 0.85,
+    damage: 1, pellets: 6, range: 14,
+    recoil: 0.28, adsRecoil: 0.18, rangeLabel: "12-GA",
+  },
+};
+
 export const PICKUPS = [
   { type: "health", amount: 25, x: -3, z: 0 },
   { type: "ammo", amount: 12, x: 3, z: 2 },
@@ -115,6 +132,7 @@ export const PICKUPS = [
   { type: "ammo", amount: 12, x: -7, z: 15 },
   { type: "health", amount: 25, x: 10, z: 15 },
   { type: "ammo", amount: 12, x: 6, z: 25 },
+  { type: "shotgun", amount: 1, x: -5, z: 10 },
 ];
 
 /** Study door unlocks after securing the library body clue */
