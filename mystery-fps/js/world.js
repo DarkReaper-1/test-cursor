@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import { INTERACTABLES, ENEMY_SPAWNS } from "./data.js";
 
-const WALL = 0x1a1f28;
-const FLOOR = 0x12161c;
-const WOOD = 0x2a2118;
+const WALL = 0x2a3340;
+const FLOOR = 0x1c222c;
+const WOOD = 0x3a2e22;
 const ACCENT = 0xc9a14a;
-const TRIM = 0x3a3028;
+const TRIM = 0x4a4034;
 
 function box(w, h, d, color, x, y, z, matOpts = {}) {
   const geo = new THREE.BoxGeometry(w, h, d);
@@ -38,13 +38,16 @@ export function buildWorld(scene) {
   const enemies = [];
   const lights = [];
 
-  scene.background = new THREE.Color(0x05070a);
-  scene.fog = new THREE.FogExp2(0x080c12, 0.045);
+  scene.background = new THREE.Color(0x0a1018);
+  scene.fog = new THREE.FogExp2(0x0c1420, 0.018);
 
-  const hemi = new THREE.HemisphereLight(0x4a5568, 0x0a0806, 0.35);
+  const hemi = new THREE.HemisphereLight(0x9aabb8, 0x2a2018, 0.85);
   scene.add(hemi);
 
-  const moon = new THREE.DirectionalLight(0x8aa0c0, 0.35);
+  const ambient = new THREE.AmbientLight(0x3a4555, 0.45);
+  scene.add(ambient);
+
+  const moon = new THREE.DirectionalLight(0xc0d0e8, 0.7);
   moon.position.set(-20, 30, 10);
   moon.castShadow = true;
   moon.shadow.mapSize.set(1024, 1024);
@@ -147,13 +150,19 @@ export function buildWorld(scene) {
     [4, 2.5, 24, 0x88aacc, 4],
   ];
   lampPoints.forEach(([x, y, z, color, dist]) => {
-    const l = new THREE.PointLight(color, 1.2, dist, 2);
+    const l = new THREE.PointLight(color, 2.4, dist + 4, 1.4);
     l.position.set(x, y, z);
     scene.add(l);
     lights.push(l);
-    const bulb = box(0.15, 0.15, 0.15, color, x, y, z, { emissive: color, emissiveIntensity: 0.8, roughness: 0.2 });
+    const bulb = box(0.15, 0.15, 0.15, color, x, y, z, { emissive: color, emissiveIntensity: 1.2, roughness: 0.2 });
     scene.add(bulb);
   });
+
+  // Player flashlight (attached later to camera via return)
+  const flashlight = new THREE.SpotLight(0xffe6c0, 2.2, 18, Math.PI / 5.5, 0.35, 1);
+  flashlight.position.set(0, 0, 0);
+  flashlight.target.position.set(0, 0, -1);
+  lights.push(flashlight);
 
   // Interactable markers
   INTERACTABLES.forEach((item) => {
@@ -220,7 +229,7 @@ export function buildWorld(scene) {
   weapon.add(grip, slide, barrel);
   weapon.userData = { recoil: 0 };
 
-  return { colliders, interactables, enemies, lights, weapon };
+  return { colliders, interactables, enemies, lights, weapon, flashlight };
 }
 
 export function playerCollides(pos, colliders, radius = 0.35) {

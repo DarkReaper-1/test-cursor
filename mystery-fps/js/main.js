@@ -77,7 +77,7 @@ function initEngine() {
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.35;
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.08, 120);
@@ -86,6 +86,11 @@ function initEngine() {
   clock = new THREE.Clock();
   world = buildWorld(scene);
   camera.add(world.weapon);
+  if (world.flashlight) {
+    camera.add(world.flashlight);
+    camera.add(world.flashlight.target);
+    world.flashlight.target.position.set(0, 0, -1);
+  }
   scene.add(camera);
 
   // Rain particles
@@ -461,102 +466,82 @@ async function runDemo() {
     await wait(ms);
     keys[code] = false;
   };
-  const turn = async (dyaw, ms) => {
+  const turnTo = async (yaw, ms = 500) => {
+    const start = state.yaw;
     const steps = Math.max(1, Math.floor(ms / 16));
-    for (let i = 0; i < steps; i++) {
-      state.yaw += dyaw / steps;
+    for (let i = 1; i <= steps; i++) {
+      state.yaw = start + ((yaw - start) * i) / steps;
       await wait(16);
     }
   };
+  const lookAt = (x, z) => {
+    state.yaw = Math.atan2(-(x - camera.position.x), -(z - camera.position.z));
+    state.pitch = 0;
+  };
+  const takeClue = async (clueId) => {
+    const marker = world.interactables.find((m) => m.userData.clue === clueId);
+    if (!marker || state.clues.has(clueId)) return;
+    const clue = CLUES[clueId];
+    camera.position.set(marker.position.x, 1.65, marker.position.z + 1.4);
+    lookAt(marker.position.x, marker.position.z);
+    await wait(500);
+    collectClue(clue, marker);
+    await wait(1100);
+    closeEvidence();
+    await wait(350);
+  };
 
-  // Walk to library
-  await turn(0.9, 600);
-  await hold("KeyW", 2200);
-  await turn(0.5, 400);
-  await hold("KeyW", 1600);
+  // Walk entrance → library doorway
+  await turnTo(Math.PI / 2, 700);
+  await hold("KeyW", 1800);
+  await turnTo(Math.PI, 500);
+  await hold("KeyW", 1200);
+  await wait(400);
 
-  // Collect library clues via proximity hack in demo
-  for (const marker of world.interactables) {
-    if (marker.userData.clue === "body" || marker.userData.clue === "letter") {
-      camera.position.set(marker.position.x, 1.65, marker.position.z + 1.2);
-      state.yaw = Math.PI;
-      await wait(400);
-      tryInteract();
-      await wait(900);
-      closeEvidence();
-      await wait(300);
-    }
-  }
+  await takeClue("body");
+  await takeClue("letter");
 
-  // Fight — face nearest enemy and shoot
+  // Engage a hostile
   const foe = world.enemies.find((e) => e.userData.alive);
   if (foe) {
-    camera.position.set(foe.position.x, 1.65, foe.position.z + 3);
-    state.yaw = Math.PI;
-    await wait(300);
+    camera.position.set(foe.position.x + 0.2, 1.65, foe.position.z + 3.2);
+    lookAt(foe.position.x, foe.position.z);
+    await wait(400);
     for (let i = 0; i < 4; i++) {
       fire();
-      await wait(220);
+      await wait(240);
     }
+    await wait(400);
   }
 
-  // Kitchen evidence
-  for (const marker of world.interactables) {
-    if (marker.userData.clue === "extract" || marker.userData.clue === "ledger") {
-      camera.position.set(marker.position.x, 1.65, marker.position.z + 1.1);
-      state.yaw = Math.PI;
-      await wait(350);
-      tryInteract();
-      await wait(900);
-      closeEvidence();
-      await wait(250);
-    }
-  }
+  await takeClue("extract");
+  await takeClue("ledger");
+  await takeClue("will");
+  await takeClue("safe");
+  await takeClue("prints");
+  await takeClue("champagne");
 
-  // Study
-  for (const marker of world.interactables) {
-    if (marker.userData.clue === "will" || marker.userData.clue === "safe") {
-      camera.position.set(marker.position.x - 1, 1.65, marker.position.z);
-      state.yaw = -Math.PI / 2;
-      await wait(350);
-      tryInteract();
-      await wait(900);
-      closeEvidence();
-      await wait(250);
-    }
-  }
-
-  // Garden + ballroom
-  for (const id of ["prints", "champagne"]) {
-    const marker = world.interactables.find((m) => m.userData.clue === id);
-    if (!marker) continue;
-    camera.position.set(marker.position.x, 1.65, marker.position.z + 1.2);
-    state.yaw = Math.PI;
-    await wait(350);
-    tryInteract();
-    await wait(900);
-    closeEvidence();
-  }
-
-  // Shoot remaining nearby
+  // Reload then clear hostiles
+  reload();
+  await wait(1000);
   for (const e of world.enemies) {
     if (!e.userData.alive) continue;
-    camera.position.set(e.position.x, 1.65, e.position.z + 2.5);
-    state.yaw = Math.PI;
-    await wait(200);
+    camera.position.set(e.position.x, 1.65, e.position.z + 2.8);
+    lookAt(e.position.x, e.position.z);
+    await wait(250);
     for (let i = 0; i < 3; i++) {
       fire();
-      await wait(180);
+      await wait(200);
     }
-    await wait(200);
+    await wait(250);
   }
 
   // Journal + accuse
   toggleJournal();
-  await wait(1200);
+  await wait(1400);
   $("#accuse-select").value = "elena";
   $("#btn-accuse").disabled = false;
-  await wait(800);
+  await wait(900);
   accuse();
 }
 

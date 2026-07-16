@@ -26,12 +26,9 @@ async function main() {
   await page.goto(BASE, { waitUntil: "networkidle", timeout: 60000 });
 
   // Demo mode auto-starts; wait through briefing + full autopilot
-  // Approx timeline: title 0.8s, brief ~1s, mission ~45-55s
-  await sleep(58000);
-
-  // Ensure result screen visible
-  await page.waitForSelector("#screen-result.active", { timeout: 20000 }).catch(() => {});
-  await sleep(3500);
+  await page.waitForSelector("#screen-game.active", { timeout: 20000 });
+  await page.waitForSelector("#screen-result.active", { timeout: 90000 });
+  await sleep(4000);
 
   const video = page.video();
   await context.close();
