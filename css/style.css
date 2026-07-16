@@ -1,0 +1,385 @@
+:root {
+  --crimson: #e11d2e;
+  --crimson-glow: #ff3b4a;
+  --navy: #071018;
+  --steel: #9aa8bc;
+  --mint: #5eead4;
+  --gold: #ffd166;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--navy);
+  color: #f2f5fa;
+  font-family: "Outfit", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+#app { position: relative; width: 100%; height: 100%; }
+
+#game {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+}
+
+.screen.hidden { display: none; }
+
+.title-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 72% 38%, rgba(225, 29, 46, 0.32), transparent 55%),
+    radial-gradient(ellipse 45% 40% at 18% 78%, rgba(20, 90, 140, 0.4), transparent 50%),
+    linear-gradient(180deg, #040910 0%, #0a1522 50%, #071018 100%);
+  animation: pulse-bg 7s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-bg {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.14); }
+}
+
+.title-content {
+  position: relative;
+  text-align: center;
+  padding: 2rem;
+  max-width: 680px;
+  animation: rise-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--mint);
+  margin-bottom: 0.55rem;
+}
+
+.brand {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(4.6rem, 16vw, 8.8rem);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(225, 29, 46, 0.55), 0 8px 0 rgba(225, 29, 46, 0.35);
+  animation: brand-glow 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes brand-glow {
+  from { text-shadow: 0 0 28px rgba(225, 29, 46, 0.4), 0 8px 0 rgba(225, 29, 46, 0.28); }
+  to { text-shadow: 0 0 60px rgba(255, 59, 74, 0.75), 0 8px 0 rgba(225, 29, 46, 0.42); }
+}
+
+.tagline {
+  margin: 1rem auto 0.8rem;
+  max-width: 28rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--steel);
+}
+
+.best {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  margin-bottom: 1.2rem;
+}
+
+.cta {
+  appearance: none;
+  border: none;
+  background: linear-gradient(135deg, var(--crimson), #b01220);
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  padding: 0.95rem 2.2rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(225, 29, 46, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 36px rgba(225, 29, 46, 0.5);
+}
+
+.cta:active { transform: scale(0.98); }
+
+.controls-hint {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.3rem;
+  justify-content: center;
+  font-size: 0.82rem;
+  color: #6d7a8c;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.4rem;
+  padding: 0.12rem 0.4rem;
+  margin: 0 0.12rem;
+  border-radius: 4px;
+  border: 1px solid #2a3648;
+  background: #121a26;
+  font-family: "Outfit", sans-serif;
+  font-size: 0.75rem;
+  color: #d5dde8;
+}
+
+#hud {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1rem 1.3rem 1.1rem;
+  background: linear-gradient(180deg, rgba(7,16,24,0.55) 0%, transparent 20%, transparent 78%, rgba(7,16,24,0.45) 100%);
+}
+
+#hud.hidden { display: none; }
+
+.hud-top {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  align-items: start;
+  gap: 1rem;
+}
+
+.stat .label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7d8a9c;
+  margin-bottom: 0.2rem;
+}
+
+.stat .value {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.stat.right { text-align: right; }
+.stat.center { text-align: center; }
+
+.combo {
+  display: block;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.5rem;
+  color: var(--crimson-glow);
+  text-shadow: 0 0 18px rgba(255, 59, 74, 0.55);
+  line-height: 1;
+  transition: transform 0.12s ease;
+}
+
+.combo.pop { transform: scale(1.28); }
+
+.status {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mint);
+}
+
+.hud-mid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.mission {
+  text-align: center;
+  margin-top: 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+.mission.done {
+  color: var(--gold);
+}
+
+.pill {
+  pointer-events: none;
+  background: rgba(10, 18, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e8eef8;
+}
+
+.pill-label {
+  color: #7d8a9c;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-right: 0.35rem;
+}
+
+#toast {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: 0.06em;
+  color: var(--mint);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  pointer-events: none;
+}
+
+#toast.show {
+  animation: toast-pop 0.9s ease forwards;
+}
+
+@keyframes toast-pop {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  70% { opacity: 1; transform: translate(-50%, -55%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -65%) scale(0.96); }
+}
+
+.hud-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#speed-bar {
+  width: min(300px, 55vw);
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+#speed-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--mint), var(--crimson-glow));
+  transition: width 0.08s linear;
+}
+
+#tip {
+  font-size: 0.76rem;
+  color: #6d7a8c;
+}
+
+#touch-controls {
+  display: none;
+  gap: 0.75rem;
+  pointer-events: auto;
+  margin-top: 0.3rem;
+}
+
+#touch-controls button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-family: "Outfit", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+#end-screen {
+  background: rgba(5, 10, 16, 0.75);
+  backdrop-filter: blur(10px);
+}
+
+.end-card {
+  text-align: center;
+  padding: 2rem;
+  animation: rise-in 0.55s ease both;
+}
+
+.end-card h2 {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.3rem;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+}
+
+.end-stars {
+  font-size: 1.8rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-top: 0.2rem;
+  text-shadow: 0 0 20px rgba(255, 209, 102, 0.45);
+}
+
+.end-score {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 5rem;
+  color: #fff;
+  line-height: 1;
+  margin: 0.35rem 0;
+  text-shadow: 0 0 30px rgba(225, 29, 46, 0.45);
+}
+
+.end-best {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.3rem;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  min-height: 1.4rem;
+}
+
+.end-detail {
+  color: var(--steel);
+  margin: 0.6rem 0 1.4rem;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 820px), (pointer: coarse) {
+  #touch-controls { display: flex; }
+  .controls-hint { font-size: 0.72rem; }
+  .stat .value { font-size: 1.5rem; }
+  .combo { font-size: 1.9rem; }
+}

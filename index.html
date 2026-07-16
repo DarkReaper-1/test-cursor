@@ -2,22 +2,88 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spider-Man Web Swing</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>WEBLINE — Spider Swing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="ui">
-    <h1>Spider-Man Web Swing</h1>
-    <p class="controls">
-      <kbd>A</kbd>/<kbd>D</kbd> or <kbd>←</kbd>/<kbd>→</kbd> move &nbsp;·&nbsp;
-      <kbd>Space</kbd> jump &nbsp;·&nbsp;
-      <kbd>Click</kbd> shoot web &amp; swing &nbsp;·&nbsp;
-      <kbd>Release</kbd> let go
-    </p>
-    <p id="status">Swing through the city!</p>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <section id="title-screen" class="screen">
+      <div class="title-bg"></div>
+      <div class="title-content">
+        <p class="eyebrow">New York · Rain Shift</p>
+        <h1 class="brand">WEBLINE</h1>
+        <p class="tagline">Wall-run the glass. Flip through the rain. Beat the mission before the harbor.</p>
+        <p id="best-score" class="best">New run</p>
+        <button id="btn-play" class="cta" type="button">Start Swinging</button>
+        <p class="controls-hint">
+          <span><kbd>A</kbd><kbd>D</kbd> steer</span>
+          <span><kbd>Space</kbd> jump / double</span>
+          <span><kbd>Click</kbd> web</span>
+          <span><kbd>Shift</kbd> zip</span>
+          <span><kbd>F</kbd> trick</span>
+        </p>
+      </div>
+    </section>
+
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="stat">
+          <span class="label">Score</span>
+          <span id="score" class="value">0</span>
+        </div>
+        <div class="stat center">
+          <span id="combo" class="combo">×1</span>
+          <span id="status" class="status">Ready</span>
+        </div>
+        <div class="stat right">
+          <span class="label">Distance</span>
+          <span id="distance" class="value">0m</span>
+        </div>
+      </div>
+      <div class="hud-mid">
+        <div class="pill"><span class="pill-label">Rings</span> <span id="rings">0/0</span></div>
+        <div class="pill"><span class="pill-label">Tricks</span> <span id="tricks">0</span></div>
+        <div class="pill"><span class="pill-label">Time</span> <span id="time">0.0s</span></div>
+      </div>
+      <p id="mission" class="mission">Mission: —</p>
+      <div id="toast"></div>
+      <div class="hud-bottom">
+        <div id="speed-bar"><div id="speed-fill"></div></div>
+        <p id="tip">Web · zip · wall-run · double-jump · <kbd>F</kbd> trick</p>
+        <div id="touch-controls">
+          <button id="btn-jump" type="button" aria-label="Jump">↑</button>
+          <button id="btn-zip" type="button" aria-label="Zip">ZIP</button>
+          <button id="btn-trick" type="button" aria-label="Trick">FLIP</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="end-screen" class="screen hidden">
+      <div class="end-card">
+        <h2>Run Complete</h2>
+        <p id="end-stars" class="end-stars">★★★☆☆</p>
+        <p id="end-score" class="end-score">0</p>
+        <p id="end-best" class="end-best"></p>
+        <p id="end-detail" class="end-detail"></p>
+        <button id="btn-again" class="cta" type="button">Swing Again</button>
+      </div>
+    </section>
   </div>
-  <canvas id="game"></canvas>
-  <script src="js/game.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,117 +1,33 @@
-# test-cursor
+# WEBLINE — High-Quality Spider-Man Web Swing
 
-This repository contains two independent projects:
+Polished **3D browser** Spider-Man-style web-swinging game (Three.js).
 
-1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
-
----
-
-## Square App Reverse Engineering
-
-Educational security research toolkit for statically and dynamically analyzing Square Android applications (Point of Sale, Team, Dashboard).
-
-> **Disclaimer:** Reverse engineering is for authorized security research, education, and interoperability analysis only. Only analyze apps you have legal permission to test. Do not use findings to commit fraud, bypass payment security, or steal cardholder data.
-
-### Quick Start
-
-```bash
-# 1. Install toolchain (jadx, apktool, frida, adb)
-chmod +x scripts/*.sh
-./scripts/setup.sh
-source .env.tools
-
-# 2. Obtain the Square POS APK
-./scripts/download_apk.sh                    # from USB device
-./scripts/download_apk.sh --from /path/to.apk  # manual copy
-
-# 3. Run full analysis pipeline
-./scripts/analyze.sh apks/com.squareup.apk
-
-# 4. Review results
-cat output/com.squareup/ANALYSIS.md
-cat output/com.squareup/scan-report.txt
-```
-
-### Project Structure
-
-```
-├── apks/                  # Place APK files here (gitignored)
-├── config/targets.yaml    # Package names, intent API, scan patterns
-├── docs/                  # Methodology and reference documentation
-├── frida/                 # Dynamic analysis Frida scripts
-├── output/                # Decompiled artifacts (gitignored)
-└── scripts/               # Automation pipeline
-    ├── setup.sh           # Install RE toolchain
-    ├── download_apk.sh    # Pull APK from device
-    ├── decompile.sh       # apktool + jadx decompilation
-    ├── scan_secrets.sh    # Static security scan
-    └── analyze.sh         # End-to-end pipeline
-```
-
-### Target Applications
-
-| App | Package | Purpose |
-|-----|---------|---------|
-| Square Point of Sale | `com.squareup` | Primary POS / Register app |
-| Square Team | `com.squareup.team` | Team management |
-| Square Dashboard | `com.squareup.dashboard` | Business analytics |
-
-### Analysis Workflow
-
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
-│  Obtain APK │ -> │  Decompile   │ -> │ Static Scan │ -> │   Dynamic    │
-│  (adb/copy) │    │ jadx+apktool │    │ secrets/API │    │ Frida + mitm │
-└─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘
-```
-
-### Dynamic Analysis
-
-```bash
-# SSL pinning bypass + traffic capture
-frida -U -f com.squareup \
-  -l frida/ssl_pinning_bypass.js \
-  -l frida/root_detection_bypass.js \
-  --no-pause
-
-# Trace POS intent API handling
-frida -U com.squareup -l frida/trace_pos_intents.js
-```
-
-See [docs/methodology.md](docs/methodology.md) and [docs/intent-api.md](docs/intent-api.md) for full documentation.
-
----
-
-## Spider-Man Web Swing
-
-A basic browser-based Spider-Man web-swinging game built with HTML5 Canvas.
-
-### Play
-
-Open `index.html` in a browser, or run a local server:
+## Play
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then visit http://localhost:8080
+Open [http://localhost:8080](http://localhost:8080)
 
-### Controls
+## Controls
 
 | Input | Action |
 |-------|--------|
-| **A / D** or **← / →** | Move left / right |
-| **Space** | Jump (also wall-jump when on a building side) |
-| **Click** | Shoot web at a building and start swinging |
-| **Release click** | Let go of the web |
+| **A / D** | Steer |
+| **Space** | Jump / double-jump / wall-jump |
+| **Click / hold** | Shoot web & swing |
+| **Release** | Fling |
+| **Shift / S** | Zip |
+| **F / Q / E** | Aerial trick |
+| Mobile | ↑ · ZIP · FLIP |
 
-### Features
+## Features
 
-- Procedural city skyline with lit windows
-- Web-swing physics (pendulum-style rope constraint)
-- Wall climbing and rooftop landing
-- Side-scrolling camera that follows Spider-Man
-- Auto-respawn if you fall off the map
-
-Swing from building to building and see how far you can go!
+- Sagging web strand, zip pull, release fling
+- Wall-run + wall-jump, double-jump
+- Aerial tricks with slow-mo
+- Random missions + star rating + personal best
+- Neon city, bridge, finale tower, helicopter spotlight, rain
+- Gold rings, near-misses, perfect landings
+- Speed lines, camera shake, whoosh audio
