@@ -73,6 +73,19 @@ export class AudioBus {
     this.tone(140, 0.08, "triangle", 0.04, 0.1);
   }
 
+  footstep() {
+    this.tone(70 + Math.random() * 20, 0.05, "triangle", 0.025);
+  }
+
+  click() {
+    this.tone(600, 0.04, "square", 0.03);
+  }
+
+  itemGet() {
+    this.tone(440, 0.08, "sine", 0.05);
+    this.tone(660, 0.1, "sine", 0.04, 0.06);
+  }
+
   startAmbience() {
     if (!this.ctx || !this.enabled || this._amb) return;
     const bufferSize = this.ctx.sampleRate * 2;

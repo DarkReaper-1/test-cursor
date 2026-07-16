@@ -11,7 +11,6 @@
 </head>
 <body>
   <div id="app">
-    <!-- Title -->
     <section id="screen-title" class="screen active">
       <div class="title-bg"></div>
       <div class="title-content">
@@ -26,12 +25,12 @@
           <span><kbd>LMB</kbd> Fire</span>
           <span><kbd>E</kbd> Examine</span>
           <span><kbd>R</kbd> Reload</span>
+          <span><kbd>F</kbd> Flashlight</span>
           <span><kbd>Tab</kbd> Journal</span>
         </div>
       </div>
     </section>
 
-    <!-- Briefing -->
     <section id="screen-brief" class="screen">
       <div class="brief-card">
         <p class="eyebrow">Field Briefing — 23:47</p>
@@ -41,7 +40,6 @@
       </div>
     </section>
 
-    <!-- Game -->
     <section id="screen-game" class="screen">
       <canvas id="game-canvas"></canvas>
 
@@ -53,19 +51,26 @@
           </div>
           <div class="hud-stats">
             <span id="clue-stat">Evidence 0/8</span>
+            <span id="kill-stat">Hostiles 0</span>
             <span id="room-stat">Entrance Hall</span>
+            <span id="flash-stat" class="flash-on">🔦 ON</span>
           </div>
         </div>
+
+        <div id="room-banner" class="room-banner hidden"></div>
 
         <div id="crosshair">
           <span class="ch-h"></span>
           <span class="ch-v"></span>
           <span class="ch-dot"></span>
         </div>
+        <div id="hitmarker" class="hidden">✕</div>
 
         <div id="interact-prompt" class="hidden">
           <kbd>E</kbd> <span id="interact-label">Examine</span>
         </div>
+
+        <canvas id="minimap" width="140" height="140"></canvas>
 
         <div class="hud-bottom">
           <div class="health-block">
@@ -87,7 +92,6 @@
       <div id="pause-hint" class="hidden">Click to capture mouse</div>
     </section>
 
-    <!-- Result -->
     <section id="screen-result" class="screen">
       <div class="result-card">
         <p id="result-grade" class="result-grade"></p>
@@ -99,23 +103,28 @@
     </section>
   </div>
 
-  <!-- Evidence popup -->
   <div id="evidence-modal" class="modal hidden">
     <div class="modal-card">
       <p class="exhibit">EXHIBIT</p>
+      <span id="ev-category" class="ev-cat"></span>
       <h3 id="ev-title"></h3>
       <p id="ev-body"></p>
+      <p id="ev-room" class="ev-room"></p>
       <button id="btn-close-ev" class="btn primary">Secure Evidence</button>
     </div>
   </div>
 
-  <!-- Journal -->
   <div id="journal" class="drawer hidden">
     <div class="drawer-head">
       <h3>Case Journal</h3>
       <button id="btn-close-journal" class="btn ghost">Close</button>
     </div>
+    <div class="journal-tabs">
+      <button class="jtab active" data-tab="evidence">Evidence</button>
+      <button class="jtab" data-tab="suspects">Suspects</button>
+    </div>
     <ul id="journal-list"></ul>
+    <div id="suspect-list" class="hidden"></div>
     <div class="accuse-zone">
       <p>When ready, identify the killer.</p>
       <select id="accuse-select">

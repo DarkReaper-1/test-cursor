@@ -334,6 +334,119 @@ kbd {
 
 #muzzle-flash.flash { opacity: 1; }
 
+#damage-vignette.critical {
+  box-shadow: inset 0 0 160px rgba(155, 44, 58, 0.4);
+  animation: pulseRed 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseRed {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.room-banner {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(0,0,0,0.9);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.room-banner.show { opacity: 1; }
+
+#hitmarker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--danger-lit);
+  font-size: 1.4rem;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(196, 61, 79, 0.8);
+  pointer-events: none;
+}
+
+#minimap {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 5.5rem;
+  width: 140px;
+  height: 140px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 18, 0.75);
+  border-radius: 2px;
+}
+
+.flash-on { color: var(--accent) !important; }
+.flash-off { color: var(--dim) !important; }
+
+.journal-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.jtab {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.jtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.ev-cat {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--accent);
+}
+
+.ev-cat.red-herring { color: #8a7d9a; }
+.ev-room { font-size: 0.8rem !important; font-style: italic; }
+
+.suspect-card {
+  background: var(--card);
+  border-left: 3px solid var(--border);
+  padding: 0.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.suspect-card.hot { border-left-color: var(--danger-lit); }
+.suspect-card h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.suspect-card .role { font-size: 0.75rem; color: var(--accent); margin-bottom: 0.4rem; }
+.suspect-card p { font-size: 0.85rem; color: var(--dim); }
+.suspect-card .heat {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  margin-top: 0.4rem;
+  color: var(--danger-lit);
+}
+
 #pause-hint {
   position: absolute;
   left: 50%;

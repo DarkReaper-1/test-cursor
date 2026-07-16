@@ -145,11 +145,13 @@ Then visit http://localhost:8080/mystery-fps/
 
 ### Features
 
-- Full 3D manor (entrance, library, study, kitchen, ballroom, garden)
-- First-person combat against rogue hostiles
-- 8 collectible evidence pieces with journal tracking
+- Full 3D manor with textured floors/walls, windows, door frames, and props
+- First-person combat with recoil, hitmarkers, knockback, and animated hostiles
+- Flashlight toggle (`F`), health/ammo pickups, minimap, room banners
+- 8 collectible evidence pieces with critical vs red-herring tags
+- Case journal with evidence + suspect suspicion heat
 - Murder mystery accusation ending with letter grades
-- Atmospheric fog, rain particles, lantern lighting, Web Audio SFX
+- Atmospheric fog, rain, lanterns, Web Audio SFX
 - Demo autopilot via `?demo=1` for video recording
 
 ### Demo Video

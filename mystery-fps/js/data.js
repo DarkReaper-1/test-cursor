@@ -9,52 +9,63 @@ export const SOLUTION = "elena";
 
 export const CLUES = {
   body: {
-    id: "body",
-    title: "Ashworth's Body",
+    id: "body", title: "Ashworth's Body", category: "critical",
     text: "No trauma. Blue lips. Classic aconitine. The brandy beside him is clean — the poison came earlier, at dinner.",
-    room: "library",
+    room: "library", implicates: ["elena", "whitmore"],
   },
   letter: {
-    id: "letter",
-    title: "Torn Threat Letter",
+    id: "letter", title: "Torn Threat Letter", category: "red-herring",
     text: "Fragments: '...amend the will by week's end...' Handwriting mimics Whitmore's, but the paper is decades old. A plant.",
-    room: "library",
+    room: "library", implicates: ["whitmore"],
   },
   will: {
-    id: "will",
-    title: "Revised Will",
+    id: "will", title: "Revised Will", category: "critical",
     text: "Three days old. Entire estate to Elena Voss. Marcus, Victoria, and Thomas cut out. Motive for everyone — including her.",
-    room: "study",
+    room: "study", implicates: ["elena", "marcus", "thomas"],
   },
   safe: {
-    id: "safe",
-    title: "Unsigned Reversal",
+    id: "safe", title: "Unsigned Reversal", category: "critical",
     text: "Safe cracked tonight. Inside: an unsigned draft restoring the old heirs. Someone killed him before he could sign.",
-    room: "study",
+    room: "study", implicates: ["elena"],
   },
   extract: {
-    id: "extract",
-    title: "Monkshood Extract",
+    id: "extract", title: "Monkshood Extract", category: "critical",
     text: "Medical jar nearly empty. Seal broken tonight. Only Whitmore and kitchen staff knew the shelf — and Elena visited last month.",
-    room: "kitchen",
+    room: "kitchen", implicates: ["elena", "whitmore"],
   },
   ledger: {
-    id: "ledger",
-    title: "Kitchen Log",
+    id: "ledger", title: "Kitchen Log", category: "critical",
     text: "7:15 PM — Elena Voss entered the kitchen for 'dietary restrictions.' Soup served 7:30. Ashworth collapsed 8:45.",
-    room: "kitchen",
+    room: "kitchen", implicates: ["elena"],
   },
   prints: {
-    id: "prints",
-    title: "Muddy Heels",
+    id: "prints", title: "Muddy Heels", category: "critical",
     text: "Size-six heels from garden gate to kitchen door. Match Elena's dinner shoes. She claimed she never left the ballroom.",
-    room: "garden",
+    room: "garden", implicates: ["elena"],
   },
   champagne: {
-    id: "champagne",
-    title: "Untouched Flute",
+    id: "champagne", title: "Untouched Flute", category: "critical",
     text: "Elena's champagne still full on the sill. Victoria saw her slip out at 7:10. Her alibi collapses.",
-    room: "ballroom",
+    room: "ballroom", implicates: ["elena"],
+  },
+};
+
+export const SUSPECTS = {
+  elena: {
+    id: "elena", name: "Elena Voss", role: "Heiress",
+    bio: "Recently acknowledged daughter. Named sole heir three days ago. Nervous at dinner — left the ballroom before soup.",
+  },
+  marcus: {
+    id: "marcus", name: "Marcus Ashworth", role: "Disinherited Son",
+    bio: "Cut from the will entirely. Volatile temper. Was seen in the garden during dinner — but staff placed him at 7:30.",
+  },
+  whitmore: {
+    id: "whitmore", name: "Dr. Reginald Whitmore", role: "Physician",
+    bio: "Grew the monkshood. Taught Elena about aconitine 'for literature.' Threat letter resembles his hand — possibly forged.",
+  },
+  thomas: {
+    id: "thomas", name: "Thomas Graves", role: "Butler",
+    bio: "Forty years of service. Argued against the new will. Access to every room — no poison knowledge.",
   },
 };
 
@@ -86,4 +97,15 @@ export const ENEMY_SPAWNS = [
   { x: 4, z: 22 },
   { x: -12, z: 0 },
   { x: 14, z: 8 },
+  { x: 0, z: 16 },
+];
+
+export const PICKUPS = [
+  { type: "health", amount: 25, x: -3, z: 0 },
+  { type: "ammo", amount: 12, x: 3, z: 2 },
+  { type: "health", amount: 35, x: -14, z: 5 },
+  { type: "ammo", amount: 18, x: 14, z: -1 },
+  { type: "ammo", amount: 12, x: -7, z: 15 },
+  { type: "health", amount: 25, x: 10, z: 15 },
+  { type: "ammo", amount: 12, x: 6, z: 25 },
 ];
