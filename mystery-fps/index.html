@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLACKWOOD — Nightfall Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Serif+4:opsz,ital,wght@8..60,400;8..60,600;8..60,400i&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Title -->
+    <section id="screen-title" class="screen active">
+      <div class="title-bg"></div>
+      <div class="title-content">
+        <p class="eyebrow">Classified Investigation Protocol</p>
+        <h1>BLACKWOOD</h1>
+        <p class="subtitle">Nightfall Protocol</p>
+        <p class="pitch">Lord Ashworth is dead. The manor is locked down.<br />Armed hostiles. Hidden evidence. One killer.</p>
+        <button id="btn-start" class="btn primary">Enter Manor</button>
+        <div class="controls-hint">
+          <span><kbd>WASD</kbd> Move</span>
+          <span><kbd>Mouse</kbd> Look</span>
+          <span><kbd>LMB</kbd> Fire</span>
+          <span><kbd>E</kbd> Examine</span>
+          <span><kbd>R</kbd> Reload</span>
+          <span><kbd>Tab</kbd> Journal</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Briefing -->
+    <section id="screen-brief" class="screen">
+      <div class="brief-card">
+        <p class="eyebrow">Field Briefing — 23:47</p>
+        <h2>Blackwood Manor</h2>
+        <div id="brief-lines"></div>
+        <button id="btn-deploy" class="btn primary">Deploy</button>
+      </div>
+    </section>
+
+    <!-- Game -->
+    <section id="screen-game" class="screen">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="objective-box">
+            <span class="obj-label">Objective</span>
+            <span id="objective-text">Secure the manor. Find evidence.</span>
+          </div>
+          <div class="hud-stats">
+            <span id="clue-stat">Evidence 0/8</span>
+            <span id="room-stat">Entrance Hall</span>
+          </div>
+        </div>
+
+        <div id="crosshair">
+          <span class="ch-h"></span>
+          <span class="ch-v"></span>
+          <span class="ch-dot"></span>
+        </div>
+
+        <div id="interact-prompt" class="hidden">
+          <kbd>E</kbd> <span id="interact-label">Examine</span>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="health-block">
+            <span class="stat-label">Vital</span>
+            <div class="bar"><div id="health-fill"></div></div>
+          </div>
+          <div class="ammo-block">
+            <span id="ammo-count">12</span>
+            <span class="ammo-sep">/</span>
+            <span id="ammo-reserve">36</span>
+            <span class="stat-label">.45 ACP</span>
+          </div>
+        </div>
+
+        <div id="damage-vignette"></div>
+        <div id="muzzle-flash"></div>
+      </div>
+
+      <div id="pause-hint" class="hidden">Click to capture mouse</div>
+    </section>
+
+    <!-- Result -->
+    <section id="screen-result" class="screen">
+      <div class="result-card">
+        <p id="result-grade" class="result-grade"></p>
+        <h2 id="result-title"></h2>
+        <p id="result-text"></p>
+        <div id="result-stats" class="result-stats"></div>
+        <button id="btn-replay" class="btn primary">New Protocol</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Evidence popup -->
+  <div id="evidence-modal" class="modal hidden">
+    <div class="modal-card">
+      <p class="exhibit">EXHIBIT</p>
+      <h3 id="ev-title"></h3>
+      <p id="ev-body"></p>
+      <button id="btn-close-ev" class="btn primary">Secure Evidence</button>
+    </div>
+  </div>
+
+  <!-- Journal -->
+  <div id="journal" class="drawer hidden">
+    <div class="drawer-head">
+      <h3>Case Journal</h3>
+      <button id="btn-close-journal" class="btn ghost">Close</button>
+    </div>
+    <ul id="journal-list"></ul>
+    <div class="accuse-zone">
+      <p>When ready, identify the killer.</p>
+      <select id="accuse-select">
+        <option value="">— Select suspect —</option>
+        <option value="elena">Elena Voss</option>
+        <option value="marcus">Marcus Ashworth</option>
+        <option value="whitmore">Dr. Whitmore</option>
+        <option value="thomas">Thomas Graves</option>
+      </select>
+      <button id="btn-accuse" class="btn danger" disabled>Make Accusation</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

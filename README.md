@@ -1,9 +1,10 @@
 # test-cursor
 
-This repository contains two independent projects:
+This repository contains three independent projects:
 
 1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+3. **[BLACKWOOD: Nightfall Protocol](#blackwood-nightfall-protocol)** — Mystery FPS investigation game
 
 ---
 
@@ -115,3 +116,48 @@ Then visit http://localhost:8080
 - Auto-respawn if you fall off the map
 
 Swing from building to building and see how far you can go!
+
+---
+
+## BLACKWOOD: Nightfall Protocol
+
+A first-person mystery shooter set in a locked-down Victorian manor. Explore rooms, neutralize hostiles, recover evidence, and accuse the killer.
+
+### Play
+
+```bash
+python3 -m http.server 8080
+```
+
+Then visit http://localhost:8080/mystery-fps/
+
+### Controls
+
+| Input | Action |
+|-------|--------|
+| **WASD** | Move |
+| **Mouse** | Look |
+| **LMB** | Fire |
+| **E** | Examine / collect evidence |
+| **R** | Reload |
+| **Tab** | Case journal / accusation |
+| **Shift** | Sprint |
+
+### Features
+
+- Full 3D manor (entrance, library, study, kitchen, ballroom, garden)
+- First-person combat against rogue hostiles
+- 8 collectible evidence pieces with journal tracking
+- Murder mystery accusation ending with letter grades
+- Atmospheric fog, rain particles, lantern lighting, Web Audio SFX
+- Demo autopilot via `?demo=1` for video recording
+
+### Demo Video
+
+```bash
+python3 -m http.server 8080 &
+cd mystery-fps && npm install playwright && npx playwright install chromium
+node record-demo.js
+```
+
+Output: `/opt/cursor/artifacts/blackwood-mystery-fps-demo.mp4`
