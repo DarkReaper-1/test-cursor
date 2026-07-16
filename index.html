@@ -18,14 +18,15 @@
       <div class="title-content">
         <p class="eyebrow">New York · Rain Shift</p>
         <h1 class="brand">WEBLINE</h1>
-        <p class="tagline">Chain momentum. Skim the glass. Grab every ring before the harbor.</p>
+        <p class="tagline">Wall-run the glass. Flip through the rain. Beat the mission before the harbor.</p>
         <p id="best-score" class="best">New run</p>
         <button id="btn-play" class="cta" type="button">Start Swinging</button>
         <p class="controls-hint">
           <span><kbd>A</kbd><kbd>D</kbd> steer</span>
-          <span><kbd>Space</kbd> jump</span>
+          <span><kbd>Space</kbd> jump / double</span>
           <span><kbd>Click</kbd> web</span>
           <span><kbd>Shift</kbd> zip</span>
+          <span><kbd>F</kbd> trick</span>
         </p>
       </div>
     </section>
@@ -47,15 +48,18 @@
       </div>
       <div class="hud-mid">
         <div class="pill"><span class="pill-label">Rings</span> <span id="rings">0/0</span></div>
+        <div class="pill"><span class="pill-label">Tricks</span> <span id="tricks">0</span></div>
         <div class="pill"><span class="pill-label">Time</span> <span id="time">0.0s</span></div>
       </div>
+      <p id="mission" class="mission">Mission: —</p>
       <div id="toast"></div>
       <div class="hud-bottom">
         <div id="speed-bar"><div id="speed-fill"></div></div>
-        <p id="tip">Aim · swing · zip · fling · collect gold rings</p>
+        <p id="tip">Web · zip · wall-run · double-jump · <kbd>F</kbd> trick</p>
         <div id="touch-controls">
           <button id="btn-jump" type="button" aria-label="Jump">↑</button>
           <button id="btn-zip" type="button" aria-label="Zip">ZIP</button>
+          <button id="btn-trick" type="button" aria-label="Trick">FLIP</button>
         </div>
       </div>
     </div>
@@ -63,6 +67,7 @@
     <section id="end-screen" class="screen hidden">
       <div class="end-card">
         <h2>Run Complete</h2>
+        <p id="end-stars" class="end-stars">★★★☆☆</p>
         <p id="end-score" class="end-score">0</p>
         <p id="end-best" class="end-best"></p>
         <p id="end-detail" class="end-detail"></p>

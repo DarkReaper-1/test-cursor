@@ -1,40 +1,65 @@
 import * as THREE from "three";
 
-/** Web line with shoot travel animation + tuned pendulum. */
+/** Sagging web strand (line) + shoot travel + arcade pendulum. */
 export function createWeb() {
-  const geo = new THREE.CylinderGeometry(0.035, 0.02, 1, 8);
-  geo.translate(0, 0.5, 0);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xf0f4ff,
-    emissive: 0xaabbff,
-    emissiveIntensity: 0.45,
+  const positions = new Float32Array(18); // 6 points * 3
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+  const mat = new THREE.LineBasicMaterial({
+    color: 0xe8f0ff,
     transparent: true,
     opacity: 0.95,
-    roughness: 0.25,
   });
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Line(geo, mat);
   mesh.visible = false;
-  mesh.castShadow = true;
+  mesh.frustumCulled = false;
 
-  // Impact flash at anchor
+  // Glow twin
+  const geo2 = geo.clone();
+  const mat2 = new THREE.LineBasicMaterial({
+    color: 0xaaccff,
+    transparent: true,
+    opacity: 0.35,
+  });
+  const mesh2 = new THREE.Line(geo2, mat2);
+  mesh2.visible = false;
+  mesh2.frustumCulled = false;
+
   const flash = new THREE.Mesh(
-    new THREE.SphereGeometry(0.4, 10, 10),
+    new THREE.SphereGeometry(0.5, 12, 12),
     new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 })
   );
   flash.visible = false;
 
   return {
-    mesh,
-    flash,
+    mesh, mesh2, flash,
     active: false,
     shooting: false,
     shootT: 0,
-    shootDuration: 0.12,
+    shootDuration: 0.1,
     anchor: new THREE.Vector3(),
     length: 0,
     restLength: 0,
     swings: 0,
   };
+}
+
+function writeStrand(geo, from, to, sag = 0.15) {
+  const arr = geo.attributes.position.array;
+  const n = 6;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const x = from.x + (to.x - from.x) * t;
+    const z = from.z + (to.z - from.z) * t;
+    const baseY = from.y + (to.y - from.y) * t;
+    const drop = Math.sin(t * Math.PI) * Math.min(4.5, from.distanceTo(to) * sag);
+    arr[i * 3] = x;
+    arr[i * 3 + 1] = baseY - drop;
+    arr[i * 3 + 2] = z;
+  }
+  geo.attributes.position.needsUpdate = true;
+  geo.computeBoundingSphere();
 }
 
 export function attachWeb(web, anchor, hand) {
@@ -46,68 +71,52 @@ export function attachWeb(web, anchor, hand) {
   web.shootT = 0;
   web.swings += 1;
   web.mesh.visible = true;
+  web.mesh2.visible = true;
   web.flash.visible = true;
   web.flash.position.copy(anchor);
-  web.flash.material.opacity = 0.9;
-  drawWeb(web, hand, 0.05);
+  web.flash.material.opacity = 1;
+  writeStrand(web.mesh.geometry, hand, web.anchor, 0.06);
+  writeStrand(web.mesh2.geometry, hand, web.anchor, 0.06);
 }
 
 export function releaseWeb(web) {
   web.active = false;
   web.shooting = false;
   web.mesh.visible = false;
+  web.mesh2.visible = false;
   web.flash.visible = false;
 }
 
-export function drawWeb(web, hand, progress = 1) {
-  if (!web.active) return;
-  const end = hand.clone().lerp(web.anchor, Math.min(1, progress));
-  // While shooting, line goes from hand toward anchor
-  const from = hand;
-  const to = web.shooting ? end : web.anchor;
-  const mid = from.clone().add(to).multiplyScalar(0.5);
-  web.mesh.position.copy(mid);
-  const len = from.distanceTo(to);
-  web.mesh.scale.set(1, Math.max(0.05, len), 1);
-  web.mesh.lookAt(to);
-  web.mesh.rotateX(Math.PI / 2);
-}
-
-/**
- * Arcade-tuned swing: gravity, rope, steer, zip, slack, swing boost.
- */
 export function swingStep(web, hero, dt, steer, zip) {
   if (!web.active) return { attached: false };
 
   if (web.shooting) {
     web.shootT += dt;
-    const p = web.shootT / web.shootDuration;
+    const p = Math.min(1, web.shootT / web.shootDuration);
     const hand = handOf(hero);
-    drawWeb(web, hand, p);
-    if (web.flash.visible) {
-      web.flash.material.opacity = Math.max(0, 0.9 - p);
-      web.flash.scale.setScalar(1 + p * 2);
-    }
+    const tip = hand.clone().lerp(web.anchor, p);
+    writeStrand(web.mesh.geometry, hand, tip, 0.04);
+    writeStrand(web.mesh2.geometry, hand, tip, 0.04);
+    web.flash.material.opacity = Math.max(0, 1 - p);
+    web.flash.scale.setScalar(1 + p * 2.5);
     if (p >= 1) {
       web.shooting = false;
       web.flash.visible = false;
-      // Attach impulse toward swing
       const toAnchor = web.anchor.clone().sub(hand).normalize();
-      hero.velocity.addScaledVector(toAnchor, 2.5);
+      hero.velocity.addScaledVector(toAnchor, 3.2);
       return { attached: true };
     }
-    // Still move while web flies
     hero.velocity.y += -20 * dt;
-    hero.root.position.addScaledVector(hero.velocity, dt);
+    hero.root.position.addScaledVector(hero.velocity, dt * 0.85);
     return { attached: false };
   }
 
-  const g = -24;
-  hero.velocity.y += g * dt * 0.92;
+  hero.velocity.y += -25 * dt * 0.9;
 
-  // Zip shortens; holding opposite of zip (W) can slack slightly
   if (zip) {
-    web.length = Math.max(8, web.length - 34 * dt);
+    web.length = Math.max(7, web.length - 38 * dt);
+    const pull = web.anchor.clone().sub(hero.root.position).normalize();
+    hero.velocity.addScaledVector(pull, 10 * dt);
   }
 
   hero.root.position.addScaledVector(hero.velocity, dt);
@@ -122,49 +131,40 @@ export function swingStep(web, hero, dt, steer, zip) {
     hero.root.position.set(corrected.x, corrected.y - 0.85, corrected.z);
 
     const vDot = hero.velocity.dot(n);
-    if (vDot > 0) hero.velocity.addScaledVector(n, -vDot * 1.05);
+    if (vDot > 0) hero.velocity.addScaledVector(n, -vDot * 1.08);
 
-    // Build swing speed on the tangent
-    const tangent = new THREE.Vector3(-n.z, 0, n.x);
-    // Prefer swinging forward along +X
-    const forward = new THREE.Vector3(1, 0, 0);
-    const swingDir = tangent.dot(forward) >= 0 ? tangent : tangent.multiplyScalar(-1);
+    let tangent = new THREE.Vector3(-n.z, 0, n.x);
+    if (tangent.dot(new THREE.Vector3(1, 0, 0)) < 0) tangent.multiplyScalar(-1);
 
-    if (Math.abs(steer) > 0.05) {
-      hero.velocity.addScaledVector(swingDir, steer * 14 * dt);
-      hero.velocity.x += Math.sign(steer || 1) * 5 * dt;
-    } else {
-      // Natural pendulum energy toward forward arc
-      hero.velocity.addScaledVector(swingDir, 3.5 * dt);
-    }
+    const boost = Math.abs(steer) > 0.05 ? 16 : 5;
+    hero.velocity.addScaledVector(tangent, (steer || 0.35) * boost * dt);
+    hero.velocity.x += 6 * dt;
 
-    // Slight spring pull for snappy feel
-    const stretch = dist - web.length;
-    if (stretch > 0) {
-      hero.velocity.addScaledVector(n, -stretch * 2.5 * dt);
+    if (hero.velocity.y > 0 && zip) {
+      hero.velocity.addScaledVector(tangent, 8 * dt);
     }
   }
 
-  hero.velocity.multiplyScalar(0.9975);
-  // Soft speed cap
+  hero.velocity.multiplyScalar(0.998);
   const spd = hero.velocity.length();
-  if (spd > 55) hero.velocity.multiplyScalar(55 / spd);
+  if (spd > 62) hero.velocity.multiplyScalar(62 / spd);
 
-  drawWeb(web, handOf(hero), 1);
+  const h = handOf(hero);
+  writeStrand(web.mesh.geometry, h, web.anchor, 0.14);
+  writeStrand(web.mesh2.geometry, h, web.anchor, 0.14);
   return { attached: false };
 }
 
-/** Release fling — converts swing tangent into boost. */
 export function releaseFling(web, hero) {
   if (!web.active) return;
   const hand = handOf(hero);
   const n = hand.clone().sub(web.anchor).normalize();
-  const tangent = new THREE.Vector3(-n.z, 0.15, n.x).normalize();
-  // Boost in current velocity direction + up
-  const boost = Math.min(18, 6 + hero.velocity.length() * 0.25);
-  hero.velocity.addScaledVector(tangent, boost * 0.35);
-  hero.velocity.y += 3.5 + Math.max(0, -n.y) * 4;
-  hero.velocity.x += Math.max(2, hero.facing * 2.5);
+  const tangent = new THREE.Vector3(-n.z, 0.2, n.x).normalize();
+  if (tangent.x < 0) tangent.multiplyScalar(-1);
+  const boost = Math.min(22, 8 + hero.velocity.length() * 0.28);
+  hero.velocity.addScaledVector(tangent, boost * 0.45);
+  hero.velocity.y += 4.5 + Math.max(0, -n.y) * 5;
+  hero.velocity.x += Math.max(3, hero.facing * 3);
 }
 
 function handOf(hero) {

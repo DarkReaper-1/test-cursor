@@ -15,22 +15,19 @@ Open [http://localhost:8080](http://localhost:8080)
 | Input | Action |
 |-------|--------|
 | **A / D** | Steer |
-| **Space** | Jump |
+| **Space** | Jump / double-jump / wall-jump |
 | **Click / hold** | Shoot web & swing |
-| **Release** | Fling off the web |
-| **Shift / S** | Zip (shorten web) |
-| Mobile | On-screen **↑** and **ZIP** |
+| **Release** | Fling |
+| **Shift / S** | Zip |
+| **F / Q / E** | Aerial trick |
+| Mobile | ↑ · ZIP · FLIP |
 
-## What's new (improved)
+## Features
 
-- Web travel animation + impact flash + release fling
-- Neon signs, billboards, taxis, rain, denser skyline
-- Gold rings, near-miss bonuses, perfect landings
-- Combo toasts, camera shake, speed FOV, swing pose
-- Aim preview line + pulsing anchor helper
-- Rings / time HUD, personal best (localStorage)
-- Touch jump / zip buttons
-
-## Goal
-
-Chain swings across the night city, collect rings (clear all for a big bonus), and beat your best score before you hit the harbor — or fall.
+- Sagging web strand, zip pull, release fling
+- Wall-run + wall-jump, double-jump
+- Aerial tricks with slow-mo
+- Random missions + star rating + personal best
+- Neon city, bridge, finale tower, helicopter spotlight, rain
+- Gold rings, near-misses, perfect landings
+- Speed lines, camera shake, whoosh audio
