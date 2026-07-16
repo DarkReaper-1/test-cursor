@@ -83,3 +83,61 @@ export function updateFloating(list, dt, scene) {
     }
   }
 }
+
+export function spawnBulletHole(scene, point, normal) {
+  const hole = new THREE.Mesh(
+    new THREE.CircleGeometry(0.05, 8),
+    new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.85, depthWrite: false })
+  );
+  hole.position.copy(point);
+  // Offset slightly along normal to avoid z-fight
+  if (normal) hole.position.addScaledVector(normal, 0.02);
+  hole.lookAt(hole.position.clone().add(normal || new THREE.Vector3(0, 0, 1)));
+  hole.userData = { life: 12 };
+  scene.add(hole);
+  return hole;
+}
+
+export function spawnShell(scene, origin, right) {
+  const shell = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.02, 0.02, 0.06, 6),
+    new THREE.MeshStandardMaterial({ color: 0xc9a14a, metalness: 0.7, roughness: 0.35 })
+  );
+  shell.position.copy(origin);
+  shell.rotation.z = Math.PI / 2;
+  shell.userData = {
+    life: 1.2,
+    vel: new THREE.Vector3(
+      right.x * (2 + Math.random()) + (Math.random() - 0.5),
+      2 + Math.random() * 1.5,
+      right.z * (2 + Math.random()) + (Math.random() - 0.5)
+    ),
+  };
+  scene.add(shell);
+  return shell;
+}
+
+export function updatePhysicsBits(list, dt, scene) {
+  for (let i = list.length - 1; i >= 0; i--) {
+    const p = list[i];
+    p.userData.life -= dt;
+    if (p.userData.vel) {
+      p.position.addScaledVector(p.userData.vel, dt);
+      p.userData.vel.y -= 9 * dt;
+      p.rotation.x += dt * 8;
+      p.rotation.y += dt * 6;
+      if (p.position.y < 0.05) {
+        p.position.y = 0.05;
+        p.userData.vel.set(0, 0, 0);
+      }
+    }
+    if (p.material?.opacity != null && p.userData.life < 0.4) {
+      p.material.transparent = true;
+      p.material.opacity = Math.max(0, p.userData.life / 0.4);
+    }
+    if (p.userData.life <= 0) {
+      scene.remove(p);
+      list.splice(i, 1);
+    }
+  }
+}

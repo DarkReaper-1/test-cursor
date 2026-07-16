@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { INTERACTABLES, ENEMY_SPAWNS, PICKUPS, STUDY_LOCK } from "./data.js";
+import { INTERACTABLES, ENEMY_SPAWNS, PICKUPS, STUDY_LOCK, ENEMY_TYPES } from "./data.js";
 import {
   woodTexture, wallpaperTexture, carpetTexture, stoneTexture, metalTexture, applyMap,
 } from "./textures.js";
@@ -57,11 +57,13 @@ function wallSeg(x0, z0, x1, z1, h = 4) {
 
 function makeEnemy(opts = {}) {
   const g = new THREE.Group();
-  const coatCol = opts.boss ? 0x2a1020 : 0x1a1218;
-  const eyeCol = opts.boss ? 0xffcc44 : 0xff2233;
+  const type = opts.type || "shooter";
+  const def = ENEMY_TYPES[type] || ENEMY_TYPES.shooter;
+  const coatCol = opts.boss ? 0x2a1020 : def.color;
+  const eyeCol = opts.boss ? 0xffcc44 : def.eye;
   const coat = boxMat(coatCol);
   const skin = boxMat(0x2a1a1a);
-  const scale = opts.boss ? 1.15 : 1;
+  const scale = opts.boss ? 1.15 : def.scale;
   const body = mesh(new THREE.BoxGeometry(0.65 * scale, 1.1 * scale, 0.4 * scale), coat, 0, 1.15 * scale, 0);
   const hips = mesh(new THREE.BoxGeometry(0.55 * scale, 0.35 * scale, 0.35 * scale), boxMat(0x121018), 0, 0.5 * scale, 0);
   const head = mesh(new THREE.SphereGeometry(0.26 * scale, 14, 14), skin, 0, 1.95 * scale, 0);
@@ -75,31 +77,54 @@ function makeEnemy(opts = {}) {
   const glow = new THREE.PointLight(eyeCol, opts.boss ? 0.9 : 0.45, opts.boss ? 5 : 3);
   glow.position.set(0, 1.9 * scale, 0.3);
   g.add(body, hips, head, armL, armR, legL, legR, eyeL, eyeR, glow);
-  g.userData = { armL, armR, legL, legR, eyes: [eyeL, eyeR], body, head };
+  g.userData = { armL, armR, legL, legR, eyes: [eyeL, eyeR], body, head, type, eyeColor: eyeCol };
   return g;
 }
 
-export function createBoss(scene) {
-  const e = makeEnemy({ boss: true });
-  e.position.set(8, 0, 12);
-  e.userData = {
-    ...e.userData,
+function enemyStats(e, overrides = {}) {
+  const def = ENEMY_TYPES[e.userData.type] || ENEMY_TYPES.shooter;
+  Object.assign(e.userData, {
     kind: "enemy",
-    boss: true,
-    name: "Elena Voss",
-    hp: 18,
-    maxHp: 18,
-    speed: 2.8,
+    hp: def.hp,
+    maxHp: def.hp,
+    speed: def.speed,
+    meleeDmg: def.dmg,
     cooldown: 0,
-    shootCd: 0,
+    shootCd: 0.5 + Math.random(),
     alive: true,
-    bob: 0,
+    bob: Math.random() * Math.PI,
     hurtFlash: 0,
     stagger: 0,
-    ranged: true,
+    ranged: def.ranged,
     dying: false,
     deathT: 0,
-  };
+    ...overrides,
+  });
+  return e;
+}
+
+export function createBoss(scene) {
+  const e = makeEnemy({ boss: true, type: "shooter" });
+  e.position.set(8, 0, 12);
+  enemyStats(e, {
+    boss: true,
+    name: "Elena Voss",
+    hp: 22,
+    maxHp: 22,
+    speed: 2.8,
+    meleeDmg: 18,
+    ranged: true,
+    phase: 1,
+    summoned: false,
+  });
+  scene.add(e);
+  return e;
+}
+
+export function createAdd(scene, x, z, type = "runner") {
+  const e = makeEnemy({ type });
+  e.position.set(x, 0, z);
+  enemyStats(e, { add: true });
   scene.add(e);
   return e;
 }
@@ -344,25 +369,10 @@ export function buildWorld(scene) {
   colliders.push(studyDoor);
 
   // Enemies
-  ENEMY_SPAWNS.forEach((spawn, i) => {
-    const e = makeEnemy();
+  ENEMY_SPAWNS.forEach((spawn) => {
+    const e = makeEnemy({ type: spawn.type || "shooter" });
     e.position.set(spawn.x, 0, spawn.z);
-    e.userData = {
-      ...e.userData,
-      kind: "enemy",
-      hp: 4,
-      maxHp: 4,
-      speed: 2.0 + Math.random() * 0.7,
-      cooldown: 0,
-      shootCd: 0.5 + Math.random(),
-      alive: true,
-      bob: Math.random() * Math.PI,
-      hurtFlash: 0,
-      stagger: 0,
-      ranged: i % 2 === 0,
-      dying: false,
-      deathT: 0,
-    };
+    enemyStats(e);
     scene.add(e);
     enemies.push(e);
   });

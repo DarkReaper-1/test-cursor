@@ -124,6 +124,16 @@ export class AudioBus {
     this.tone(480, 0.12, "triangle", 0.04, 0.08);
   }
 
+  melee() {
+    this.tone(90, 0.08, "square", 0.07);
+    this.tone(140, 0.1, "sawtooth", 0.05, 0.03);
+  }
+
+  meleeHit() {
+    this.tone(70, 0.12, "sawtooth", 0.1);
+    this.tone(200, 0.08, "triangle", 0.05, 0.02);
+  }
+
   startAmbience() {
     if (!this.ctx || !this.enabled || this._amb) return;
     const bufferSize = this.ctx.sampleRate * 2;

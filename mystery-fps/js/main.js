@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import { BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO } from "./data.js";
 import { AudioBus } from "./audio.js";
-import { buildWorld, playerCollides, spawnHitSparks, createBoss } from "./world.js";
-import { createDust, updateDust, createProjectile, spawnDamageNumber, updateFloating } from "./fx.js";
+import { buildWorld, playerCollides, spawnHitSparks, createBoss, createAdd } from "./world.js";
+import {
+  createDust, updateDust, createProjectile, spawnDamageNumber, updateFloating,
+  spawnBulletHole, spawnShell, updatePhysicsBits,
+} from "./fx.js";
 
 const $ = (s) => document.querySelector(s);
 const DEMO = new URLSearchParams(location.search).has("demo");
@@ -26,6 +29,7 @@ const state = {
   journalTab: "evidence",
   flashlightOn: true,
   aiming: false,
+  crouching: false,
   shake: 0,
   footTimer: 0,
   spread: 0,
@@ -35,6 +39,12 @@ const state = {
   bossDefeated: false,
   radioFired: new Set(),
   thunderT: 8,
+  meleeCd: 0,
+  shotsFired: 0,
+  shotsHit: 0,
+  lookSwayX: 0,
+  lookSwayY: 0,
+  standY: 1.65,
 };
 
 const keys = {};
@@ -42,6 +52,8 @@ const audio = new AudioBus();
 const sparks = [];
 const floaters = [];
 const projectiles = [];
+const decals = [];
+const shells = [];
 
 let renderer, scene, camera, clock, world, rain, dust;
 let bob = 0;
@@ -86,6 +98,8 @@ function updateHUD() {
   $("#ammo-reserve").textContent = state.reserve;
   $("#clue-stat").textContent = `Evidence ${state.clues.size}/8`;
   $("#kill-stat").textContent = `Hostiles ${state.kills}`;
+  const acc = state.shotsFired ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0;
+  $("#acc-stat").textContent = state.shotsFired ? `Accuracy ${acc}%` : "Accuracy —";
   $("#room-stat").textContent = ROOM_BOUNDS[state.room]?.name || state.room;
   $("#btn-accuse").disabled = state.clues.size < 5;
   $("#damage-vignette").classList.toggle("critical", state.health > 0 && state.health <= 30);
@@ -172,6 +186,8 @@ function onMouseMove(e) {
   state.yaw -= e.movementX * sens;
   state.pitch -= e.movementY * sens;
   state.pitch = Math.max(-1.35, Math.min(1.35, state.pitch));
+  state.lookSwayX += e.movementX * 0.00015;
+  state.lookSwayY += e.movementY * 0.00012;
 }
 
 function onMouseDown(e) {
@@ -204,6 +220,7 @@ function fire() {
   }
 
   state.ammo--;
+  state.shotsFired++;
   shootCooldown = state.aiming ? 0.2 : 0.15;
   world.weapon.userData.recoil = state.aiming ? 0.06 : 0.14;
   state.shake = state.aiming ? 0.02 : 0.045;
@@ -216,6 +233,11 @@ function fire() {
   }
   $("#muzzle-flash").classList.add("flash");
   setTimeout(() => $("#muzzle-flash").classList.remove("flash"), 45);
+
+  // Eject casing to the right
+  const right = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw));
+  const shellOrigin = camera.position.clone().add(new THREE.Vector3(0, -0.1, 0)).addScaledVector(right, 0.25);
+  shells.push(spawnShell(scene, shellOrigin, right));
   updateHUD();
 
   // Bloom / ADS accuracy
@@ -227,15 +249,39 @@ function fire() {
   );
   ray.setFromCamera(ndc, camera);
   const targets = world.enemies.filter((e) => e.userData.alive && !e.userData.dying);
-  if (boss?.userData?.alive) targets.push(boss);
-  const hits = ray.intersectObjects(targets, true);
+  const hits = ray.intersectObjects([...targets, ...world.colliders], true);
   if (hits.length && hits[0].distance < 32) {
     let obj = hits[0].object;
     while (obj.parent && !obj.userData?.kind) obj = obj.parent;
     if (obj.userData?.kind === "enemy") {
       const headY = obj.userData.boss ? 2.1 : 1.7;
       const headshot = hits[0].point.y - obj.position.y > headY;
+      state.shotsHit++;
       damageEnemy(obj, headshot ? 2 : 1, hits[0].point, headshot);
+    } else {
+      decals.push(spawnBulletHole(scene, hits[0].point, hits[0].face?.normal));
+    }
+  }
+}
+
+function melee() {
+  if (state.modalOpen || state.journalOpen || state.meleeCd > 0 || state.reloading) return;
+  state.meleeCd = 0.55;
+  world.weapon.userData.recoil = 0.22;
+  state.shake = 0.03;
+  audio.melee();
+
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(new THREE.Vector2(0, 0), camera);
+  const targets = world.enemies.filter((e) => e.userData.alive && !e.userData.dying);
+  const hits = ray.intersectObjects(targets, true);
+  if (hits.length && hits[0].distance < 2.1) {
+    let obj = hits[0].object;
+    while (obj.parent && !obj.userData?.kind) obj = obj.parent;
+    if (obj.userData?.kind === "enemy") {
+      audio.meleeHit();
+      damageEnemy(obj, 3, hits[0].point, false);
+      toast("Bash!");
     }
   }
 }
@@ -265,6 +311,10 @@ function damageEnemy(enemy, dmg, point, headshot = false) {
   away.normalize().multiplyScalar(enemy.userData.boss ? 0.15 : 0.35);
   enemy.position.add(away);
 
+  if (enemy.userData.boss && !enemy.userData.summoned && enemy.userData.hp <= enemy.userData.maxHp * 0.5) {
+    triggerBossPhase2();
+  }
+
   if (enemy.userData.hp <= 0) {
     beginDeath(enemy, headshot);
   }
@@ -282,10 +332,28 @@ function beginDeath(enemy, headshot) {
     toast("Elena is down — open your journal and accuse.");
     setObjective("Open journal (Tab) and make your accusation.");
   } else {
-    toast(headshot ? "Headshot — neutralized" : "Hostile neutralized");
+    const label = enemy.userData.type === "brute" ? "Brute down" :
+      enemy.userData.type === "runner" ? "Runner down" : "Hostile neutralized";
+    toast(headshot ? `Headshot — ${label}` : label);
   }
   maybeRadio();
   updateHUD();
+}
+
+function triggerBossPhase2() {
+  if (!boss || boss.userData.phase >= 2 || boss.userData.summoned) return;
+  boss.userData.phase = 2;
+  boss.userData.summoned = true;
+  boss.userData.speed = 3.4;
+  boss.userData.shootCd = 0.2;
+  toast("Elena calls reinforcements!");
+  showRoomBanner("PHASE TWO");
+  pushRadio("HQ: She's calling reinforcements. Clear the adds, then finish her.");
+  state.radioFired.add("HQ: She's calling reinforcements. Clear the adds, then finish her.");
+  [[6, 10], [10, 14], [5, 14]].forEach(([x, z], i) => {
+    const add = createAdd(scene, x, z, i === 2 ? "shooter" : "runner");
+    world.enemies.push(add);
+  });
 }
 
 function reload() {
@@ -321,6 +389,7 @@ function maybeRadio() {
   for (const msg of RADIO) {
     const key = msg.text;
     if (state.radioFired.has(key)) continue;
+    if (msg.atBossPhase != null) continue; // fired manually
     const clueOk = msg.atClues == null || state.clues.size >= msg.atClues;
     const killOk = msg.atKills == null || state.kills >= msg.atKills;
     if (clueOk && killOk) {
@@ -328,6 +397,17 @@ function maybeRadio() {
       pushRadio(msg.text);
     }
   }
+}
+
+function updateCompass() {
+  // yaw 0 looks -Z (north in our map convention)
+  let deg = ((-state.yaw * 180) / Math.PI) % 360;
+  if (deg < 0) deg += 360;
+  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const idx = Math.round(deg / 45) % 8;
+  $("#compass-dir").textContent = dirs[idx];
+  const offset = (deg / 360) * 240;
+  $("#compass-track").style.transform = `translateX(${-offset}px)`;
 }
 
 function unlockStudy() {
@@ -507,8 +587,10 @@ function updatePlayer(dt) {
   camera.rotation.y = state.yaw;
   camera.rotation.x = state.pitch;
 
-  const sprinting = !state.aiming && (keys["ShiftLeft"] || keys["ShiftRight"]);
-  const speed = (state.aiming ? 2.4 : sprinting ? 5.8 : 3.6) * dt;
+  state.crouching = !!(keys["KeyC"] || keys["ControlLeft"] || keys["ControlRight"]);
+  const sprinting = !state.aiming && !state.crouching && (keys["ShiftLeft"] || keys["ShiftRight"]);
+  const speed = (state.crouching ? 1.8 : state.aiming ? 2.4 : sprinting ? 5.8 : 3.6) * dt;
+  state.meleeCd = Math.max(0, state.meleeCd - dt);
   const forward = new THREE.Vector3(-Math.sin(state.yaw), 0, -Math.cos(state.yaw));
   const right = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw));
   const wish = new THREE.Vector3();
@@ -546,7 +628,9 @@ function updatePlayer(dt) {
   camera.fov = state.fov;
   camera.updateProjectionMatrix();
 
-  let y = 1.65 + Math.sin(bob) * (state.aiming ? 0.01 : 0.03);
+  const targetStand = state.crouching ? 1.15 : 1.65;
+  state.standY += (targetStand - state.standY) * Math.min(1, dt * 10);
+  let y = state.standY + Math.sin(bob) * (state.aiming || state.crouching ? 0.01 : 0.03);
   if (state.shake > 0) {
     y += (Math.random() - 0.5) * state.shake;
     camera.rotation.z = (Math.random() - 0.5) * state.shake * 0.5;
@@ -556,16 +640,22 @@ function updatePlayer(dt) {
   }
   camera.position.y = y;
 
+  // Weapon sway from look
+  state.lookSwayX *= 0.85;
+  state.lookSwayY *= 0.85;
+
   const w = world.weapon;
   const adsX = state.aiming ? 0.02 : 0.22;
   const adsY = state.aiming ? -0.14 : -0.24;
   const adsZ = state.aiming ? -0.28 : -0.4;
-  w.position.x += (adsX - w.position.x) * 0.2;
-  w.position.y += (adsY + Math.sin(bob) * 0.01 - w.position.y) * 0.2;
+  w.position.x += (adsX - state.lookSwayX - w.position.x) * 0.2;
+  w.position.y += (adsY + Math.sin(bob) * 0.01 + state.lookSwayY - w.position.y) * 0.2;
   w.position.z += (adsZ - w.position.z) * 0.2;
   w.userData.recoil *= 0.82;
-  w.rotation.x = -w.userData.recoil * 2.5;
-  w.rotation.z = Math.sin(bob * 0.5) * (state.aiming ? 0.005 : 0.02);
+  w.rotation.x = -w.userData.recoil * 2.5 + state.lookSwayY * 0.8;
+  w.rotation.z = Math.sin(bob * 0.5) * (state.aiming ? 0.005 : 0.02) - state.lookSwayX * 0.6;
+
+  updateCompass();
 
   // Crosshair spread / ADS
   const ch = $("#crosshair");
@@ -622,7 +712,7 @@ function updateEnemies(dt) {
     if (e.userData.legL) e.userData.legL.rotation.x = -swing;
     if (e.userData.legR) e.userData.legR.rotation.x = swing;
 
-    const eyeIdle = e.userData.boss ? 0xffcc44 : 0xff2233;
+    const eyeIdle = e.userData.eyeColor || (e.userData.boss ? 0xffcc44 : 0xff2233);
     if (e.userData.hurtFlash > 0) {
       e.userData.hurtFlash -= dt;
       e.userData.eyes?.forEach((eye) => eye.material.color.setHex(0xffffff));
@@ -667,8 +757,8 @@ function updateEnemies(dt) {
     } else if (dist <= 1.35) {
       e.userData.cooldown -= dt;
       if (e.userData.cooldown <= 0) {
-        e.userData.cooldown = e.userData.boss ? 0.7 : 0.95;
-        hurtPlayer(e.userData.boss ? 18 : 14);
+        e.userData.cooldown = e.userData.boss ? 0.7 : e.userData.type === "brute" ? 1.15 : 0.95;
+        hurtPlayer(e.userData.meleeDmg || 14);
       }
     }
   });
@@ -842,8 +932,10 @@ function endGame(won, text) {
   $("#evidence-modal").classList.add("hidden");
 
   const mins = Math.max(1, Math.round((Date.now() - state.startTime) / 60000));
+  const acc = state.shotsFired ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0;
   const grade = won
-    ? state.clues.size >= 8 && state.kills >= 5 ? "S" : state.clues.size >= 6 ? "A" : "B"
+    ? state.clues.size >= 8 && state.kills >= 6 && acc >= 40 ? "S"
+      : state.clues.size >= 6 ? "A" : "B"
     : "F";
 
   $("#result-grade").textContent = grade;
@@ -852,6 +944,7 @@ function endGame(won, text) {
   $("#result-stats").innerHTML = `
     <div><span>${state.clues.size}</span>evidence</div>
     <div><span>${state.kills}</span>hostiles</div>
+    <div><span>${acc}%</span>accuracy</div>
     <div><span>${mins}</span>min</div>
   `;
   showScreen("#screen-result");
@@ -870,6 +963,8 @@ function loop() {
     updateDust(dust, dt, camera);
     updateSparks(dt);
     updateFloating(floaters, dt, scene);
+    updatePhysicsBits(shells, dt, scene);
+    updatePhysicsBits(decals, dt, scene);
     updateMarkers(dt);
     updateStorm(dt);
     drawMinimap();
@@ -985,6 +1080,7 @@ function startMission() {
   state.journalOpen = false;
   state.flashlightOn = true;
   state.aiming = false;
+  state.crouching = false;
   state.shake = 0;
   state.spread = 0;
   state.fov = 72;
@@ -993,6 +1089,10 @@ function startMission() {
   state.bossDefeated = false;
   state.radioFired = new Set();
   state.thunderT = 6;
+  state.meleeCd = 0;
+  state.shotsFired = 0;
+  state.shotsHit = 0;
+  state.standY = 1.65;
   camera.position.set(0, 1.65, 2);
   camera.fov = 72;
   camera.updateProjectionMatrix();
@@ -1032,7 +1132,22 @@ function startMission() {
     e.userData.hp = e.userData.maxHp || 4;
     e.userData.stagger = 0;
     e.userData.shootCd = 0.5;
+    if (e.userData.boss) {
+      e.userData.phase = 1;
+      e.userData.summoned = false;
+      e.userData.speed = 2.8;
+    }
   });
+  // Clear leftover adds from prior runs
+  world.enemies = world.enemies.filter((e) => {
+    if (e.userData.add) {
+      scene.remove(e);
+      return false;
+    }
+    return true;
+  });
+  decals.splice(0).forEach((d) => scene.remove(d));
+  shells.splice(0).forEach((s) => scene.remove(s));
   world.pickups.forEach((p) => {
     p.taken = false;
     p.meshes.forEach((m) => { m.visible = true; });
@@ -1103,6 +1218,7 @@ window.addEventListener("keydown", (e) => {
   if (e.code === "KeyE") tryInteract();
   if (e.code === "KeyR") reload();
   if (e.code === "KeyF") toggleFlashlight();
+  if (e.code === "KeyV") melee();
   if (e.code === "Tab") { e.preventDefault(); toggleJournal(); }
   if (e.code === "Escape" && state.journalOpen) toggleJournal();
 });

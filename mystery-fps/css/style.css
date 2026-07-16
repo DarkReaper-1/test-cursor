@@ -348,6 +348,58 @@ kbd {
 
 #lightning.flash { opacity: 1; }
 
+.compass {
+  position: absolute;
+  left: 50%;
+  top: 3.6rem;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+#compass-dir {
+  font-family: var(--font-display);
+  letter-spacing: 0.2em;
+  font-size: 1rem;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.compass-strip {
+  width: 160px;
+  height: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 18, 0.65);
+  margin: 0 auto;
+  position: relative;
+}
+
+.compass-strip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  transform: translateX(-50%);
+}
+
+#compass-track {
+  height: 100%;
+  width: 480px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 28px,
+    rgba(220,228,239,0.25) 28px 30px,
+    transparent 30px 58px,
+    rgba(201,161,74,0.7) 58px 60px
+  );
+  transition: transform 0.05s linear;
+}
+
 #interact-prompt {
   position: absolute;
   left: 50%;

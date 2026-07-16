@@ -24,6 +24,8 @@
           <span><kbd>Mouse</kbd> Look</span>
           <span><kbd>LMB</kbd> Fire</span>
           <span><kbd>RMB</kbd> Aim</span>
+          <span><kbd>V</kbd> Melee</span>
+          <span><kbd>C</kbd> Crouch</span>
           <span><kbd>E</kbd> Examine</span>
           <span><kbd>R</kbd> Reload</span>
           <span><kbd>F</kbd> Flashlight</span>
@@ -53,9 +55,15 @@
           <div class="hud-stats">
             <span id="clue-stat">Evidence 0/8</span>
             <span id="kill-stat">Hostiles 0</span>
+            <span id="acc-stat">Accuracy —</span>
             <span id="room-stat">Entrance Hall</span>
             <span id="flash-stat" class="flash-on">🔦 ON</span>
           </div>
+        </div>
+
+        <div id="compass" class="compass">
+          <span id="compass-dir">N</span>
+          <div class="compass-strip"><div id="compass-track"></div></div>
         </div>
 
         <div id="room-banner" class="room-banner hidden"></div>

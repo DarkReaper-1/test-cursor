@@ -89,15 +89,22 @@ export const INTERACTABLES = [
   { id: "champagne", clue: "champagne", pos: [12, 1.2, 10], label: "Examine glass" },
 ];
 
+export const ENEMY_TYPES = {
+  runner: { hp: 3, speed: 3.6, ranged: false, scale: 0.92, color: 0x1a1820, eye: 0xff4466, dmg: 12 },
+  shooter: { hp: 4, speed: 2.0, ranged: true, scale: 1.0, color: 0x1a1218, eye: 0xff2233, dmg: 14 },
+  brute: { hp: 8, speed: 1.55, ranged: false, scale: 1.25, color: 0x221018, eye: 0xff6622, dmg: 22 },
+};
+
 export const ENEMY_SPAWNS = [
-  { x: -10, z: 4 },
-  { x: 10, z: 1 },
-  { x: -4, z: 12 },
-  { x: 8, z: 14 },
-  { x: 4, z: 22 },
-  { x: -12, z: 0 },
-  { x: 14, z: 8 },
-  { x: 0, z: 16 },
+  { x: -10, z: 4, type: "shooter" },
+  { x: 10, z: 1, type: "runner" },
+  { x: -4, z: 12, type: "brute" },
+  { x: 8, z: 14, type: "shooter" },
+  { x: 4, z: 22, type: "runner" },
+  { x: -12, z: 0, type: "shooter" },
+  { x: 14, z: 8, type: "brute" },
+  { x: 0, z: 16, type: "runner" },
+  { x: -8, z: 10, type: "shooter" },
 ];
 
 export const PICKUPS = [
@@ -124,4 +131,6 @@ export const RADIO = [
   { atClues: 5, text: "HQ: Enough for a charge. Confirm motive in the study, then accuse." },
   { atClues: 8, text: "HQ: Full dossier. Confront the heiress if she shows herself." },
   { atKills: 3, text: "HQ: Multiple hostiles down. Someone armed the estate on purpose." },
+  { atKills: 6, text: "HQ: Brutes in the east wing. Keep distance — or bash when close." },
+  { atBossPhase: 2, text: "HQ: She's calling reinforcements. Clear the adds, then finish her." },
 ];

@@ -139,6 +139,8 @@ Then visit http://localhost:8080/mystery-fps/
 | **Mouse** | Look |
 | **LMB** | Fire |
 | **RMB** | Aim down sights |
+| **V** | Melee bash |
+| **C / Ctrl** | Crouch |
 | **E** | Examine / collect evidence |
 | **R** | Reload |
 | **F** | Flashlight |
@@ -148,13 +150,13 @@ Then visit http://localhost:8080/mystery-fps/
 ### Features
 
 - Full 3D manor with textured floors/walls, windows, door frames, and props
-- ADS (RMB), sprint FOV, dynamic crosshair bloom, reload bar
-- Ranged + melee hostiles, death falls, damage numbers, hit sparks
-- Flashlight, health/ammo pickups, minimap, room banners, radio chatter
+- ADS (RMB), crouch, melee bash (V), weapon sway, shell casings
+- Enemy types: runners, shooters, brutes — death falls, damage numbers
+- Elena boss with phase-2 reinforcements at half health
+- Bullet holes on walls, compass, accuracy tracking
+- Flashlight, pickups, minimap, radio chatter, storm lightning
 - Study door locked until the library body is examined
-- Final confrontation with Elena after 5 evidence pieces
-- Case journal with evidence + suspect suspicion heat
-- Storm lightning, dust motes, letter-grade endings
+- Case journal with suspect suspicion heat + letter-grade endings
 - Demo autopilot via `?demo=1` for video recording
 
 ### Demo Video
