@@ -419,6 +419,28 @@ export function buildWorld(scene) {
   };
 }
 
+/** Runtime loot drop (ammo / med) at world position */
+export function spawnLootPickup(scene, pickups, type, amount, x, z) {
+  const isHealth = type === "health";
+  const color = isHealth ? 0x2a6a40 : 0x3a3a20;
+  const emissive = isHealth ? 0x114422 : 0x332200;
+  const m = box(0.32, 0.22, 0.32, color, x, 0.35, z, {
+    emissive, emissiveIntensity: 0.65,
+  });
+  const cross = box(0.22, 0.05, 0.05, isHealth ? 0xff4444 : ACCENT, x, 0.5, z);
+  scene.add(m, cross);
+  const entry = {
+    type,
+    amount,
+    meshes: [m, cross],
+    position: new THREE.Vector3(x, 0.35, z),
+    taken: false,
+    dynamic: true,
+  };
+  pickups.push(entry);
+  return entry;
+}
+
 export function playerCollides(pos, colliders, radius = 0.35) {
   for (const c of colliders) {
     const box3 = new THREE.Box3().setFromObject(c);

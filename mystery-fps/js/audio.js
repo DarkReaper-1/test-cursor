@@ -119,6 +119,15 @@ export class AudioBus {
     this.tone(60, 0.3, "triangle", 0.05, 0.05);
   }
 
+  killConfirm() {
+    this.tone(520, 0.05, "sine", 0.04);
+    this.tone(780, 0.08, "triangle", 0.035, 0.04);
+  }
+
+  empty() {
+    this.tone(90, 0.05, "square", 0.03);
+  }
+
   unlock() {
     this.tone(320, 0.08, "triangle", 0.05);
     this.tone(480, 0.12, "triangle", 0.04, 0.08);
@@ -181,5 +190,20 @@ export class AudioBus {
     g.connect(this.master);
     src.start();
     this._amb = src;
+    this._ambFilter = f;
+    this._ambGain = g;
+  }
+
+  setAmbience(outdoor = false) {
+    if (!this.ctx || !this._ambGain) return;
+    const now = this.ctx.currentTime;
+    const vol = outdoor ? 0.07 : 0.028;
+    const freq = outdoor ? 900 : 520;
+    this._ambGain.gain.cancelScheduledValues(now);
+    this._ambGain.gain.linearRampToValueAtTime(vol, now + 0.4);
+    if (this._ambFilter) {
+      this._ambFilter.frequency.cancelScheduledValues(now);
+      this._ambFilter.frequency.linearRampToValueAtTime(freq, now + 0.4);
+    }
   }
 }
