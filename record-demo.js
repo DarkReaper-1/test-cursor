@@ -4,7 +4,7 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 
 const ARTIFACTS = "/opt/cursor/artifacts";
-const OUTPUT = path.join(ARTIFACTS, "webline-spiderman-demo.mp4");
+const OUTPUT = path.join(ARTIFACTS, "webline-improved-demo.mp4");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
@@ -18,68 +18,50 @@ async function main() {
 
   const page = await context.newPage();
   await page.goto("http://localhost:8080/", { waitUntil: "networkidle" });
-  await sleep(1500);
-
-  // Title screen beat
-  await sleep(1200);
+  await sleep(1600);
   await page.click("#btn-play");
-  await sleep(800);
+  await sleep(700);
 
-  // Drive gameplay via exposed API
   await page.evaluate(async () => {
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const g = window.__WEBLINE__;
 
-    // Run + jump
     g.press("KeyD");
+    await sleep(800);
+    g.press("Space");
+    await sleep(300);
+    g.release("Space");
+
+    for (const aim of [
+      [0.72, 0.30],
+      [0.78, 0.26],
+      [0.74, 0.32],
+      [0.80, 0.28],
+    ]) {
+      g.aim(aim[0], aim[1]);
+      g.webDown();
+      await sleep(1600);
+      g.press("ShiftLeft");
+      await sleep(550);
+      g.release("ShiftLeft");
+      await sleep(500);
+      g.webUp();
+      await sleep(280);
+    }
+
     await sleep(900);
     g.press("Space");
     await sleep(350);
     g.release("Space");
-
-    // Swing chain 1
-    g.aim(0.72, 0.32);
-    g.webDown();
-    await sleep(2200);
-    g.webUp();
-    await sleep(250);
-
-    // Swing 2
-    g.aim(0.78, 0.28);
+    g.aim(0.76, 0.3);
     g.webDown();
     await sleep(2000);
-    // zip while swinging
-    g.press("ShiftLeft");
+    g.webUp();
     await sleep(700);
-    g.release("ShiftLeft");
-    g.webUp();
-    await sleep(300);
-
-    // Swing 3
-    g.aim(0.7, 0.35);
-    g.webDown();
-    await sleep(2400);
-    g.webUp();
-    await sleep(400);
-
-    // Rooftop dash
-    await sleep(1200);
-    g.press("Space");
-    await sleep(400);
-    g.release("Space");
-
-    // Final swing
-    g.aim(0.75, 0.3);
-    g.webDown();
-    await sleep(2200);
-    g.webUp();
-    await sleep(800);
-
     g.release("KeyD");
   });
 
-  await sleep(500);
-
+  await sleep(400);
   const video = page.video();
   await context.close();
   await browser.close();
@@ -92,7 +74,4 @@ async function main() {
   console.log("VIDEO_SAVED:", OUTPUT);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main().catch((e) => { console.error(e); process.exit(1); });

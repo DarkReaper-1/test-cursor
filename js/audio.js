@@ -62,11 +62,11 @@ export function createAudio() {
 
   return {
     start: ensure,
-    webShoot() { blip(480, 0.1, "sawtooth", 0.12); },
-    webRelease() { blip(180, 0.12, "triangle", 0.1); },
-    jump() { blip(220, 0.08, "square", 0.1); },
-    collect() { blip(660, 0.1, "sine", 0.16); blip(990, 0.14, "sine", 0.1); },
-    combo() { blip(520, 0.06, "square", 0.08); },
-    fall() { blip(90, 0.35, "sawtooth", 0.14); },
+    webShoot() { blip(520, 0.09, "sawtooth", 0.13); blip(780, 0.06, "square", 0.06); },
+    webRelease() { blip(200, 0.14, "triangle", 0.12); blip(140, 0.1, "sine", 0.08); },
+    jump() { blip(240, 0.07, "square", 0.1); blip(360, 0.05, "triangle", 0.06); },
+    collect() { blip(700, 0.09, "sine", 0.16); blip(1040, 0.12, "sine", 0.11); },
+    combo() { blip(560, 0.05, "square", 0.09); blip(840, 0.07, "sine", 0.06); },
+    fall() { blip(100, 0.4, "sawtooth", 0.15); },
   };
 }

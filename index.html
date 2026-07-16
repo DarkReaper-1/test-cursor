@@ -13,23 +13,23 @@
   <div id="app">
     <canvas id="game"></canvas>
 
-    <!-- Title -->
     <section id="title-screen" class="screen">
       <div class="title-bg"></div>
       <div class="title-content">
-        <p class="eyebrow">New York · Night Shift</p>
+        <p class="eyebrow">New York · Rain Shift</p>
         <h1 class="brand">WEBLINE</h1>
-        <p class="tagline">Swing the skyline. Chain the momentum. Own the night.</p>
+        <p class="tagline">Chain momentum. Skim the glass. Grab every ring before the harbor.</p>
+        <p id="best-score" class="best">New run</p>
         <button id="btn-play" class="cta" type="button">Start Swinging</button>
         <p class="controls-hint">
-          <span><kbd>A</kbd><kbd>D</kbd> move</span>
+          <span><kbd>A</kbd><kbd>D</kbd> steer</span>
           <span><kbd>Space</kbd> jump</span>
-          <span><kbd>Click</kbd> / hold shoot web</span>
+          <span><kbd>Click</kbd> web</span>
+          <span><kbd>Shift</kbd> zip</span>
         </p>
       </div>
     </section>
 
-    <!-- HUD -->
     <div id="hud" class="hidden">
       <div class="hud-top">
         <div class="stat">
@@ -45,17 +45,26 @@
           <span id="distance" class="value">0m</span>
         </div>
       </div>
+      <div class="hud-mid">
+        <div class="pill"><span class="pill-label">Rings</span> <span id="rings">0/0</span></div>
+        <div class="pill"><span class="pill-label">Time</span> <span id="time">0.0s</span></div>
+      </div>
+      <div id="toast"></div>
       <div class="hud-bottom">
         <div id="speed-bar"><div id="speed-fill"></div></div>
-        <p id="tip">Aim at rooftops · release to fling</p>
+        <p id="tip">Aim · swing · zip · fling · collect gold rings</p>
+        <div id="touch-controls">
+          <button id="btn-jump" type="button" aria-label="Jump">↑</button>
+          <button id="btn-zip" type="button" aria-label="Zip">ZIP</button>
+        </div>
       </div>
     </div>
 
-    <!-- Game over -->
     <section id="end-screen" class="screen hidden">
       <div class="end-card">
         <h2>Run Complete</h2>
         <p id="end-score" class="end-score">0</p>
+        <p id="end-best" class="end-best"></p>
         <p id="end-detail" class="end-detail"></p>
         <button id="btn-again" class="cta" type="button">Swing Again</button>
       </div>
