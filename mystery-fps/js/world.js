@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { INTERACTABLES, ENEMY_SPAWNS, PICKUPS } from "./data.js";
+import { INTERACTABLES, ENEMY_SPAWNS, PICKUPS, STUDY_LOCK } from "./data.js";
 import {
   woodTexture, wallpaperTexture, carpetTexture, stoneTexture, metalTexture, applyMap,
 } from "./textures.js";
@@ -55,25 +55,53 @@ function wallSeg(x0, z0, x1, z1, h = 4) {
   return m;
 }
 
-function makeEnemy() {
+function makeEnemy(opts = {}) {
   const g = new THREE.Group();
-  const coat = boxMat(0x1a1218);
+  const coatCol = opts.boss ? 0x2a1020 : 0x1a1218;
+  const eyeCol = opts.boss ? 0xffcc44 : 0xff2233;
+  const coat = boxMat(coatCol);
   const skin = boxMat(0x2a1a1a);
-  const body = mesh(new THREE.BoxGeometry(0.65, 1.1, 0.4), coat, 0, 1.15, 0);
-  const hips = mesh(new THREE.BoxGeometry(0.55, 0.35, 0.35), boxMat(0x121018), 0, 0.5, 0);
-  const head = mesh(new THREE.SphereGeometry(0.26, 14, 14), skin, 0, 1.95, 0);
-  const armL = mesh(new THREE.BoxGeometry(0.18, 0.7, 0.18), coat, -0.45, 1.15, 0);
-  const armR = mesh(new THREE.BoxGeometry(0.18, 0.7, 0.18), coat, 0.45, 1.15, 0);
-  const legL = mesh(new THREE.BoxGeometry(0.2, 0.55, 0.22), boxMat(0x101018), -0.16, 0.2, 0);
-  const legR = mesh(new THREE.BoxGeometry(0.2, 0.55, 0.22), boxMat(0x101018), 0.16, 0.2, 0);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2233 });
-  const eyeL = mesh(new THREE.SphereGeometry(0.055, 8, 8), eyeMat, -0.09, 2.0, 0.2);
-  const eyeR = mesh(new THREE.SphereGeometry(0.055, 8, 8), eyeMat.clone(), 0.09, 2.0, 0.2);
-  const glow = new THREE.PointLight(0xff2233, 0.45, 3);
-  glow.position.set(0, 1.9, 0.3);
+  const scale = opts.boss ? 1.15 : 1;
+  const body = mesh(new THREE.BoxGeometry(0.65 * scale, 1.1 * scale, 0.4 * scale), coat, 0, 1.15 * scale, 0);
+  const hips = mesh(new THREE.BoxGeometry(0.55 * scale, 0.35 * scale, 0.35 * scale), boxMat(0x121018), 0, 0.5 * scale, 0);
+  const head = mesh(new THREE.SphereGeometry(0.26 * scale, 14, 14), skin, 0, 1.95 * scale, 0);
+  const armL = mesh(new THREE.BoxGeometry(0.18, 0.7 * scale, 0.18), coat, -0.45 * scale, 1.15 * scale, 0);
+  const armR = mesh(new THREE.BoxGeometry(0.18, 0.7 * scale, 0.18), coat, 0.45 * scale, 1.15 * scale, 0);
+  const legL = mesh(new THREE.BoxGeometry(0.2, 0.55 * scale, 0.22), boxMat(0x101018), -0.16 * scale, 0.2 * scale, 0);
+  const legR = mesh(new THREE.BoxGeometry(0.2, 0.55 * scale, 0.22), boxMat(0x101018), 0.16 * scale, 0.2 * scale, 0);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: eyeCol });
+  const eyeL = mesh(new THREE.SphereGeometry(0.055 * scale, 8, 8), eyeMat, -0.09 * scale, 2.0 * scale, 0.2 * scale);
+  const eyeR = mesh(new THREE.SphereGeometry(0.055 * scale, 8, 8), eyeMat.clone(), 0.09 * scale, 2.0 * scale, 0.2 * scale);
+  const glow = new THREE.PointLight(eyeCol, opts.boss ? 0.9 : 0.45, opts.boss ? 5 : 3);
+  glow.position.set(0, 1.9 * scale, 0.3);
   g.add(body, hips, head, armL, armR, legL, legR, eyeL, eyeR, glow);
-  g.userData = { armL, armR, legL, legR, eyes: [eyeL, eyeR] };
+  g.userData = { armL, armR, legL, legR, eyes: [eyeL, eyeR], body, head };
   return g;
+}
+
+export function createBoss(scene) {
+  const e = makeEnemy({ boss: true });
+  e.position.set(8, 0, 12);
+  e.userData = {
+    ...e.userData,
+    kind: "enemy",
+    boss: true,
+    name: "Elena Voss",
+    hp: 18,
+    maxHp: 18,
+    speed: 2.8,
+    cooldown: 0,
+    shootCd: 0,
+    alive: true,
+    bob: 0,
+    hurtFlash: 0,
+    stagger: 0,
+    ranged: true,
+    dying: false,
+    deathT: 0,
+  };
+  scene.add(e);
+  return e;
 }
 
 function makeWeapon() {
@@ -306,8 +334,17 @@ export function buildWorld(scene) {
     pickups.push(pickup);
   });
 
+  // Locked study door (removed when library body is examined)
+  const lock = STUDY_LOCK.block;
+  const studyDoor = texturedBox(lock.w, lock.h, lock.d, TEX.wood, 0x4a3828, lock.x, lock.h / 2, lock.z, 1);
+  const seal = box(lock.w + 0.05, 0.15, lock.d + 0.05, ACCENT, lock.x, lock.h - 0.3, lock.z, {
+    emissive: ACCENT, emissiveIntensity: 0.4,
+  });
+  scene.add(studyDoor, seal);
+  colliders.push(studyDoor);
+
   // Enemies
-  ENEMY_SPAWNS.forEach((spawn) => {
+  ENEMY_SPAWNS.forEach((spawn, i) => {
     const e = makeEnemy();
     e.position.set(spawn.x, 0, spawn.z);
     e.userData = {
@@ -317,10 +354,14 @@ export function buildWorld(scene) {
       maxHp: 4,
       speed: 2.0 + Math.random() * 0.7,
       cooldown: 0,
+      shootCd: 0.5 + Math.random(),
       alive: true,
       bob: Math.random() * Math.PI,
       hurtFlash: 0,
       stagger: 0,
+      ranged: i % 2 === 0,
+      dying: false,
+      deathT: 0,
     };
     scene.add(e);
     enemies.push(e);
@@ -328,7 +369,10 @@ export function buildWorld(scene) {
 
   const weapon = makeWeapon();
 
-  return { colliders, interactables, enemies, lights, weapon, flashlight, pickups, fx };
+  return {
+    colliders, interactables, enemies, lights, weapon, flashlight, pickups, fx,
+    studyDoor, studySeal: seal, projectiles: [],
+  };
 }
 
 export function playerCollides(pos, colliders, radius = 0.35) {

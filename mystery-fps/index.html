@@ -23,6 +23,7 @@
           <span><kbd>WASD</kbd> Move</span>
           <span><kbd>Mouse</kbd> Look</span>
           <span><kbd>LMB</kbd> Fire</span>
+          <span><kbd>RMB</kbd> Aim</span>
           <span><kbd>E</kbd> Examine</span>
           <span><kbd>R</kbd> Reload</span>
           <span><kbd>F</kbd> Flashlight</span>
@@ -70,6 +71,12 @@
           <kbd>E</kbd> <span id="interact-label">Examine</span>
         </div>
 
+        <div id="radio-log" class="radio-log"></div>
+        <div id="boss-bar" class="boss-bar hidden">
+          <span class="boss-name">Elena Voss</span>
+          <div class="bar"><div id="boss-fill"></div></div>
+        </div>
+
         <canvas id="minimap" width="140" height="140"></canvas>
 
         <div class="hud-bottom">
@@ -77,6 +84,7 @@
             <span class="stat-label">Vital</span>
             <div class="bar"><div id="health-fill"></div></div>
           </div>
+          <div id="reload-bar" class="reload-bar hidden"><div id="reload-fill"></div></div>
           <div class="ammo-block">
             <span id="ammo-count">12</span>
             <span class="ammo-sep">/</span>
@@ -87,6 +95,7 @@
 
         <div id="damage-vignette"></div>
         <div id="muzzle-flash"></div>
+        <div id="lightning"></div>
       </div>
 
       <div id="pause-hint" class="hidden">Click to capture mouse</div>

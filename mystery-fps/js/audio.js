@@ -86,6 +86,44 @@ export class AudioBus {
     this.tone(660, 0.1, "sine", 0.04, 0.06);
   }
 
+  radio() {
+    this.tone(900, 0.04, "square", 0.03);
+    this.tone(700, 0.06, "square", 0.025, 0.05);
+    this.tone(1100, 0.05, "sine", 0.02, 0.1);
+  }
+
+  enemyShot() {
+    this.tone(160, 0.08, "square", 0.06);
+    this.tone(80, 0.12, "sawtooth", 0.05);
+  }
+
+  thunder() {
+    if (!this.ctx || !this.enabled) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(55, t);
+    o.frequency.exponentialRampToValueAtTime(28, t + 1.2);
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.12, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + 1.4);
+  }
+
+  death() {
+    this.tone(100, 0.2, "sawtooth", 0.07);
+    this.tone(60, 0.3, "triangle", 0.05, 0.05);
+  }
+
+  unlock() {
+    this.tone(320, 0.08, "triangle", 0.05);
+    this.tone(480, 0.12, "triangle", 0.04, 0.08);
+  }
+
   startAmbience() {
     if (!this.ctx || !this.enabled || this._amb) return;
     const bufferSize = this.ctx.sampleRate * 2;

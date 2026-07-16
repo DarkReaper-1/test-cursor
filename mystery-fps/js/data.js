@@ -109,3 +109,19 @@ export const PICKUPS = [
   { type: "health", amount: 25, x: 10, z: 15 },
   { type: "ammo", amount: 12, x: 6, z: 25 },
 ];
+
+/** Study door unlocks after securing the library body clue */
+export const STUDY_LOCK = {
+  clueRequired: "body",
+  block: { x: 6, z: 2, w: 0.5, h: 2.6, d: 2.2 },
+  message: "Study door sealed. Examine the body in the library first.",
+};
+
+export const RADIO = [
+  { atClues: 0, atKills: 0, once: false, text: "HQ: Comms live. Sweep the manor. Recover evidence." },
+  { atClues: 1, text: "HQ: First exhibit logged. Watch your six — hostiles are aggressive." },
+  { atClues: 3, text: "HQ: Pattern forming. Poison, not the brandy. Check the kitchen." },
+  { atClues: 5, text: "HQ: Enough for a charge. Confirm motive in the study, then accuse." },
+  { atClues: 8, text: "HQ: Full dossier. Confront the heiress if she shows herself." },
+  { atKills: 3, text: "HQ: Multiple hostiles down. Someone armed the estate on purpose." },
+];

@@ -138,20 +138,23 @@ Then visit http://localhost:8080/mystery-fps/
 | **WASD** | Move |
 | **Mouse** | Look |
 | **LMB** | Fire |
+| **RMB** | Aim down sights |
 | **E** | Examine / collect evidence |
 | **R** | Reload |
+| **F** | Flashlight |
 | **Tab** | Case journal / accusation |
 | **Shift** | Sprint |
 
 ### Features
 
 - Full 3D manor with textured floors/walls, windows, door frames, and props
-- First-person combat with recoil, hitmarkers, knockback, and animated hostiles
-- Flashlight toggle (`F`), health/ammo pickups, minimap, room banners
-- 8 collectible evidence pieces with critical vs red-herring tags
+- ADS (RMB), sprint FOV, dynamic crosshair bloom, reload bar
+- Ranged + melee hostiles, death falls, damage numbers, hit sparks
+- Flashlight, health/ammo pickups, minimap, room banners, radio chatter
+- Study door locked until the library body is examined
+- Final confrontation with Elena after 5 evidence pieces
 - Case journal with evidence + suspect suspicion heat
-- Murder mystery accusation ending with letter grades
-- Atmospheric fog, rain, lanterns, Web Audio SFX
+- Storm lightning, dust motes, letter-grade endings
 - Demo autopilot via `?demo=1` for video recording
 
 ### Demo Video
