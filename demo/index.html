@@ -3,30 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Spider Swing 3D — iOS Preview</title>
+  <title>Spider Swing — Remake Preview</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="device-frame">
-    <div id="screen">
-      <div id="launch-screen">
-        <h1>SPIDER SWING 3D</h1>
-        <p>Swing through the city</p>
-      </div>
-      <canvas id="game-canvas"></canvas>
-      <div id="hud">
-        <div id="hud-top">
-          <h2>SPIDER SWING 3D</h2>
-          <p id="status">Ready to swing</p>
-          <div class="stats">
-            <span id="swings">Swings: 0</span>
-            <span id="speed">0.0 m/s</span>
-          </div>
+  <div id="phone">
+    <div id="bezel">
+      <div id="screen">
+        <div id="boot">
+          <div class="boot-brand">SPIDER SWING</div>
+          <div class="boot-sub">Remade from scratch · 3D</div>
         </div>
-        <div id="joystick-base"><div id="joystick-knob"></div></div>
-        <button id="jump-btn">↑</button>
-        <p id="web-hint">Hold right side → shoot web</p>
-        <div id="crosshair"></div>
+        <canvas id="c"></canvas>
+        <div id="hud">
+          <div class="top">
+            <div class="brand">SPIDER SWING</div>
+            <div id="status">Ready to swing</div>
+            <div class="row">
+              <span id="swings">Swings  0</span>
+              <span id="speed">0 m/s</span>
+            </div>
+          </div>
+          <div id="stick"><div id="knob"></div></div>
+          <button id="jump" type="button">↑</button>
+          <div id="hint">Hold right → web</div>
+          <div id="reticle"></div>
+        </div>
       </div>
     </div>
   </div>
