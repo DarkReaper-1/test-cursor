@@ -266,6 +266,16 @@ kbd {
 
 #crosshair.ads { opacity: 0.55; }
 #crosshair.hit .ch-h, #crosshair.hit .ch-v { background: var(--danger-lit); }
+#crosshair.examine {
+  --spread: 4px;
+}
+#crosshair.examine .ch-h,
+#crosshair.examine .ch-v { background: var(--accent); }
+#crosshair.examine .ch-dot {
+  width: 5px;
+  height: 5px;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
 
 .radio-log {
   position: absolute;
@@ -493,8 +503,168 @@ kbd {
   color: var(--accent);
 }
 
-.ev-cat.red-herring { color: #8a7d9a; }
+.ev-cat.document { color: #b8a070; }
+.ev-cat.chemical { color: #7a9e8a; }
+.ev-cat.trace { color: #8a7d9a; }
+.ev-cat.flavor { color: #8a9098; }
 .ev-room { font-size: 0.8rem !important; font-style: italic; }
+
+.hud-journal-btn {
+  position: absolute;
+  right: 1.2rem;
+  bottom: 5.4rem;
+  z-index: 5;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: rgba(12, 16, 22, 0.85);
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+}
+.hud-journal-btn:hover { border-color: var(--accent); color: var(--accent); }
+.badge {
+  display: inline-block;
+  min-width: 1.1rem;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.3rem;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.65rem;
+  text-align: center;
+}
+.badge.hidden { display: none; }
+
+.pin-zone {
+  margin: 0.8rem 0 1.2rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+.pin-zone.hidden { display: none; }
+.pin-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  margin-bottom: 0.55rem !important;
+}
+.pin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.pin-chip {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--dim);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+}
+.pin-chip:hover { border-color: var(--accent); color: var(--text); }
+.pin-chip.active {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.dossier-card { width: min(460px, 92vw); }
+.dossier-strength {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.8rem !important;
+  color: var(--dim);
+}
+.dossier-strength.rank-0 { color: var(--danger-lit); }
+.dossier-strength.rank-1 { color: #c49a5a; }
+.dossier-strength.rank-2 { color: var(--accent); }
+.dossier-strength.rank-3 { color: #8fba8a; }
+.dossier-pins {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.dossier-pins li {
+  border-left: 2px solid var(--accent);
+  padding: 0.45rem 0.7rem;
+  margin-bottom: 0.35rem;
+  background: var(--card);
+  font-size: 0.9rem;
+}
+.dossier-pins li.weak {
+  border-left-color: var(--danger);
+  color: var(--dim);
+  font-size: 0.85rem;
+}
+.dossier-warn {
+  font-size: 0.85rem !important;
+  color: var(--dim) !important;
+}
+.dossier-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+}
+
+.note-card {
+  background: var(--card);
+  border-left: 3px solid #8a7d9a;
+  padding: 0.8rem;
+  margin-bottom: 0.6rem;
+}
+.note-card .note-idx {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: #8a7d9a;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.note-card p { font-size: 0.9rem; color: var(--dim); line-height: 1.5; }
+.empty-notes {
+  color: var(--dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.5rem 0 1rem;
+}
+
+.suspect-card.selected {
+  outline: 1px solid var(--accent);
+  background: rgba(201, 161, 74, 0.08);
+}
+
+.result-chain {
+  text-align: left;
+  max-width: 360px;
+  margin: 0 auto 1.2rem;
+}
+.result-chain .chain-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 0.45rem;
+}
+.result-chain ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.result-chain li {
+  font-size: 0.9rem;
+  color: var(--dim);
+  border-left: 2px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  margin-bottom: 0.25rem;
+}
 
 .suspect-card {
   background: var(--card);
@@ -605,7 +775,7 @@ kbd {
 .drawer {
   position: fixed;
   top: 0; right: 0;
-  width: min(380px, 92vw);
+  width: min(400px, 94vw);
   height: 100%;
   background: var(--panel);
   border-left: 1px solid var(--border);
@@ -637,7 +807,9 @@ kbd {
   border-left: 3px solid var(--accent);
   padding: 0.8rem;
   margin-bottom: 0.6rem;
+  cursor: pointer;
 }
+#journal-list li:hover { background: rgba(201, 161, 74, 0.08); }
 
 #journal-list strong {
   font-family: var(--font-display);

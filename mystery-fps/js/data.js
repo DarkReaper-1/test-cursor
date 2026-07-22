@@ -1,53 +1,63 @@
 export const BRIEF = [
   "Lord Reginald Ashworth was found dead in his library at 21:15. Cause: aconitine poisoning.",
   "The storm sealed Blackwood Manor. You are alone with the crime scene — and four suspects still on the grounds.",
-  "Search every room. Press E to examine exhibits. Tab opens your case journal. Accuse when you have five pieces of evidence.",
+  "Search every room. Press E to examine. In your journal, pin exhibits to suspects to build a theory — then accuse.",
   "Suspects: Elena Voss (heiress), Marcus Ashworth (son), Dr. Whitmore (physician), Thomas Graves (butler).",
 ];
 
 export const SOLUTION = "elena";
 
+/** Display kinds are non-spoiling; implicates are truth data for case resolution only */
 export const CLUES = {
   body: {
-    id: "body", title: "Ashworth's Body", category: "critical",
+    id: "body", title: "Ashworth's Body", kind: "physical",
     text: "No trauma. Blue lips. Classic aconitine. The brandy beside him is clean — the poison came earlier, at dinner.",
     room: "library", implicates: ["elena", "whitmore"],
   },
   letter: {
-    id: "letter", title: "Torn Threat Letter", category: "red-herring",
+    id: "letter", title: "Torn Threat Letter", kind: "document",
     text: "Fragments: '...amend the will by week's end...' Handwriting mimics Whitmore's, but the paper is decades old. A plant.",
     room: "library", implicates: ["whitmore"],
   },
   will: {
-    id: "will", title: "Revised Will", category: "critical",
+    id: "will", title: "Revised Will", kind: "document",
     text: "Three days old. Entire estate to Elena Voss. Marcus, Victoria, and Thomas cut out. Motive for everyone — including her.",
     room: "study", implicates: ["elena", "marcus", "thomas"],
   },
   safe: {
-    id: "safe", title: "Unsigned Reversal", category: "critical",
+    id: "safe", title: "Unsigned Reversal", kind: "document",
     text: "Safe cracked tonight. Inside: an unsigned draft restoring the old heirs. Someone killed him before he could sign.",
     room: "study", implicates: ["elena"],
   },
   extract: {
-    id: "extract", title: "Monkshood Extract", category: "critical",
+    id: "extract", title: "Monkshood Extract", kind: "chemical",
     text: "Medical jar nearly empty. Seal broken tonight. Only Whitmore and kitchen staff knew the shelf — and Elena visited last month.",
     room: "kitchen", implicates: ["elena", "whitmore"],
   },
   ledger: {
-    id: "ledger", title: "Kitchen Log", category: "critical",
+    id: "ledger", title: "Kitchen Log", kind: "document",
     text: "7:15 PM — Elena Voss entered the kitchen for 'dietary restrictions.' Soup served 7:30. Ashworth collapsed 8:45.",
     room: "kitchen", implicates: ["elena"],
   },
   prints: {
-    id: "prints", title: "Muddy Heels", category: "critical",
+    id: "prints", title: "Muddy Heels", kind: "trace",
     text: "Size-six heels from garden gate to kitchen door. Match Elena's dinner shoes. She claimed she never left the ballroom.",
     room: "garden", implicates: ["elena"],
   },
   champagne: {
-    id: "champagne", title: "Untouched Flute", category: "critical",
+    id: "champagne", title: "Untouched Flute", kind: "physical",
     text: "Elena's champagne still full on the sill. Victoria saw her slip out at 7:10. Her alibi collapses.",
     room: "ballroom", implicates: ["elena"],
   },
+};
+
+export const KIND_LABELS = {
+  physical: "Physical",
+  document: "Document",
+  chemical: "Chemical",
+  trace: "Trace",
+  flavor: "Observation",
+  note: "Field Note",
 };
 
 export const SUSPECTS = {
@@ -89,6 +99,40 @@ export const INTERACTABLES = [
   { id: "champagne", clue: "champagne", pos: [12, 1.2, 10], label: "Examine glass" },
 ];
 
+/** Non-clue examines — searchable manor atmosphere */
+export const FLAVOR = [
+  {
+    id: "brandy", pos: [-11.2, 1.15, 1.4], label: "Inspect brandy",
+    title: "Brandy Snifter",
+    text: "Untouched. No residue. If the poison was in a drink, it was not this glass.",
+  },
+  {
+    id: "desk", pos: [10.5, 1.1, -1.5], label: "Search desk",
+    title: "Study Desk",
+    text: "Ink still wet on a blotter. Ashworth was drafting something tonight — interrupted before he finished.",
+  },
+  {
+    id: "window", pos: [14, 1.6, 12], label: "Look through window",
+    title: "Ballroom Window",
+    text: "Rain sheets the glass. The garden path below gleams — someone walked it after the storm began.",
+  },
+  {
+    id: "shelf", pos: [-7.5, 1.4, 10.5], label: "Scan shelf",
+    title: "Kitchen Medicine Shelf",
+    text: "Whitmore's labels, neat and clinical. One jar is missing from a marked space — the monkshood.",
+  },
+  {
+    id: "portrait", pos: [0, 2.2, -2.8], label: "Study portrait",
+    title: "Ashworth Portrait",
+    text: "Oil of a younger Lord Ashworth. A newer frame card tucked behind: 'E.V. — acknowledged.'",
+  },
+  {
+    id: "gate", pos: [4, 1.0, 27], label: "Check gate latch",
+    title: "Garden Gate",
+    text: "Latch sticky with mud. Fresh heel marks on the inner side — outbound toward the kitchen wing.",
+  },
+];
+
 /** Atmosphere notes found while searching */
 export const PICKUPS = [
   { type: "note", amount: 0, x: -3, z: 0, text: "Staff note: 'Do not serve Lord A. the soup until Elena approves the menu.'" },
@@ -106,8 +150,8 @@ export const STUDY_LOCK = {
 
 export const RADIO = [
   { atClues: 0, text: "HQ: Comms live. Document the scene. Build a case before dawn." },
-  { atClues: 1, text: "HQ: First exhibit logged. Follow the poison — not the brandy." },
+  { atClues: 1, text: "HQ: First exhibit logged. Pin theories in your journal — follow the poison." },
   { atClues: 3, text: "HQ: Pattern forming. Cross-check the kitchen against the will." },
-  { atClues: 5, text: "HQ: Enough for a charge. Open your journal and name the killer." },
+  { atClues: 5, text: "HQ: Enough for a charge. Review your pins, then name the killer." },
   { atClues: 8, text: "HQ: Full dossier. Make your accusation when ready." },
 ];

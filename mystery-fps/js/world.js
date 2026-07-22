@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { INTERACTABLES, PICKUPS, STUDY_LOCK } from "./data.js";
+import { INTERACTABLES, FLAVOR, PICKUPS, STUDY_LOCK } from "./data.js";
 import {
   woodTexture, wallpaperTexture, carpetTexture, stoneTexture, metalTexture,
 } from "./textures.js";
@@ -214,6 +214,25 @@ export function buildWorld(scene) {
   flashlight.target.position.set(0.15, -0.05, -1);
   lights.push(flashlight);
 
+  spawnInvestigationProps(scene, interactables, pickups);
+
+  // Locked study door (removed when library body is examined)
+  const lock = STUDY_LOCK.block;
+  const studyDoor = texturedBox(lock.w, lock.h, lock.d, TEX.wood, 0x4a3828, lock.x, lock.h / 2, lock.z, 1);
+  const seal = box(lock.w + 0.05, 0.15, lock.d + 0.05, ACCENT, lock.x, lock.h - 0.3, lock.z, {
+    emissive: ACCENT, emissiveIntensity: 0.4,
+  });
+  scene.add(studyDoor, seal);
+  colliders.push(studyDoor);
+
+  return {
+    colliders, interactables, lights,
+    flashlight, pickups, fx,
+    studyDoor, studySeal: seal,
+  };
+}
+
+function spawnInvestigationProps(scene, interactables, pickups) {
   // Evidence props (readable silhouette + beacon)
   INTERACTABLES.forEach((item) => {
     const group = new THREE.Group();
@@ -262,7 +281,7 @@ export function buildWorld(scene) {
     beacon.position.y = 0.45;
     group.add(prop, beacon);
     group.position.set(item.pos[0], item.pos[1], item.pos[2]);
-    group.userData = { ...item, kind: "clue", beacon, baseY: item.pos[1] };
+    group.userData = { ...item, kind: "clue", secured: false, beacon, baseY: item.pos[1] };
     scene.add(group);
     interactables.push(group);
 
@@ -274,6 +293,30 @@ export function buildWorld(scene) {
     ring.position.set(item.pos[0], 0.06, item.pos[2]);
     scene.add(ring);
     group.userData.ring = ring;
+  });
+
+  // Flavor examines — searchable manor details (no gold beacon)
+  FLAVOR.forEach((item) => {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x4a4030, emissive: 0x2a2418, emissiveIntensity: 0.25, roughness: 0.75,
+    });
+    const prop = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.28), mat);
+    prop.position.y = 0.06;
+    prop.castShadow = true;
+    group.add(prop);
+    group.position.set(item.pos[0], item.pos[1], item.pos[2]);
+    group.userData = {
+      id: item.id,
+      kind: "flavor",
+      label: item.label,
+      title: item.title,
+      text: item.text,
+      baseY: item.pos[1],
+      examined: false,
+    };
+    scene.add(group);
+    interactables.push(group);
   });
 
   // Field notes (detective atmosphere pickups)
@@ -294,20 +337,20 @@ export function buildWorld(scene) {
     });
   });
 
-  // Locked study door (removed when library body is examined)
-  const lock = STUDY_LOCK.block;
-  const studyDoor = texturedBox(lock.w, lock.h, lock.d, TEX.wood, 0x4a3828, lock.x, lock.h / 2, lock.z, 1);
-  const seal = box(lock.w + 0.05, 0.15, lock.d + 0.05, ACCENT, lock.x, lock.h - 0.3, lock.z, {
-    emissive: ACCENT, emissiveIntensity: 0.4,
-  });
-  scene.add(studyDoor, seal);
-  colliders.push(studyDoor);
+}
 
-  return {
-    colliders, interactables, lights,
-    flashlight, pickups, fx,
-    studyDoor, studySeal: seal,
-  };
+/** Clear and re-spawn clues, flavor props, and field notes for a new case */
+export function resetInvestigation(scene, world) {
+  [...world.interactables].forEach((m) => {
+    if (m.userData.ring) scene.remove(m.userData.ring);
+    scene.remove(m);
+  });
+  world.interactables.length = 0;
+  [...world.pickups].forEach((p) => {
+    p.meshes.forEach((m) => scene.remove(m));
+  });
+  world.pickups.length = 0;
+  spawnInvestigationProps(scene, world.interactables, world.pickups);
 }
 
 export function playerCollides(pos, colliders, radius = 0.35) {

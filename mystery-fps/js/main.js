@@ -1,17 +1,27 @@
 import * as THREE from "three";
-import { BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO } from "./data.js";
+import {
+  BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO, KIND_LABELS,
+} from "./data.js";
 import { AudioBus } from "./audio.js";
-import { buildWorld, playerCollides } from "./world.js";
+import { buildWorld, playerCollides, resetInvestigation } from "./world.js";
 import { createDust, updateDust } from "./fx.js";
 
 const $ = (s) => document.querySelector(s);
 const DEMO = new URLSearchParams(location.search).has("demo");
+
+function emptyPins() {
+  return Object.fromEntries(Object.keys(CLUES).map((id) => [id, new Set()]));
+}
 
 const state = {
   playing: false,
   locked: false,
   clues: new Set(),
   notes: 0,
+  fieldNotes: [],
+  pins: emptyPins(),
+  unreadEvidence: 0,
+  activeClueId: null,
   startTime: 0,
   yaw: 0,
   pitch: 0,
@@ -37,6 +47,7 @@ const state = {
   exposureBoost: 0,
   accuseReadyAnnounced: false,
   onboardFirstClue: false,
+  onboardPinHint: false,
   vx: 0,
   vz: 0,
 };
@@ -79,6 +90,24 @@ function showRoomBanner(name) {
   }, 1600);
 }
 
+function totalPins() {
+  return Object.values(state.pins).reduce((n, set) => n + set.size, 0);
+}
+
+function pinsForSuspect(suspectId) {
+  return [...state.clues]
+    .map((id) => CLUES[id])
+    .filter((c) => state.pins[c.id]?.has(suspectId));
+}
+
+function syncJournalBadge() {
+  const badge = $("#journal-badge");
+  if (!badge) return;
+  const n = state.unreadEvidence;
+  badge.textContent = String(n);
+  badge.classList.toggle("hidden", n <= 0);
+}
+
 function syncAccuseButton() {
   const ready = state.clues.size >= 5;
   const choice = $("#accuse-select").value;
@@ -89,16 +118,22 @@ function syncAccuseButton() {
   if (!ready) {
     hint.textContent = `Collect ${Math.max(0, 5 - state.clues.size)} more exhibit${state.clues.size === 4 ? "" : "s"} to unlock accusation (${state.clues.size}/5).`;
   } else if (!choice) {
-    hint.textContent = "Case ready — select a suspect (or click a card), then accuse. This closes the file.";
+    hint.textContent = "Case ready — pin theories, select a suspect, then open the dossier.";
   } else {
     const name = $("#accuse-select").selectedOptions[0]?.textContent || "suspect";
-    hint.textContent = `Ready to accuse ${name}. Wrong charges fail the case.`;
+    const pinned = pinsForSuspect(choice).length;
+    hint.textContent = pinned
+      ? `Ready to accuse ${name} (${pinned} pin${pinned === 1 ? "" : "s"}). Review the dossier first.`
+      : `Selected ${name} — pin exhibits to them before filing if you can.`;
   }
 }
 
 function nextObjective() {
-  if (state.clues.size >= 8) return "Full dossier. Tab → accuse when you are certain.";
-  if (state.clues.size >= 5) return "Accusation unlocked. Tab → review suspects → Make Accusation.";
+  if (state.clues.size >= 8) return "Full dossier. Tab → pin theories → accuse when certain.";
+  if (state.clues.size >= 5) {
+    if (totalPins() < 2) return "Accusation unlocked. Pin exhibits to a suspect, then accuse.";
+    return "Accusation unlocked. Tab → review suspects → Make Accusation.";
+  }
   if (!state.studyUnlocked) return "Library: examine Ashworth's body (gold marker) — press E.";
 
   const priority = ["library", "kitchen", "study", "garden", "ballroom", "entrance"];
@@ -122,11 +157,13 @@ function caseStatus() {
 function updateHUD() {
   $("#clue-stat").textContent = `Evidence ${state.clues.size}/8`;
   $("#case-stat").textContent = caseStatus();
+  $("#pin-stat").textContent = `Pins ${totalPins()}`;
   $("#room-stat").textContent = ROOM_BOUNDS[state.room]?.name || state.room;
   $("#case-progress").textContent = state.clues.size >= 5
     ? "Accusation unlocked"
     : `${state.clues.size} / 5 to accuse`;
   syncAccuseButton();
+  syncJournalBadge();
   const flash = $("#flash-stat");
   flash.textContent = state.flashlightOn ? "LAMP ON" : "LAMP OFF";
   flash.className = state.flashlightOn ? "flash-on" : "flash-off";
@@ -302,21 +339,28 @@ function updateStudyDoor(dt) {
   if (state.studyDoorT <= 0) world.studyDoor.visible = false;
 }
 
+function resolveInteractable(obj) {
+  let cur = obj;
+  while (cur) {
+    if (cur.userData?.kind === "clue" || cur.userData?.kind === "flavor") return cur;
+    cur = cur.parent;
+  }
+  return null;
+}
+
 function getLookTarget() {
   const ray = new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0, 0), camera);
   const hits = ray.intersectObjects(world.interactables, true);
-  if (!hits.length || hits[0].distance > 3.4) return null;
-  let obj = hits[0].object;
-  while (obj.parent && !obj.userData?.clue) obj = obj.parent;
-  return obj.userData?.clue ? obj : null;
+  if (!hits.length || hits[0].distance > 3.6) return null;
+  return resolveInteractable(hits[0].object);
 }
 
 function nearestClueMarker(maxDist = 4.5) {
   let best = null;
   let bestD = maxDist;
   for (const m of world.interactables) {
-    if (!m.visible || state.clues.has(m.userData.clue)) continue;
+    if (m.userData.kind !== "clue" || m.userData.secured) continue;
     const d = camera.position.distanceTo(m.position);
     if (d < bestD) {
       bestD = d;
@@ -324,6 +368,19 @@ function nearestClueMarker(maxDist = 4.5) {
     }
   }
   return best;
+}
+
+function markClueSecured(marker) {
+  marker.userData.secured = true;
+  if (marker.userData.beacon) marker.userData.beacon.visible = false;
+  if (marker.userData.ring) marker.userData.ring.visible = false;
+  marker.traverse((c) => {
+    if (c.isMesh && c.material?.emissiveIntensity != null) {
+      c.material = c.material.clone();
+      c.material.emissiveIntensity = 0.12;
+      c.material.color?.setHex?.(0x3a3428);
+    }
+  });
 }
 
 function tryInteract() {
@@ -334,105 +391,177 @@ function tryInteract() {
     if (near) toast("Aim at the gold marker, then press E");
     return;
   }
+
+  if (target.userData.kind === "flavor") {
+    openFlavor(target);
+    return;
+  }
+
   const clue = CLUES[target.userData.clue];
-  if (!clue || state.clues.has(clue.id)) return;
-  collectClue(clue, target);
+  if (!clue) return;
+  if (!state.clues.has(clue.id)) collectClue(clue, target);
+  else openEvidence(clue, { revisit: true });
 }
 
 function collectClue(clue, marker) {
   state.clues.add(clue.id);
-  marker.visible = false;
-  if (marker.userData.ring) marker.userData.ring.visible = false;
+  markClueSecured(marker);
+  state.unreadEvidence++;
   audio.pickup();
-  toast(`Exhibit secured: ${clue.title}`);
   if (clue.id === STUDY_LOCK.clueRequired) unlockStudy();
 
   if (!state.onboardFirstClue) {
     state.onboardFirstClue = true;
-    setTimeout(() => toast("Tab opens Case Journal"), 1600);
+    setTimeout(() => toast("Tab opens Case Journal — pin theories to suspects"), 400);
   }
 
   if (state.clues.size >= 5 && !state.accuseReadyAnnounced) {
     state.accuseReadyAnnounced = true;
     showRoomBanner("ACCUSATION READY");
-    toast("Accusation unlocked — Tab to name the killer");
-    pushRadio("HQ: Enough for a charge. Open your journal and accuse when ready.");
+    pushRadio("HQ: Enough for a charge. Review your pins, then accuse when ready.");
   }
 
   maybeRadio();
   updateHUD();
-  openEvidence(clue);
+  openEvidence(clue, { fresh: true });
   renderJournal();
 }
 
-function openEvidence(clue) {
+function renderPinChips(clueId) {
+  const wrap = $("#ev-pin-chips");
+  wrap.innerHTML = "";
+  Object.values(SUSPECTS).forEach((s) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pin-chip" + (state.pins[clueId]?.has(s.id) ? " active" : "");
+    btn.textContent = s.name.split(" ")[0];
+    btn.title = `Pin to ${s.name}`;
+    btn.addEventListener("click", () => {
+      const set = state.pins[clueId];
+      if (set.has(s.id)) set.delete(s.id);
+      else set.add(s.id);
+      btn.classList.toggle("active", set.has(s.id));
+      audio.click();
+      if (!state.onboardPinHint && set.size) {
+        state.onboardPinHint = true;
+        toast("Pinned — suspicion builds from your theory");
+      }
+      updateHUD();
+      if (state.journalOpen) renderJournal();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function openFlavor(marker) {
   state.modalOpen = true;
+  state.activeClueId = null;
+  if (document.pointerLockElement) document.exitPointerLock();
+  marker.userData.examined = true;
+  $("#ev-title").textContent = marker.userData.title;
+  $("#ev-body").textContent = marker.userData.text;
+  $("#ev-room").textContent = `Observation — ${ROOM_BOUNDS[state.room]?.name || state.room}`;
+  const cat = $("#ev-category");
+  cat.textContent = KIND_LABELS.flavor;
+  cat.className = "ev-cat flavor";
+  $("#ev-pin-zone").classList.add("hidden");
+  $("#btn-close-ev").textContent = "Continue";
+  $("#evidence-modal").classList.remove("hidden");
+  audio.itemGet();
+}
+
+function openEvidence(clue, opts = {}) {
+  state.modalOpen = true;
+  state.activeClueId = clue.id;
   if (document.pointerLockElement) document.exitPointerLock();
   $("#ev-title").textContent = clue.title;
   $("#ev-body").textContent = clue.text;
   $("#ev-room").textContent = `Found in: ${ROOM_BOUNDS[clue.room]?.name || clue.room}`;
   const cat = $("#ev-category");
-  cat.textContent = clue.category === "critical" ? "Critical Evidence" : "Possible Red Herring";
-  cat.className = `ev-cat ${clue.category || ""}`;
+  cat.textContent = KIND_LABELS[clue.kind] || "Evidence";
+  cat.className = `ev-cat ${clue.kind || ""}`;
+  $("#ev-pin-zone").classList.remove("hidden");
+  renderPinChips(clue.id);
+  $("#btn-close-ev").textContent = opts.revisit ? "Close" : "Log & Continue";
   $("#evidence-modal").classList.remove("hidden");
 }
 
 function closeEvidence() {
   $("#evidence-modal").classList.add("hidden");
   state.modalOpen = false;
+  const justLogged = state.activeClueId && state.clues.has(state.activeClueId);
+  if (justLogged && $("#btn-close-ev").textContent.includes("Log")) {
+    toast(`Exhibit logged: ${CLUES[state.activeClueId].title}`);
+  }
+  state.activeClueId = null;
   if (state.playing && !state.journalOpen && !DEMO) requestLock();
 }
 
 function suspectHeat(id) {
-  let heat = 0;
-  for (const cid of state.clues) {
-    const c = CLUES[cid];
-    if (c.implicates?.includes(id)) heat += c.category === "critical" ? 2 : 1;
-  }
-  return heat;
-}
-
-function linkedExhibits(suspectId) {
-  return [...state.clues]
-    .map((id) => CLUES[id])
-    .filter((c) => c.implicates?.includes(suspectId));
+  return pinsForSuspect(id).length;
 }
 
 function renderJournal() {
   const list = $("#journal-list");
+  const notes = $("#notes-list");
   const suspects = $("#suspect-list");
   syncAccuseButton();
 
+  list.classList.add("hidden");
+  notes.classList.add("hidden");
+  suspects.classList.add("hidden");
+
   if (state.journalTab === "evidence") {
     list.classList.remove("hidden");
-    suspects.classList.add("hidden");
     list.innerHTML = "";
     if (!state.clues.size) {
-      list.innerHTML = "<li><p>No evidence yet. Search every room — gold markers, press E.</p></li>";
+      list.innerHTML = "<li><p>No evidence yet. Search every room — gold markers, press E. Dim props can be re-examined.</p></li>";
       return;
     }
     [...state.clues].forEach((id) => {
       const c = CLUES[id];
+      const pinned = [...(state.pins[id] || [])].map((sid) => SUSPECTS[sid]?.name.split(" ")[0] || sid);
       const li = document.createElement("li");
-      const who = (c.implicates || []).map((sid) => SUSPECTS[sid]?.name || sid).join(", ");
-      li.innerHTML = `<strong>${c.title}</strong><span class="ev-cat ${c.category}">${c.category}</span><p>${c.text}</p>${who ? `<div class="links">Points toward: ${who}</div>` : ""}`;
+      li.innerHTML = `
+        <strong>${c.title}</strong>
+        <span class="ev-cat ${c.kind}">${KIND_LABELS[c.kind] || "Evidence"}</span>
+        <p>${c.text}</p>
+        <div class="links">${pinned.length ? `Your pins: ${pinned.join(" · ")}` : "No pins yet — open exhibit (E) to theorize"}</div>
+      `;
+      li.addEventListener("click", () => {
+        state.journalOpen = false;
+        $("#journal").classList.add("hidden");
+        openEvidence(c, { revisit: true });
+      });
       list.appendChild(li);
     });
+  } else if (state.journalTab === "notes") {
+    notes.classList.remove("hidden");
+    notes.innerHTML = "";
+    if (!state.fieldNotes.length) {
+      notes.innerHTML = "<p class=\"empty-notes\">No field notes yet. Walk near loose papers in the manor.</p>";
+      return;
+    }
+    state.fieldNotes.forEach((text, i) => {
+      const div = document.createElement("div");
+      div.className = "note-card";
+      div.innerHTML = `<span class="note-idx">Note ${i + 1}</span><p>${text}</p>`;
+      notes.appendChild(div);
+    });
   } else {
-    list.classList.add("hidden");
     suspects.classList.remove("hidden");
     suspects.innerHTML = "";
     Object.values(SUSPECTS).forEach((s) => {
       const heat = suspectHeat(s.id);
-      const links = linkedExhibits(s.id);
+      const links = pinsForSuspect(s.id);
       const div = document.createElement("div");
-      div.className = "suspect-card" + (heat >= 4 ? " hot" : "");
+      div.className = "suspect-card" + (heat >= 3 ? " hot" : "") + ($("#accuse-select").value === s.id ? " selected" : "");
       div.innerHTML = `
         <h4>${s.name}</h4>
         <div class="role">${s.role}</div>
         <p>${s.bio}</p>
-        <div class="heat">${heat ? `Suspicion: ${"●".repeat(Math.min(heat, 6))}` : "No linking evidence yet"}</div>
-        <div class="links">${links.length ? `Exhibits: ${links.map((c) => c.title).join(" · ")}` : "No exhibits name them yet"}</div>
+        <div class="heat">${heat ? `Your theory: ${"●".repeat(Math.min(heat, 6))}` : "No pins linking them yet"}</div>
+        <div class="links">${links.length ? `Pinned: ${links.map((c) => c.title).join(" · ")}` : "Pin exhibits from the evidence view"}</div>
         <div class="pick-hint">Click to select for accusation</div>
       `;
       div.addEventListener("click", () => {
@@ -440,6 +569,7 @@ function renderJournal() {
         syncAccuseButton();
         audio.click();
         toast(`Selected ${s.name}`);
+        renderJournal();
       });
       suspects.appendChild(div);
     });
@@ -452,6 +582,8 @@ function toggleJournal() {
   $("#journal").classList.toggle("hidden", !state.journalOpen);
   if (state.journalOpen) {
     if (document.pointerLockElement) document.exitPointerLock();
+    state.unreadEvidence = 0;
+    syncJournalBadge();
     renderJournal();
   } else if (state.playing && !DEMO) {
     requestLock();
@@ -476,10 +608,13 @@ function updatePickups() {
       p.taken = true;
       p.meshes.forEach((m) => { m.visible = false; });
       state.notes++;
-      toast(p.text || "Case note recovered");
+      const text = p.text || "Case note recovered";
+      state.fieldNotes.push(text);
+      toast("Field note filed to journal");
       audio.itemGet();
-      pushRadio(`Field note: ${p.text || "Annotation logged."}`);
+      pushRadio(`Field note: ${text}`);
       updateHUD();
+      if (state.journalOpen && state.journalTab === "notes") renderJournal();
     }
   }
 }
@@ -583,10 +718,19 @@ function updatePlayer(dt) {
 
   const target = getLookTarget();
   const prompt = $("#interact-prompt");
-  if (target && !state.clues.has(target.userData.clue)) {
+  const cross = $("#crosshair");
+  if (target) {
     prompt.classList.remove("hidden", "nearby");
-    $("#interact-label").textContent = target.userData.label;
+    cross.classList.add("examine");
+    if (target.userData.kind === "flavor") {
+      $("#interact-label").textContent = target.userData.label;
+    } else if (target.userData.secured || state.clues.has(target.userData.clue)) {
+      $("#interact-label").textContent = "Re-examine evidence";
+    } else {
+      $("#interact-label").textContent = target.userData.label;
+    }
   } else {
+    cross.classList.remove("examine");
     const near = nearestClueMarker(4.2);
     if (near) {
       prompt.classList.remove("hidden");
@@ -648,6 +792,11 @@ function updateMarkers(dt) {
   const t = performance.now() * 0.003;
   world.interactables.forEach((m) => {
     if (!m.visible) return;
+    if (m.userData.kind === "flavor") {
+      m.position.y = (m.userData.baseY ?? m.position.y) + Math.sin(t + m.position.x) * 0.02;
+      return;
+    }
+    if (m.userData.secured) return;
     const beacon = m.userData.beacon;
     if (beacon) {
       beacon.rotation.y += dt * 2.2;
@@ -703,9 +852,9 @@ function drawMinimap() {
     ctx.strokeRect(x, y, rw, rh);
   });
 
-  // Clues
+  // Unsecured clue markers
   world.interactables.forEach((m) => {
-    if (!m.visible) return;
+    if (m.userData.kind !== "clue" || m.userData.secured) return;
     ctx.fillStyle = "#c9a14a";
     ctx.beginPath();
     ctx.arc(m.position.x * scale + ox, m.position.z * scale + oy, 2.5, 0, Math.PI * 2);
@@ -729,45 +878,112 @@ function drawMinimap() {
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
 }
 
-function accuse() {
+function caseStrength(suspectId) {
+  const pinned = pinsForSuspect(suspectId);
+  const hits = pinned.filter((c) => c.implicates?.includes(suspectId)).length;
+  if (pinned.length >= 4 && hits >= 3) return { label: "Strong case", rank: 3 };
+  if (pinned.length >= 2 && hits >= 1) return { label: "Moderate case", rank: 2 };
+  if (pinned.length >= 1) return { label: "Thin case", rank: 1 };
+  return { label: "No pinned exhibits", rank: 0 };
+}
+
+function openDossier() {
   const choice = $("#accuse-select").value;
   if (!choice || state.clues.size < 5) return;
-  const name = $("#accuse-select").selectedOptions[0]?.textContent || "this suspect";
-  if (!DEMO && !window.confirm(`Accuse ${name}?\n\nThis closes the protocol. Wrong charges fail the case.`)) {
-    return;
+  const suspect = SUSPECTS[choice];
+  const pinned = pinsForSuspect(choice);
+  const strength = caseStrength(choice);
+  $("#dossier-title").textContent = `Accuse ${suspect.name}`;
+  $("#dossier-strength").textContent = `${strength.label} — ${pinned.length} exhibit${pinned.length === 1 ? "" : "s"} pinned to them`;
+  $("#dossier-strength").className = `dossier-strength rank-${strength.rank}`;
+  const list = $("#dossier-pins");
+  list.innerHTML = "";
+  if (!pinned.length) {
+    list.innerHTML = "<li class=\"weak\">You have no pins on this suspect. Accusing from gut feeling is risky.</li>";
+  } else {
+    pinned.forEach((c) => {
+      const li = document.createElement("li");
+      li.textContent = c.title;
+      list.appendChild(li);
+    });
   }
+  state.journalOpen = false;
+  $("#journal").classList.add("hidden");
+  state.modalOpen = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+  $("#accuse-modal").classList.remove("hidden");
+  audio.click();
+}
+
+function closeDossier() {
+  $("#accuse-modal").classList.add("hidden");
+  state.modalOpen = false;
+  state.journalOpen = true;
+  $("#journal").classList.remove("hidden");
+  renderJournal();
+}
+
+function confirmAccusation() {
+  const choice = $("#accuse-select").value;
+  if (!choice || state.clues.size < 5) return;
+  $("#accuse-modal").classList.add("hidden");
+  state.modalOpen = false;
   const won = choice === SOLUTION;
+  const pinned = pinsForSuspect(choice);
   const text = won
-    ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. Your evidence held."
-    : "Wrong suspect. Elena Voss was the killer — the kitchen log, footprints, and unsigned will told the truth.";
+    ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. Your dossier held."
+    : "Wrong charge. The kitchen trail and garden heels pointed elsewhere — reopen and rebuild your theory.";
   state.journalOpen = false;
   $("#journal").classList.add("hidden");
   state.timeScale = 0.28;
   state.slowMoT = 1.1;
   pushRadio(won
     ? "HQ: Accusation logged. Case closed — Elena Voss."
-    : "HQ: Accusation rejected. Review the kitchen log and heels.");
+    : "HQ: Accusation rejected. Re-examine the kitchen log and heels.");
   showRoomBanner(won ? "CASE CLOSED" : "WRONG ACCUSED");
-  setTimeout(() => endGame(won, text), 1100);
+  setTimeout(() => endGame(won, text, { pinned, trueHits }), 1100);
 }
 
-function endGame(won, text) {
+function accuse() {
+  openDossier();
+}
+
+function endGame(won, text, meta = {}) {
   state.playing = false;
   if (document.pointerLockElement) document.exitPointerLock();
   $("#hud").classList.add("hidden");
   $("#journal").classList.add("hidden");
   $("#evidence-modal").classList.add("hidden");
+  $("#accuse-modal").classList.add("hidden");
 
   const mins = Math.max(1, Math.round((Date.now() - state.startTime) / 60000));
+  const pinScore = totalPins();
   const grade = won
-    ? state.clues.size >= 8 ? "S" : state.clues.size >= 6 ? "A" : "B"
+    ? (state.clues.size >= 8 && pinScore >= 4 ? "S" : state.clues.size >= 6 ? "A" : "B")
     : "F";
 
   $("#result-grade").textContent = grade;
   $("#result-title").textContent = won ? "Case Closed" : "Case Failed";
   $("#result-text").textContent = text;
+
+  const chain = $("#result-chain");
+  if (won) {
+    const key = ["ledger", "prints", "extract", "safe", "champagne"]
+      .filter((id) => state.clues.has(id))
+      .map((id) => CLUES[id].title);
+    chain.innerHTML = key.length
+      ? `<p class="chain-label">Decisive chain</p><ul>${key.map((t) => `<li>${t}</li>`).join("")}</ul>`
+      : "";
+  } else {
+    const pinned = meta.pinned || [];
+    chain.innerHTML = pinned.length
+      ? `<p class="chain-label">Your pins did not hold</p><ul>${pinned.map((c) => `<li>${c.title}</li>`).join("")}</ul>`
+      : `<p class="chain-label">No theory was pinned before the charge</p>`;
+  }
+
   $("#result-stats").innerHTML = `
     <div><span>${state.clues.size}</span>exhibits</div>
+    <div><span>${pinScore}</span>pins</div>
     <div><span>${state.notes}</span>notes</div>
     <div><span>${mins}</span>min</div>
   `;
@@ -835,7 +1051,7 @@ async function runDemo() {
     state.yaw = Math.atan2(-(x - camera.position.x), -(z - camera.position.z));
     state.pitch = -0.12;
   };
-  const takeClue = async (clueId) => {
+  const takeClue = async (clueId, pinTo = []) => {
     const marker = world.interactables.find((m) => m.userData.clue === clueId);
     if (!marker || state.clues.has(clueId)) return;
     camera.position.set(marker.position.x, 1.65, marker.position.z + 1.4);
@@ -846,30 +1062,43 @@ async function runDemo() {
     camera.updateMatrixWorld(true);
     await wait(450);
     collectClue(CLUES[clueId], marker);
-    await wait(1000);
+    pinTo.forEach((sid) => state.pins[clueId].add(sid));
+    renderPinChips(clueId);
+    await wait(900);
     closeEvidence();
-    await wait(300);
+    await wait(250);
   };
 
   await turnTo(Math.PI / 2, 600);
   await hold("KeyW", 1600);
   await turnTo(Math.PI, 400);
   await hold("KeyW", 1000);
-  await takeClue("body");
-  await takeClue("letter");
-  for (const id of ["extract", "ledger", "will", "safe", "prints", "champagne"]) {
-    await takeClue(id);
+  await takeClue("body", ["elena"]);
+  await takeClue("letter", ["whitmore"]);
+  for (const [id, pins] of [
+    ["extract", ["elena"]],
+    ["ledger", ["elena"]],
+    ["will", ["elena"]],
+    ["safe", ["elena"]],
+    ["prints", ["elena"]],
+    ["champagne", ["elena"]],
+  ]) {
+    await takeClue(id, pins);
   }
   toggleJournal();
-  await wait(800);
+  await wait(700);
   document.querySelector('.jtab[data-tab="suspects"]').click();
-  await wait(1200);
+  await wait(1000);
+  document.querySelector('.jtab[data-tab="notes"]').click();
+  await wait(600);
   document.querySelector('.jtab[data-tab="evidence"]').click();
-  await wait(800);
+  await wait(700);
   $("#accuse-select").value = "elena";
   syncAccuseButton();
-  await wait(700);
+  await wait(500);
   accuse();
+  await wait(900);
+  confirmAccusation();
 }
 
 async function playBrief() {
@@ -888,6 +1117,10 @@ function startMission() {
   state.playing = true;
   state.clues = new Set();
   state.notes = 0;
+  state.fieldNotes = [];
+  state.pins = emptyPins();
+  state.unreadEvidence = 0;
+  state.activeClueId = null;
   state.startTime = Date.now();
   state.yaw = 0;
   state.pitch = 0;
@@ -910,15 +1143,21 @@ function startMission() {
   state.exposureBoost = 0;
   state.accuseReadyAnnounced = false;
   state.onboardFirstClue = false;
+  state.onboardPinHint = false;
   state.vx = 0;
   state.vz = 0;
   $("#accuse-select").value = "";
+  document.querySelectorAll(".jtab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "evidence"));
+  $("#accuse-modal").classList.add("hidden");
+  $("#result-chain").innerHTML = "";
   syncAccuseButton();
   camera.position.set(0, 1.65, 2);
   camera.fov = 72;
   camera.updateProjectionMatrix();
   syncFlashlight();
   $("#radio-log").innerHTML = "";
+
+  resetInvestigation(scene, world);
 
   if (world.studyDoor) {
     const lock = STUDY_LOCK.block;
@@ -928,15 +1167,6 @@ function startMission() {
     if (!world.colliders.includes(world.studyDoor)) world.colliders.push(world.studyDoor);
   }
   if (world.studySeal) world.studySeal.visible = true;
-
-  world.interactables.forEach((m) => {
-    m.visible = true;
-    if (m.userData.ring) m.userData.ring.visible = true;
-  });
-  world.pickups.forEach((p) => {
-    p.taken = false;
-    p.meshes.forEach((m) => { m.visible = true; });
-  });
 
   showScreen("#screen-game");
   $("#hud").classList.remove("hidden");
@@ -974,8 +1204,13 @@ $("#btn-close-journal").addEventListener("click", () => {
   if (state.playing && !DEMO) requestLock();
 });
 $("#btn-accuse").addEventListener("click", accuse);
+$("#btn-dossier-cancel").addEventListener("click", closeDossier);
+$("#btn-dossier-confirm").addEventListener("click", confirmAccusation);
 $("#accuse-select").addEventListener("change", syncAccuseButton);
 $("#btn-replay").addEventListener("click", () => showScreen("#screen-title"));
+$("#btn-hud-journal").addEventListener("click", () => {
+  if (state.playing && !state.modalOpen) toggleJournal();
+});
 $("#game-canvas").addEventListener("click", () => {
   if (state.playing && !state.locked && !state.modalOpen && !state.journalOpen && !DEMO) requestLock();
 });
@@ -999,6 +1234,10 @@ window.addEventListener("keydown", (e) => {
   keys[e.code] = true;
   if (!state.playing) return;
   if (e.code === "Escape") {
+    if (!$("#accuse-modal").classList.contains("hidden")) {
+      closeDossier();
+      return;
+    }
     if (state.modalOpen) {
       closeEvidence();
       return;
@@ -1028,4 +1267,4 @@ if (DEMO) {
   }, 700);
 }
 
-window.__game = { state, camera, tryInteract, startMission };
+window.__game = { state, camera, tryInteract, startMission, confirmAccusation };

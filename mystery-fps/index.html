@@ -52,6 +52,7 @@
           <div class="hud-stats">
             <span id="clue-stat">Evidence 0/8</span>
             <span id="case-stat">Case building</span>
+            <span id="pin-stat">Pins 0</span>
             <span id="room-stat">Entrance Hall</span>
             <span id="flash-stat" class="flash-on">LAMP ON</span>
           </div>
@@ -92,6 +93,9 @@
         </div>
 
         <div id="lightning"></div>
+        <button id="btn-hud-journal" class="hud-journal-btn" type="button" title="Case Journal (Tab)">
+          Journal <span id="journal-badge" class="badge hidden">0</span>
+        </button>
       </div>
 
       <div id="pause-hint" class="hidden">Click to capture mouse</div>
@@ -102,6 +106,7 @@
         <p id="result-grade" class="result-grade"></p>
         <h2 id="result-title"></h2>
         <p id="result-text"></p>
+        <div id="result-chain" class="result-chain"></div>
         <div id="result-stats" class="result-stats"></div>
         <button id="btn-replay" class="btn primary">Reopen the Case</button>
       </div>
@@ -115,7 +120,25 @@
       <h3 id="ev-title"></h3>
       <p id="ev-body"></p>
       <p id="ev-room" class="ev-room"></p>
-      <button id="btn-close-ev" class="btn primary">Secure Evidence</button>
+      <div id="ev-pin-zone" class="pin-zone">
+        <p class="pin-label">Pin to suspects (your theory)</p>
+        <div id="ev-pin-chips" class="pin-chips"></div>
+      </div>
+      <button id="btn-close-ev" class="btn primary">Log &amp; Continue</button>
+    </div>
+  </div>
+
+  <div id="accuse-modal" class="modal hidden">
+    <div class="modal-card dossier-card">
+      <p class="exhibit">DOSSIER</p>
+      <h3 id="dossier-title">Accusation</h3>
+      <p id="dossier-strength" class="dossier-strength"></p>
+      <ul id="dossier-pins" class="dossier-pins"></ul>
+      <p id="dossier-warn" class="dossier-warn">This closes the case. Wrong charges fail the investigation.</p>
+      <div class="dossier-actions">
+        <button id="btn-dossier-cancel" class="btn ghost">Review Further</button>
+        <button id="btn-dossier-confirm" class="btn danger">File Accusation</button>
+      </div>
     </div>
   </div>
 
@@ -126,9 +149,11 @@
     </div>
     <div class="journal-tabs">
       <button class="jtab active" data-tab="evidence">Evidence</button>
+      <button class="jtab" data-tab="notes">Notes</button>
       <button class="jtab" data-tab="suspects">Suspects</button>
     </div>
     <ul id="journal-list"></ul>
+    <div id="notes-list" class="hidden"></div>
     <div id="suspect-list" class="hidden"></div>
     <div class="accuse-zone">
       <p id="accuse-hint">Collect 5 evidence exhibits to unlock accusation.</p>
