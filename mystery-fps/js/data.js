@@ -1,7 +1,7 @@
 export const BRIEF = [
   "Lord Reginald Ashworth was found dead in his library at 21:15. Cause: aconitine poisoning.",
   "The storm sealed Blackwood Manor. Hostiles are inside — private security gone rogue, or something worse.",
-  "Your orders: neutralize threats, recover eight pieces of evidence, and identify the killer before dawn.",
+  "Recover evidence with E. Review the case with Tab. Accuse when you have five exhibits.",
   "Suspects: Elena Voss (heiress), Marcus Ashworth (son), Dr. Whitmore (physician), Thomas Graves (butler).",
 ];
 

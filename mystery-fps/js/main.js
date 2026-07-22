@@ -59,6 +59,8 @@ const state = {
   emptyClickCd: 0,
   exposureBoost: 0,
   firing: false,
+  accuseReadyAnnounced: false,
+  onboardFirstClue: false,
 };
 
 const keys = {};
@@ -132,6 +134,41 @@ function switchWeapon(id) {
   updateHUD();
 }
 
+function syncAccuseButton() {
+  const ready = state.clues.size >= 5;
+  const choice = $("#accuse-select").value;
+  $("#btn-accuse").disabled = !ready || !choice;
+  const hint = $("#accuse-hint");
+  if (!hint) return;
+  hint.classList.toggle("ready", ready);
+  if (!ready) {
+    hint.textContent = `Collect ${Math.max(0, 5 - state.clues.size)} more exhibit${state.clues.size === 4 ? "" : "s"} to unlock accusation (${state.clues.size}/5).`;
+  } else if (!choice) {
+    hint.textContent = "Accusation unlocked — select a suspect (or click a card), then confirm. This ends the protocol.";
+  } else {
+    const name = $("#accuse-select").selectedOptions[0]?.textContent || "suspect";
+    hint.textContent = `Ready to accuse ${name}. This closes the case — be sure.`;
+  }
+}
+
+function nextObjective() {
+  if (state.bossSpawned && !state.bossDefeated) {
+    return "Ballroom: confront Elena — or Tab to accuse now.";
+  }
+  if (state.bossDefeated) return "Elena is down. Tab → select killer → Make Accusation.";
+  if (state.clues.size >= 5) return "Tab: open journal and make your accusation.";
+  if (!state.studyUnlocked) return "Library: aim at the body (gold marker) and press E.";
+
+  const priority = ["library", "kitchen", "study", "garden", "ballroom", "entrance"];
+  for (const room of priority) {
+    const missing = Object.values(CLUES).filter((c) => c.room === room && !state.clues.has(c.id));
+    if (!missing.length) continue;
+    const titles = missing.slice(0, 2).map((c) => c.title).join(" & ");
+    return `${ROOM_BOUNDS[room].name}: recover ${titles} (E).`;
+  }
+  return "All evidence secured. Tab to accuse.";
+}
+
 function updateHUD() {
   const mag = currentMag();
   const wpn = currentWeapon();
@@ -144,7 +181,7 @@ function updateHUD() {
   const acc = state.shotsFired ? Math.round((state.shotsHit / state.shotsFired) * 100) : 0;
   $("#acc-stat").textContent = state.shotsFired ? `Accuracy ${acc}%` : "Accuracy —";
   $("#room-stat").textContent = ROOM_BOUNDS[state.room]?.name || state.room;
-  $("#btn-accuse").disabled = state.clues.size < 5;
+  syncAccuseButton();
   $("#damage-vignette").classList.toggle("critical", state.health > 0 && state.health <= 30);
   const flash = $("#flash-stat");
   flash.textContent = state.flashlightOn ? "LAMP ON" : "LAMP OFF";
@@ -153,11 +190,7 @@ function updateHUD() {
   bat.style.width = `${Math.max(0, state.battery)}%`;
   bat.classList.toggle("low", state.battery < 25);
 
-  if (state.bossSpawned && !state.bossDefeated) setObjective("Confront Elena Voss in the ballroom.");
-  else if (state.clues.size >= 5) setObjective("Open journal (Tab) and accuse — or face her.");
-  else if (state.clues.size >= 3) setObjective("Keep searching. Hostiles inbound.");
-  else if (!state.studyUnlocked) setObjective("Examine the body in the library to unseal the study.");
-  else setObjective("Secure the manor. Find evidence.");
+  setObjective(nextObjective());
 
   if (boss?.userData?.alive) {
     $("#boss-bar").classList.remove("hidden");
@@ -574,19 +607,34 @@ function getLookTarget() {
   const ray = new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0, 0), camera);
   const hits = ray.intersectObjects(world.interactables, false);
-  if (!hits.length || hits[0].distance > 2.8) return null;
+  if (!hits.length || hits[0].distance > 3.4) return null;
   return hits[0].object;
+}
+
+function nearestClueMarker(maxDist = 4.5) {
+  let best = null;
+  let bestD = maxDist;
+  for (const m of world.interactables) {
+    if (!m.visible || state.clues.has(m.userData.clue)) continue;
+    const d = camera.position.distanceTo(m.position);
+    if (d < bestD) {
+      bestD = d;
+      best = m;
+    }
+  }
+  return best;
 }
 
 function tryInteract() {
   if (state.modalOpen || state.journalOpen) return;
   const target = getLookTarget();
-  if (!target) return;
-  const clue = CLUES[target.userData.clue];
-  if (!clue || state.clues.has(clue.id)) {
-    toast("Already secured");
+  if (!target) {
+    const near = nearestClueMarker(2.2);
+    if (near) toast("Aim at the gold marker, then press E");
     return;
   }
+  const clue = CLUES[target.userData.clue];
+  if (!clue || state.clues.has(clue.id)) return;
   collectClue(clue, target);
 }
 
@@ -595,8 +643,26 @@ function collectClue(clue, marker) {
   marker.visible = false;
   if (marker.userData.ring) marker.userData.ring.visible = false;
   audio.pickup();
+  toast(`Exhibit secured: ${clue.title}`);
   if (clue.id === STUDY_LOCK.clueRequired) unlockStudy();
-  maybeSpawnBoss();
+
+  if (!state.onboardFirstClue) {
+    state.onboardFirstClue = true;
+    setTimeout(() => toast("Tab opens Case Journal"), 1600);
+  }
+
+  if (state.clues.size >= 5 && !state.bossSpawned) {
+    if (!state.accuseReadyAnnounced) {
+      state.accuseReadyAnnounced = true;
+      showRoomBanner("ACCUSATION READY");
+      toast("Accusation unlocked — Tab to charge");
+      pushRadio("HQ: Enough for a charge. Open your journal when ready — Elena may not wait.");
+      setTimeout(() => maybeSpawnBoss(), 3200);
+    } else {
+      maybeSpawnBoss();
+    }
+  }
+
   maybeRadio();
   updateHUD();
   openEvidence(clue);
@@ -618,7 +684,7 @@ function openEvidence(clue) {
 function closeEvidence() {
   $("#evidence-modal").classList.add("hidden");
   state.modalOpen = false;
-  if (state.playing && !DEMO) requestLock();
+  if (state.playing && !state.journalOpen && !DEMO) requestLock();
 }
 
 function suspectHeat(id) {
@@ -633,13 +699,14 @@ function suspectHeat(id) {
 function renderJournal() {
   const list = $("#journal-list");
   const suspects = $("#suspect-list");
+  syncAccuseButton();
 
   if (state.journalTab === "evidence") {
     list.classList.remove("hidden");
     suspects.classList.add("hidden");
     list.innerHTML = "";
     if (!state.clues.size) {
-      list.innerHTML = "<li><p>No evidence yet. Search every room.</p></li>";
+      list.innerHTML = "<li><p>No evidence yet. Search every room — gold markers, press E.</p></li>";
       return;
     }
     [...state.clues].forEach((id) => {
@@ -661,13 +728,21 @@ function renderJournal() {
         <div class="role">${s.role}</div>
         <p>${s.bio}</p>
         <div class="heat">${heat ? `Suspicion: ${"●".repeat(Math.min(heat, 6))}` : "No linking evidence yet"}</div>
+        <div class="pick-hint">Click to select for accusation</div>
       `;
+      div.addEventListener("click", () => {
+        $("#accuse-select").value = s.id;
+        syncAccuseButton();
+        audio.click();
+        toast(`Selected ${s.name}`);
+      });
       suspects.appendChild(div);
     });
   }
 }
 
 function toggleJournal() {
+  if (state.modalOpen) return;
   state.journalOpen = !state.journalOpen;
   $("#journal").classList.toggle("hidden", !state.journalOpen);
   if (state.journalOpen) {
@@ -842,10 +917,18 @@ function updatePlayer(dt) {
   const target = getLookTarget();
   const prompt = $("#interact-prompt");
   if (target && !state.clues.has(target.userData.clue)) {
-    prompt.classList.remove("hidden");
+    prompt.classList.remove("hidden", "nearby");
     $("#interact-label").textContent = target.userData.label;
   } else {
-    prompt.classList.add("hidden");
+    const near = nearestClueMarker(4.2);
+    if (near) {
+      prompt.classList.remove("hidden");
+      prompt.classList.add("nearby");
+      $("#interact-label").textContent = "Evidence nearby — look for the gold marker";
+    } else {
+      prompt.classList.add("hidden");
+      prompt.classList.remove("nearby");
+    }
   }
 
   updatePickups();
@@ -1107,10 +1190,15 @@ function updateMarkers(dt) {
     m.rotation.y += dt * 1.5;
     const baseY = m.userData.pos?.[1] ?? 1.2;
     m.position.y = baseY + Math.sin(t * 2 + m.position.x) * 0.08;
-    if (m.material) m.material.emissiveIntensity = 0.6 + Math.sin(t + m.position.x) * 0.35;
+    const dist = camera.position.distanceTo(m.position);
+    const nearBoost = dist < 5 ? (1 - dist / 5) * 0.9 : 0;
+    if (m.material) m.material.emissiveIntensity = 0.55 + Math.sin(t + m.position.x) * 0.3 + nearBoost;
     if (m.userData.ring) {
-      const s = 1 + Math.sin(t * 2) * 0.15;
+      const s = 1 + Math.sin(t * 2) * 0.15 + nearBoost * 0.35;
       m.userData.ring.scale.set(s, s, s);
+      if (m.userData.ring.material) {
+        m.userData.ring.material.opacity = 0.45 + nearBoost * 0.4;
+      }
     }
   });
 }
@@ -1127,16 +1215,21 @@ function drawMinimap() {
   const ox = w / 2 - camera.position.x * scale;
   const oy = h / 2 - camera.position.z * scale;
 
-  // Rooms
-  ctx.strokeStyle = "rgba(201,161,74,0.25)";
+  // Rooms — filled when all clues in room secured
   ctx.lineWidth = 1;
-  Object.values(ROOM_BOUNDS).forEach((r) => {
-    ctx.strokeRect(
-      r.min.x * scale + ox,
-      r.min.z * scale + oy,
-      (r.max.x - r.min.x) * scale,
-      (r.max.z - r.min.z) * scale
-    );
+  Object.entries(ROOM_BOUNDS).forEach(([id, r]) => {
+    const roomClues = Object.values(CLUES).filter((c) => c.room === id);
+    const cleared = roomClues.length > 0 && roomClues.every((c) => state.clues.has(c.id));
+    const x = r.min.x * scale + ox;
+    const y = r.min.z * scale + oy;
+    const rw = (r.max.x - r.min.x) * scale;
+    const rh = (r.max.z - r.min.z) * scale;
+    if (cleared) {
+      ctx.fillStyle = "rgba(80, 140, 90, 0.18)";
+      ctx.fillRect(x, y, rw, rh);
+    }
+    ctx.strokeStyle = cleared ? "rgba(120,180,110,0.45)" : "rgba(201,161,74,0.25)";
+    ctx.strokeRect(x, y, rw, rh);
   });
 
   // Clues
@@ -1174,7 +1267,11 @@ function drawMinimap() {
 
 function accuse() {
   const choice = $("#accuse-select").value;
-  if (!choice) return;
+  if (!choice || state.clues.size < 5) return;
+  const name = $("#accuse-select").selectedOptions[0]?.textContent || "this suspect";
+  if (!DEMO && !window.confirm(`Accuse ${name}?\n\nThis closes the protocol. Wrong charges fail the case.`)) {
+    return;
+  }
   const won = choice === SOLUTION;
   const text = won
     ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. Your evidence held."
@@ -1397,6 +1494,10 @@ function startMission() {
   state.emptyClickCd = 0;
   state.exposureBoost = 0;
   state.firing = false;
+  state.accuseReadyAnnounced = false;
+  state.onboardFirstClue = false;
+  $("#accuse-select").value = "";
+  syncAccuseButton();
   camera.position.set(0, 1.65, 2);
   camera.fov = 72;
   camera.updateProjectionMatrix();
@@ -1514,12 +1615,10 @@ $("#btn-close-journal").addEventListener("click", () => {
   if (state.playing && !DEMO) requestLock();
 });
 $("#btn-accuse").addEventListener("click", accuse);
-$("#accuse-select").addEventListener("change", () => {
-  $("#btn-accuse").disabled = !$("#accuse-select").value || state.clues.size < 5;
-});
+$("#accuse-select").addEventListener("change", syncAccuseButton);
 $("#btn-replay").addEventListener("click", () => showScreen("#screen-title"));
 $("#game-canvas").addEventListener("click", () => {
-  if (state.playing && !state.locked && !state.modalOpen && !DEMO) requestLock();
+  if (state.playing && !state.locked && !state.modalOpen && !state.journalOpen && !DEMO) requestLock();
 });
 
 document.querySelectorAll(".jtab").forEach((tab) => {
@@ -1540,14 +1639,24 @@ document.addEventListener("contextmenu", (e) => e.preventDefault());
 window.addEventListener("keydown", (e) => {
   keys[e.code] = true;
   if (!state.playing) return;
+  if (e.code === "Escape") {
+    if (state.modalOpen) {
+      closeEvidence();
+      return;
+    }
+    if (state.journalOpen) toggleJournal();
+    return;
+  }
   if (e.code === "KeyE") tryInteract();
   if (e.code === "KeyR") reload();
   if (e.code === "KeyF") toggleFlashlight();
   if (e.code === "KeyV") melee();
   if (e.code === "Digit1" || e.code === "Numpad1") switchWeapon("pistol");
   if (e.code === "Digit2" || e.code === "Numpad2") switchWeapon("shotgun");
-  if (e.code === "Tab") { e.preventDefault(); toggleJournal(); }
-  if (e.code === "Escape" && state.journalOpen) toggleJournal();
+  if (e.code === "Tab") {
+    e.preventDefault();
+    if (!state.modalOpen) toggleJournal();
+  }
 });
 window.addEventListener("keyup", (e) => {
   keys[e.code] = false;

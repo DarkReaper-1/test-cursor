@@ -414,6 +414,13 @@ kbd {
   gap: 0.5rem;
 }
 
+#interact-prompt.nearby {
+  border-color: var(--accent);
+  bottom: 32%;
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
+
 .hud-bottom {
   position: absolute;
   left: 0; right: 0; bottom: 0;
@@ -585,6 +592,13 @@ kbd {
   border-left: 3px solid var(--border);
   padding: 0.9rem;
   margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.suspect-card:hover {
+  border-color: var(--accent);
+  background: rgba(201, 161, 74, 0.08);
 }
 
 .suspect-card.hot { border-left-color: var(--danger-lit); }
@@ -602,6 +616,13 @@ kbd {
   font-size: 0.65rem;
   margin-top: 0.4rem;
   color: var(--danger-lit);
+}
+.suspect-card .pick-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-top: 0.45rem;
+  letter-spacing: 0.04em;
 }
 
 #pause-hint {
@@ -711,7 +732,15 @@ kbd {
   padding-top: 1rem;
 }
 
-.accuse-zone p { color: var(--dim); font-size: 0.9rem; margin-bottom: 0.6rem; }
+.accuse-zone p,
+#accuse-hint {
+  color: var(--dim);
+  font-size: 0.9rem;
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+}
+
+#accuse-hint.ready { color: var(--accent); }
 
 #accuse-select {
   width: 100%;
