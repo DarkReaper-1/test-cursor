@@ -340,19 +340,57 @@ export function buildWorld(scene) {
   flashlight.target.position.set(0.15, -0.05, -1);
   lights.push(flashlight);
 
-  // Evidence markers
+  // Evidence props (readable silhouette + beacon)
   INTERACTABLES.forEach((item) => {
-    const marker = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.2, 0),
-      new THREE.MeshStandardMaterial({
-        color: ACCENT, emissive: ACCENT, emissiveIntensity: 0.85,
-        transparent: true, opacity: 0.9, roughness: 0.3, metalness: 0.4,
-      })
-    );
-    marker.position.set(...item.pos);
-    marker.userData = { ...item, kind: "clue" };
-    scene.add(marker);
-    interactables.push(marker);
+    const group = new THREE.Group();
+    const accent = new THREE.MeshStandardMaterial({
+      color: ACCENT, emissive: ACCENT, emissiveIntensity: 0.7, roughness: 0.35, metalness: 0.35,
+    });
+    const dark = new THREE.MeshStandardMaterial({
+      color: 0x2a2218, emissive: ACCENT, emissiveIntensity: 0.2, roughness: 0.7,
+    });
+    let prop;
+    switch (item.clue) {
+      case "body":
+        prop = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.16, 1.05), dark);
+        prop.position.y = 0.08;
+        break;
+      case "letter":
+      case "will":
+      case "ledger":
+        prop = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.025, 0.48), accent);
+        prop.rotation.x = -0.55;
+        prop.position.y = 0.18;
+        break;
+      case "safe":
+        prop = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.48, 0.32), dark);
+        prop.position.y = 0.24;
+        break;
+      case "extract":
+        prop = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.36, 10), accent);
+        prop.position.y = 0.2;
+        break;
+      case "prints":
+        prop = new THREE.Mesh(new THREE.CircleGeometry(0.3, 18), accent);
+        prop.rotation.x = -Math.PI / 2;
+        prop.position.y = 0.04;
+        break;
+      case "champagne":
+        prop = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 0.42, 8), accent);
+        prop.position.y = 0.24;
+        break;
+      default:
+        prop = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), accent);
+        prop.position.y = 0.2;
+    }
+    prop.castShadow = true;
+    const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), accent.clone());
+    beacon.position.y = 0.45;
+    group.add(prop, beacon);
+    group.position.set(item.pos[0], item.pos[1], item.pos[2]);
+    group.userData = { ...item, kind: "clue", beacon, baseY: item.pos[1] };
+    scene.add(group);
+    interactables.push(group);
 
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(0.32, 0.42, 28),
@@ -361,7 +399,7 @@ export function buildWorld(scene) {
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(item.pos[0], 0.06, item.pos[2]);
     scene.add(ring);
-    marker.userData.ring = ring;
+    group.userData.ring = ring;
   });
 
   // Pickups (medkits / ammo)

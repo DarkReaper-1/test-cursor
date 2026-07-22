@@ -61,6 +61,9 @@ const state = {
   firing: false,
   accuseReadyAnnounced: false,
   onboardFirstClue: false,
+  bossPending: false,
+  vx: 0,
+  vz: 0,
 };
 
 const keys = {};
@@ -336,8 +339,12 @@ function fire() {
   const wpn = currentWeapon();
   const mag = currentMag();
   if (mag.ammo <= 0) {
+    if (mag.reserve > 0) {
+      reload();
+      return;
+    }
     if (state.emptyClickCd <= 0) {
-      toast("Empty — press R to reload");
+      toast("Empty — no reserve");
       audio.empty();
       state.emptyClickCd = 0.35;
     }
@@ -369,9 +376,8 @@ function fire() {
   updateHUD();
 
   const pellets = wpn.pellets;
-  let hitSomething = false;
+  const hitMap = new Map();
   for (let i = 0; i < pellets; i++) {
-    // Shotgun: ring pattern; pistol: ADS tight bloom
     let bloom;
     if (wpn.id === "shotgun") {
       const ring = 0.012 + i * 0.004;
@@ -394,13 +400,28 @@ function fire() {
       const headY = obj.userData.boss ? 2.1 : 1.7;
       const headshot = hits[0].point.y - obj.position.y > headY;
       state.shotsHit++;
-      hitSomething = true;
-      damageEnemy(obj, headshot ? 2 : wpn.damage, hits[0].point, headshot);
+      const prev = hitMap.get(obj) || { dmg: 0, point: hits[0].point, headshot: false, pellets: 0 };
+      prev.dmg += headshot ? 2 : wpn.damage;
+      prev.headshot = prev.headshot || headshot;
+      prev.point = hits[0].point;
+      prev.pellets++;
+      hitMap.set(obj, prev);
     } else {
-      decals.push(spawnBulletHole(scene, hits[0].point, hits[0].face?.normal));
+      if (i === 0 || Math.random() < 0.35) {
+        decals.push(spawnBulletHole(scene, hits[0].point, hits[0].face?.normal));
+      }
     }
   }
-  if (hitSomething) updateHUD();
+  for (const [enemy, h] of hitMap) {
+    damageEnemy(enemy, h.dmg, h.point, h.headshot);
+  }
+  if (hitMap.size) updateHUD();
+
+  if (mag.ammo <= 0 && mag.reserve > 0) {
+    setTimeout(() => {
+      if (state.playing && !state.reloading && currentMag().ammo <= 0) reload();
+    }, 180);
+  }
 }
 
 function melee() {
@@ -594,6 +615,11 @@ function updateStudyDoor(dt) {
 
 function maybeSpawnBoss() {
   if (state.bossSpawned || state.clues.size < 5) return;
+  if (state.modalOpen || state.journalOpen) {
+    state.bossPending = true;
+    return;
+  }
+  state.bossPending = false;
   state.bossSpawned = true;
   boss = createBoss(scene);
   world.enemies.push(boss);
@@ -606,9 +632,11 @@ function maybeSpawnBoss() {
 function getLookTarget() {
   const ray = new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0, 0), camera);
-  const hits = ray.intersectObjects(world.interactables, false);
+  const hits = ray.intersectObjects(world.interactables, true);
   if (!hits.length || hits[0].distance > 3.4) return null;
-  return hits[0].object;
+  let obj = hits[0].object;
+  while (obj.parent && !obj.userData?.clue) obj = obj.parent;
+  return obj.userData?.clue ? obj : null;
 }
 
 function nearestClueMarker(maxDist = 4.5) {
@@ -696,6 +724,12 @@ function suspectHeat(id) {
   return heat;
 }
 
+function linkedExhibits(suspectId) {
+  return [...state.clues]
+    .map((id) => CLUES[id])
+    .filter((c) => c.implicates?.includes(suspectId));
+}
+
 function renderJournal() {
   const list = $("#journal-list");
   const suspects = $("#suspect-list");
@@ -712,7 +746,8 @@ function renderJournal() {
     [...state.clues].forEach((id) => {
       const c = CLUES[id];
       const li = document.createElement("li");
-      li.innerHTML = `<strong>${c.title}</strong><span class="ev-cat ${c.category}">${c.category}</span><p>${c.text}</p>`;
+      const who = (c.implicates || []).map((sid) => SUSPECTS[sid]?.name || sid).join(", ");
+      li.innerHTML = `<strong>${c.title}</strong><span class="ev-cat ${c.category}">${c.category}</span><p>${c.text}</p>${who ? `<div class="links">Points toward: ${who}</div>` : ""}`;
       list.appendChild(li);
     });
   } else {
@@ -721,6 +756,7 @@ function renderJournal() {
     suspects.innerHTML = "";
     Object.values(SUSPECTS).forEach((s) => {
       const heat = suspectHeat(s.id);
+      const links = linkedExhibits(s.id);
       const div = document.createElement("div");
       div.className = "suspect-card" + (heat >= 4 ? " hot" : "");
       div.innerHTML = `
@@ -728,6 +764,7 @@ function renderJournal() {
         <div class="role">${s.role}</div>
         <p>${s.bio}</p>
         <div class="heat">${heat ? `Suspicion: ${"●".repeat(Math.min(heat, 6))}` : "No linking evidence yet"}</div>
+        <div class="links">${links.length ? `Exhibits: ${links.map((c) => c.title).join(" · ")}` : "No exhibits name them yet"}</div>
         <div class="pick-hint">Click to select for accusation</div>
       `;
       div.addEventListener("click", () => {
@@ -826,7 +863,7 @@ function updatePlayer(dt) {
 
   state.crouching = !!(keys["KeyC"] || keys["ControlLeft"] || keys["ControlRight"]);
   const sprinting = !state.aiming && !state.crouching && (keys["ShiftLeft"] || keys["ShiftRight"]);
-  const speed = (state.crouching ? 1.8 : state.aiming ? 2.4 : sprinting ? 5.8 : 3.6) * dt;
+  const maxSpeed = state.crouching ? 1.8 : state.aiming ? 2.4 : sprinting ? 5.8 : 3.6;
   state.meleeCd = Math.max(0, state.meleeCd - dt);
   const forward = new THREE.Vector3(-Math.sin(state.yaw), 0, -Math.cos(state.yaw));
   const right = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw));
@@ -839,23 +876,38 @@ function updatePlayer(dt) {
 
   const moving = wish.lengthSq() > 0;
   if (moving) {
-    wish.normalize().multiplyScalar(speed);
+    wish.normalize();
+    const accel = sprinting ? 22 : 16;
+    state.vx += wish.x * accel * dt;
+    state.vz += wish.z * accel * dt;
     bob += dt * (sprinting ? 14 : 10);
     state.spread = Math.min(16, state.spread + dt * (sprinting ? 20 : 10));
+  } else {
+    const friction = Math.exp(-14 * dt);
+    state.vx *= friction;
+    state.vz *= friction;
+    state.spread = Math.max(0, state.spread - dt * 18);
+  }
+  const speed = Math.hypot(state.vx, state.vz);
+  if (speed > maxSpeed) {
+    state.vx = (state.vx / speed) * maxSpeed;
+    state.vz = (state.vz / speed) * maxSpeed;
+  }
+  if (speed > 0.05) {
     const next = camera.position.clone();
-    next.x += wish.x;
+    next.x += state.vx * dt;
     if (!playerCollides(next, world.colliders)) camera.position.x = next.x;
+    else state.vx *= 0.2;
     next.x = camera.position.x;
-    next.z += wish.z;
+    next.z += state.vz * dt;
     if (!playerCollides(next, world.colliders)) camera.position.z = next.z;
+    else state.vz *= 0.2;
 
     state.footTimer -= dt;
-    if (state.footTimer <= 0) {
+    if (moving && state.footTimer <= 0) {
       audio.footstep();
       state.footTimer = sprinting ? 0.28 : 0.4;
     }
-  } else {
-    state.spread = Math.max(0, state.spread - dt * 18);
   }
   if (state.aiming) state.spread = Math.max(0, state.spread - dt * 30);
 
@@ -934,6 +986,30 @@ function updatePlayer(dt) {
   updatePickups();
 }
 
+function trySlideMove(entity, dx, dz, radius = 0.4) {
+  const full = entity.position.clone();
+  full.x += dx;
+  full.z += dz;
+  if (!playerCollides(full, world.colliders, radius)) {
+    entity.position.x = full.x;
+    entity.position.z = full.z;
+    return true;
+  }
+  const onlyX = entity.position.clone();
+  onlyX.x += dx;
+  if (!playerCollides(onlyX, world.colliders, radius)) {
+    entity.position.x = onlyX.x;
+    return true;
+  }
+  const onlyZ = entity.position.clone();
+  onlyZ.z += dz;
+  if (!playerCollides(onlyZ, world.colliders, radius)) {
+    entity.position.z = onlyZ.z;
+    return true;
+  }
+  return false;
+}
+
 function enemyFire(e, playerPos) {
   const origin = e.position.clone().add(new THREE.Vector3(0, 1.5, 0));
   if (!hasLineOfSight(origin, playerPos.clone())) return false;
@@ -949,7 +1025,7 @@ function enemyFire(e, playerPos) {
 }
 
 function updateEnemies(dt) {
-  if (!state.playing || state.modalOpen || state.journalOpen) return;
+  if (!state.playing || state.journalOpen) return;
   const playerPos = camera.position;
 
   world.enemies.forEach((e) => {
@@ -1020,13 +1096,7 @@ function updateEnemies(dt) {
       const toHome = new THREE.Vector3(hx - e.position.x, 0, hz - e.position.z);
       if (toHome.length() > 0.2) {
         toHome.normalize().multiplyScalar(e.userData.speed * 0.35 * dt);
-        const next = e.position.clone().add(toHome);
-        if (!playerCollides(next, world.colliders, 0.4)) {
-          e.position.x = next.x;
-          e.position.z = next.z;
-        } else {
-          e.userData.patrolAngle += Math.PI * 0.55;
-        }
+        if (!trySlideMove(e, toHome.x, toHome.z)) e.userData.patrolAngle += Math.PI * 0.55;
       }
       e.lookAt(
         e.position.x + Math.sin(e.userData.patrolAngle),
@@ -1040,12 +1110,8 @@ function updateEnemies(dt) {
       e.lookAt(playerPos.x, e.position.y, playerPos.z);
       e.userData.patrolAngle = Math.atan2(toPlayer.x, toPlayer.z);
       if (canSee && dist < (e.userData.seeRadius || 14) * 0.75) e.userData.alert = "combat";
-      const step = toPlayer.normalize().multiplyScalar(e.userData.speed * 0.55 * dt);
-      const next = e.position.clone().add(step);
-      if (!playerCollides(next, world.colliders, 0.4)) {
-        e.position.x = next.x;
-        e.position.z = next.z;
-      }
+      const step = toPlayer.clone().normalize().multiplyScalar(e.userData.speed * 0.55 * dt);
+      trySlideMove(e, step.x, step.z);
       return;
     }
 
@@ -1073,12 +1139,8 @@ function updateEnemies(dt) {
 
     const stopDist = e.userData.ranged && dist < 7 ? 5.5 : 1.35;
     if (dist > stopDist) {
-      toPlayer.normalize().multiplyScalar(e.userData.speed * dt);
-      const next = e.position.clone().add(toPlayer);
-      if (!playerCollides(next, world.colliders, 0.4)) {
-        e.position.x = next.x;
-        e.position.z = next.z;
-      }
+      const step = toPlayer.clone().normalize().multiplyScalar(e.userData.speed * dt);
+      trySlideMove(e, step.x, step.z);
     } else if (dist <= 1.35) {
       e.userData.cooldown -= dt;
       if (e.userData.cooldown <= 0) {
@@ -1090,7 +1152,7 @@ function updateEnemies(dt) {
 }
 
 function updateProjectiles(dt) {
-  if (state.journalOpen || state.modalOpen) return;
+  if (state.journalOpen) return;
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
     p.userData.life -= dt;
@@ -1187,12 +1249,22 @@ function updateMarkers(dt) {
   const t = performance.now() * 0.003;
   world.interactables.forEach((m) => {
     if (!m.visible) return;
-    m.rotation.y += dt * 1.5;
-    const baseY = m.userData.pos?.[1] ?? 1.2;
-    m.position.y = baseY + Math.sin(t * 2 + m.position.x) * 0.08;
+    const beacon = m.userData.beacon;
+    if (beacon) {
+      beacon.rotation.y += dt * 2.2;
+      beacon.position.y = 0.55 + Math.sin(t * 2 + m.position.x) * 0.06;
+    } else {
+      m.rotation.y += dt * 1.5;
+    }
+    const baseY = m.userData.baseY ?? m.userData.pos?.[1] ?? 0;
+    if (!beacon) m.position.y = baseY + Math.sin(t * 2 + m.position.x) * 0.08;
     const dist = camera.position.distanceTo(m.position);
     const nearBoost = dist < 5 ? (1 - dist / 5) * 0.9 : 0;
-    if (m.material) m.material.emissiveIntensity = 0.55 + Math.sin(t + m.position.x) * 0.3 + nearBoost;
+    const mats = [];
+    m.traverse((c) => { if (c.isMesh && c.material?.emissiveIntensity != null) mats.push(c.material); });
+    mats.forEach((mat) => {
+      mat.emissiveIntensity = 0.5 + Math.sin(t + m.position.x) * 0.25 + nearBoost;
+    });
     if (m.userData.ring) {
       const s = 1 + Math.sin(t * 2) * 0.15 + nearBoost * 0.35;
       m.userData.ring.scale.set(s, s, s);
@@ -1341,6 +1413,7 @@ function loop() {
     updatePhysicsBits(decals, dt, scene);
     updateMarkers(dt);
     updateStorm(dt);
+    if (state.bossPending) maybeSpawnBoss();
     drawMinimap();
 
     const nearCombat = world.enemies.some(
@@ -1496,6 +1569,9 @@ function startMission() {
   state.firing = false;
   state.accuseReadyAnnounced = false;
   state.onboardFirstClue = false;
+  state.bossPending = false;
+  state.vx = 0;
+  state.vz = 0;
   $("#accuse-select").value = "";
   syncAccuseButton();
   camera.position.set(0, 1.65, 2);

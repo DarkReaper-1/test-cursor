@@ -624,6 +624,18 @@ kbd {
   margin-top: 0.45rem;
   letter-spacing: 0.04em;
 }
+.links {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--accent);
+  margin-top: 0.45rem;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+#journal-list .links {
+  margin-top: 0.5rem;
+  color: #b8a070;
+}
 
 #pause-hint {
   position: absolute;
