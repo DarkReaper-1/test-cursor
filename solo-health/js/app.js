@@ -1,5 +1,6 @@
 import {
   RANKS,
+  RANK_JOBS,
   STAT_KEYS,
   buildDailyQuests,
   buildPenaltyQuest,
@@ -8,6 +9,8 @@ import {
   xpToNextLevel,
 } from "./game-data.js";
 import { createScannerSession } from "./scanner.js";
+import { questKind } from "./rep-counter.js";
+import { createFormTracker, critiqueQuest, critiqueDay } from "./critique-ai.js";
 
 const STORAGE_KEY = "solo-health-v2";
 
@@ -17,7 +20,7 @@ const defaultState = () => ({
   xp: 0,
   totalXp: 0,
   streak: 0,
-  stats: { str: 10, agi: 10, vit: 10, int: 10, sen: 10 },
+  stats: { str: 10, agi: 10, vit: 10, int: 10, per: 10 },
   quests: buildDailyQuests(0),
   day: 1,
   penaltyActive: false,
@@ -25,11 +28,13 @@ const defaultState = () => ({
   penaltySeconds: 4 * 60 * 60,
   log: ["[SYSTEM] Camera Scanner online. Quests require live verification."],
   lastCompletedDay: false,
+  critiques: [],
 });
 
 let state = load();
 let activeQuest = null;
 let activeIsPenalty = false;
+let formTracker = null;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -67,6 +72,14 @@ function currentRank() {
   return rankForXp(state.totalXp);
 }
 
+function pushCritique(entry) {
+  state.critiques.unshift(entry);
+  state.critiques = state.critiques.slice(0, 30);
+  pushLog(`[Critique AI] ${entry.questName}: ${entry.gradeLabel} (${entry.score}/100)`);
+  showToast(`CRITIQUE AI — ${entry.gradeLabel}`, entry.score >= 62 ? "success" : "danger");
+  renderCritique();
+}
+
 function showToast(message, kind = "info") {
   const toast = $("#toast");
   toast.hidden = false;
@@ -94,6 +107,14 @@ function renderStats() {
   ).join("");
 }
 
+function fatigueLevel() {
+  if (state.penaltyActive) return "Critical";
+  const done = state.quests.filter((q) => q.progress >= q.target).length;
+  if (done >= state.quests.length) return "Low";
+  if (done === 0) return "High";
+  return "Moderate";
+}
+
 function renderStatus() {
   const rank = currentRank();
   const badge = $("#rank-badge");
@@ -102,7 +123,14 @@ function renderStatus() {
   badge.dataset.rank = rank.id;
   $("#rank-name").textContent = rank.name;
   $("#player-level").textContent = String(state.level);
-  $("#player-title").textContent = state.name;
+  $("#stat-name").textContent = state.name;
+  $("#stat-title").textContent = "Player";
+  $("#stat-job").textContent = RANK_JOBS[rank.id] || "None";
+  const hp = 100 + (state.stats.vit - 10) * 8;
+  const mp = 10 + (state.stats.int - 10) * 4;
+  $("#stat-hp").textContent = `${hp} / ${hp}`;
+  $("#stat-mp").textContent = `${mp} / ${mp}`;
+  $("#stat-fatigue").textContent = fatigueLevel();
   const need = xpToNextLevel(state.level);
   $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
   $("#xp-text").textContent = `${state.xp} / ${need} XP`;
@@ -117,7 +145,7 @@ function questCard(q, { penalty = false } = {}) {
     <li class="quest-item ${done ? "done" : ""}" data-id="${q.id}">
       <div class="quest-top">
         <div>
-          <p class="quest-name">${q.name}</p>
+          <p class="quest-name"><span class="quest-check">${done ? "☑" : "☐"}</span>${q.name}</p>
           <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
             q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
           }</p>
@@ -178,6 +206,37 @@ function renderLog() {
   $("#system-log").innerHTML = state.log.map((line) => `<li>${escapeHtml(line)}</li>`).join("");
 }
 
+function critiqueCard(entry) {
+  return `
+    <li class="critique-card grade-${entry.grade.toLowerCase()}">
+      <div class="critique-card-top">
+        <p class="critique-card-name">${escapeHtml(entry.questName)}</p>
+        <span class="chip grade">${entry.grade} · ${entry.score}</span>
+      </div>
+      <ul class="critique-lines">
+        ${entry.lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}
+      </ul>
+    </li>`;
+}
+
+function renderCritique() {
+  const latest = state.critiques[0];
+  const panel = $("#critique-window");
+  if (latest) {
+    panel.hidden = false;
+    $("#critique-grade").textContent = `${latest.grade} · ${latest.score}`;
+    $("#critique-grade").className = `chip grade grade-${latest.grade.toLowerCase()}`;
+    $("#critique-latest-title").innerHTML = `<strong>${escapeHtml(latest.questName)}</strong> — ${escapeHtml(latest.gradeLabel)}`;
+    $("#critique-latest-lines").innerHTML = latest.lines
+      .map((l) => `<li>${escapeHtml(l)}</li>`)
+      .join("");
+  } else {
+    panel.hidden = true;
+  }
+  $("#critique-history").innerHTML = state.critiques.map(critiqueCard).join("") ||
+    `<li class="critique-empty">No scans reviewed yet. Complete a quest for the Critique AI to analyze your form.</li>`;
+}
+
 function escapeHtml(str) {
   return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
@@ -188,6 +247,7 @@ function renderAll() {
   renderPenalty();
   renderRanks();
   renderLog();
+  renderCritique();
   save();
 }
 
@@ -199,7 +259,7 @@ function gainXp(amount) {
     state.xp -= xpToNextLevel(state.level);
     state.level += 1;
     leveled = true;
-    state.stats.sen += 1;
+    state.stats.per += 1;
   }
   if (leveled) {
     pushLog(`Level up! You are now Lv.${state.level}.`);
@@ -262,10 +322,18 @@ function checkDailyClear() {
   if (allDone && !state.lastCompletedDay) {
     state.lastCompletedDay = true;
     state.streak += 1;
-    state.stats.sen += 1;
+    state.stats.per += 1;
     gainXp(50);
     pushLog("Daily Quest cleared via Camera Scanner. Streak +1.");
     showToast("DAILY QUEST CLEARED", "success");
+    pushCritique(
+      critiqueDay({
+        quests: state.quests,
+        streak: state.streak,
+        stats: state.stats,
+        rank: currentRank().name,
+      })
+    );
   }
 }
 
@@ -338,10 +406,13 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
   const params = new URLSearchParams(location.search);
   const demo = params.get("demo") === "1" || forceSynthetic;
 
+  formTracker = createFormTracker(questKind(quest.id));
+
   await scanner.start({
     quest,
     forceSynthetic: demo,
     allowSynthFallback: demo || params.get("sim") === "1",
+    onFrame: (result) => formTracker?.record(result),
     onProgress: (amount) => {
       addQuestProgress(quest, amount, { penalty });
       $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
@@ -357,6 +428,18 @@ function closeScanner() {
   $("#scanner-view").hidden = true;
   $("#camera-pill").textContent = "SCANNER READY";
   $("#camera-pill").classList.remove("live");
+  if (activeQuest && formTracker?.hasData()) {
+    pushCritique(
+      critiqueQuest({
+        name: activeQuest.name,
+        kind: questKind(activeQuest.id),
+        target: activeQuest.target,
+        achieved: activeQuest.progress,
+        tracker: formTracker,
+      })
+    );
+  }
+  formTracker = null;
   activeQuest = null;
   activeIsPenalty = false;
   renderAll();
@@ -364,11 +447,19 @@ function closeScanner() {
 
 function bindEvents() {
   $("#btn-awaken").addEventListener("click", () => {
-    $("#boot-screen").classList.remove("active");
-    $("#main-screen").classList.add("active");
-    showToast("[SYSTEM] Camera Scanner armed.", "success");
-    // preload model in background
+    const flash = $("#welcome-flash");
+    flash.hidden = false;
+    requestAnimationFrame(() => flash.classList.add("show"));
     scanner.ensureModel().catch(() => {});
+    setTimeout(() => {
+      flash.classList.remove("show");
+      $("#boot-screen").classList.remove("active");
+      $("#main-screen").classList.add("active");
+      setTimeout(() => {
+        flash.hidden = true;
+      }, 400);
+      showToast("[SYSTEM] Camera Scanner armed.", "success");
+    }, 1900);
   });
 
   $("#quest-list").addEventListener("click", (e) => {
@@ -412,8 +503,10 @@ function bindEvents() {
       const view = btn.dataset.view;
       $("#ranks-view").hidden = view !== "ranks";
       $("#log-view").hidden = view !== "log";
+      $("#critique-view").hidden = view !== "critique";
       if (view === "ranks") renderRanks();
       if (view === "log") renderLog();
+      if (view === "critique") renderCritique();
     });
   });
 

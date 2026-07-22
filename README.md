@@ -10,7 +10,7 @@ This repository contains independent projects:
 
 ## Solo Health
 
-Hunter-ranked workout trainer with Daily Quests, Penalty Quests, and a **fully functional Camera Scanner** (MediaPipe pose tracking) inspired by Solo Leveling.
+Hunter-ranked workout trainer with Daily Quests, Penalty Quests, a **fully functional Camera Scanner** (MediaPipe pose tracking), and **Critique AI** — a System-voiced reviewer that grades every scan on tracking, rep depth, and tempo — inspired by Solo Leveling.
 
 ```bash
 cd solo-health

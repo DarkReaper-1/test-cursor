@@ -1,7 +1,7 @@
-import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
 import { SKELETON, toKeyMap } from "./pose-math.js";
 import { createRepCounter, questKind } from "./rep-counter.js";
 
+const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm";
@@ -9,43 +9,50 @@ const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/w
 let landmarker = null;
 let loadPromise = null;
 
+/**
+ * Loaded lazily (not as a static import) so an unreachable CDN — offline dev,
+ * a locked-down network — fails only the live-camera path, not the whole
+ * module; the synthetic/demo pose feed keeps working either way.
+ */
 export async function ensureModel(onStatus) {
   if (landmarker) return landmarker;
   if (loadPromise) return loadPromise;
   loadPromise = (async () => {
     onStatus?.("Loading pose model…");
+    const { PoseLandmarker, FilesetResolver } = await import(VISION_MODULE_URL);
     const vision = await FilesetResolver.forVisionTasks(WASM_URL);
-    landmarker = await PoseLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: MODEL_URL,
-        delegate: "GPU",
-      },
-      runningMode: "VIDEO",
-      numPoses: 1,
-      minPoseDetectionConfidence: 0.45,
-      minPosePresenceConfidence: 0.45,
-      minTrackingConfidence: 0.45,
-    });
-    onStatus?.("Pose model ready");
+    try {
+      landmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: MODEL_URL,
+          delegate: "GPU",
+        },
+        runningMode: "VIDEO",
+        numPoses: 1,
+        minPoseDetectionConfidence: 0.45,
+        minPosePresenceConfidence: 0.45,
+        minTrackingConfidence: 0.45,
+      });
+      onStatus?.("Pose model ready");
+    } catch {
+      // CPU fallback
+      onStatus?.("GPU failed — retrying CPU…");
+      landmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: MODEL_URL,
+          delegate: "CPU",
+        },
+        runningMode: "VIDEO",
+        numPoses: 1,
+      });
+      onStatus?.("Pose model ready (CPU)");
+    }
     return landmarker;
   })();
   try {
     return await loadPromise;
-  } catch (err) {
+  } finally {
     loadPromise = null;
-    // CPU fallback
-    onStatus?.("GPU failed — retrying CPU…");
-    const vision = await FilesetResolver.forVisionTasks(WASM_URL);
-    landmarker = await PoseLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: MODEL_URL,
-        delegate: "CPU",
-      },
-      runningMode: "VIDEO",
-      numPoses: 1,
-    });
-    onStatus?.("Pose model ready (CPU)");
-    return landmarker;
   }
 }
 
@@ -420,6 +427,7 @@ export function createScannerSession(ui) {
       }
       const result = counter.update(keymap, useDt);
       applyProgress(result);
+      session.onFrame?.(result);
       if (session.kind !== "hydrate" && session.kind !== "mind" && session.kind !== "run") {
         const live = (session.baseProgress || 0) + counter.getReps();
         if (live >= session.quest.target) {
@@ -438,6 +446,7 @@ export function createScannerSession(ui) {
       quest,
       onProgress,
       onClose,
+      onFrame,
       forceSynthetic = false,
       allowSynthFallback = false,
     } = opts;
@@ -446,6 +455,7 @@ export function createScannerSession(ui) {
       quest,
       onProgress,
       onClose,
+      onFrame,
       kind: questKind(quest.id),
       baseProgress: quest.progress,
       allowSynthFallback,

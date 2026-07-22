@@ -4,6 +4,11 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 
 const ARTIFACTS = "/opt/cursor/artifacts";
+const FFMPEG =
+  process.env.FFMPEG_PATH ||
+  (fs.existsSync("/opt/pw-browsers/ffmpeg-1011/ffmpeg-linux")
+    ? "/opt/pw-browsers/ffmpeg-1011/ffmpeg-linux"
+    : "ffmpeg");
 const OUTPUT = path.join(ARTIFACTS, "solo-health-scanner-demo.mp4");
 const BASE = process.env.DEMO_URL || "http://127.0.0.1:8765/solo-health/?demo=1";
 
@@ -16,6 +21,9 @@ async function main() {
 
   const browser = await chromium.launch({
     headless: true,
+    executablePath: fs.existsSync("/opt/pw-browsers/chromium")
+      ? "/opt/pw-browsers/chromium"
+      : undefined,
     args: [
       "--use-fake-ui-for-media-stream",
       "--use-fake-device-for-media-stream",
@@ -31,33 +39,42 @@ async function main() {
   });
 
   const page = await context.newPage();
-  await page.goto(BASE, { waitUntil: "networkidle" });
+  // domcontentloaded, not networkidle: external font/CDN requests can be slow
+  // or policy-blocked in sandboxed networks, and networkidle would otherwise
+  // stall the whole recording waiting on them.
+  await page.goto(BASE, { waitUntil: "domcontentloaded" });
 
-  // Boot
-  await sleep(2000);
+  // Boot — "Would you like to be registered as a Player?"
+  await sleep(2600);
   await page.click("#btn-awaken");
-  await sleep(1500);
+  await sleep(2600); // welcome flash → main screen transition
 
   // Open push-up scanner (demo=1 → synthetic pose feed + real pipeline)
   await page.click('.scan-quest[data-id="pushups"]');
   await page.waitForSelector("#scanner-view:not([hidden])");
   await sleep(9000);
 
-  // Finish scan session
+  // Finish scan session — Critique AI grades tracking/depth/tempo from this run
   await page.click("#btn-finish-scan");
-  await sleep(1000);
+  await sleep(1800);
 
   // Squats scanner
   await page.click('.scan-quest[data-id="squats"]');
   await sleep(7000);
   await page.click("#btn-finish-scan");
-  await sleep(800);
+  await sleep(1500);
 
   // Hydration sip pose
   await page.click('.scan-quest[data-id="hydrate"]');
   await sleep(5500);
   await page.click("#btn-finish-scan");
   await sleep(800);
+
+  // Critique AI — full scan history
+  await page.click('.nav-btn[data-view="critique"]');
+  await sleep(2200);
+  await page.click("#critique-view .close-view");
+  await sleep(600);
 
   // Ranks
   await page.click('.nav-btn[data-view="ranks"]');
@@ -91,7 +108,7 @@ async function main() {
 
   const webmPath = await video.path();
   execSync(
-    `ffmpeg -y -i "${webmPath}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${OUTPUT}"`,
+    `"${FFMPEG}" -y -i "${webmPath}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${OUTPUT}"`,
     { stdio: "inherit" }
   );
   try {
