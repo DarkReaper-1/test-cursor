@@ -17,21 +17,16 @@
         <p class="eyebrow">Classified Investigation Protocol</p>
         <h1>BLACKWOOD</h1>
         <p class="subtitle">Nightfall Protocol</p>
-        <p class="pitch">Lord Ashworth is dead. The manor is locked down.<br />Armed hostiles. Hidden evidence. One killer.</p>
-        <button id="btn-start" class="btn primary">Enter Manor</button>
+        <p class="pitch">Lord Ashworth is dead. The manor is sealed by the storm.<br />Eight exhibits. Four suspects. One accusation.</p>
+        <button id="btn-start" class="btn primary">Begin Investigation</button>
         <div class="controls-hint">
           <span><kbd>WASD</kbd> Move</span>
           <span><kbd>Shift</kbd> Sprint</span>
           <span><kbd>Mouse</kbd> Look</span>
-          <span><kbd>LMB</kbd> Fire</span>
-          <span><kbd>RMB</kbd> Aim</span>
-          <span><kbd>V</kbd> Melee</span>
-          <span><kbd>C</kbd> Crouch</span>
-          <span><kbd>1</kbd>/<kbd>2</kbd> Weapons</span>
           <span><kbd>E</kbd> Examine</span>
-          <span><kbd>R</kbd> Reload</span>
           <span><kbd>F</kbd> Lamp</span>
-          <span><kbd>Tab</kbd> Journal</span>
+          <span><kbd>C</kbd> Crouch</span>
+          <span><kbd>Tab</kbd> Case Journal</span>
         </div>
       </div>
     </section>
@@ -52,12 +47,11 @@
         <div class="hud-top">
           <div class="objective-box">
             <span class="obj-label">Objective</span>
-            <span id="objective-text">Secure the manor. Find evidence.</span>
+            <span id="objective-text">Search the manor. Build your case.</span>
           </div>
           <div class="hud-stats">
             <span id="clue-stat">Evidence 0/8</span>
-            <span id="kill-stat">Hostiles 0</span>
-            <span id="acc-stat">Accuracy —</span>
+            <span id="case-stat">Case building</span>
             <span id="room-stat">Entrance Hall</span>
             <span id="flash-stat" class="flash-on">LAMP ON</span>
           </div>
@@ -82,24 +76,15 @@
         </div>
 
         <div id="radio-log" class="radio-log"></div>
-        <div id="boss-bar" class="boss-bar hidden">
-          <span class="boss-name">Elena Voss</span>
-          <div class="bar"><div id="boss-fill"></div></div>
-        </div>
 
         <canvas id="minimap" width="140" height="140"></canvas>
 
-        <div class="hud-bottom">
-          <div class="health-block">
-            <span class="stat-label">Vital</span>
-            <div class="bar"><div id="health-fill"></div></div>
+        <div class="hud-bottom detective-bottom">
+          <div class="case-block">
+            <span class="stat-label">Investigation</span>
+            <span id="case-progress">0 / 5 to accuse</span>
           </div>
-          <div id="reload-bar" class="reload-bar hidden"><div id="reload-fill"></div></div>
           <div class="ammo-block">
-            <span id="weapon-name" class="stat-label">.45 ACP</span>
-            <span id="ammo-count">12</span>
-            <span class="ammo-sep">/</span>
-            <span id="ammo-reserve">48</span>
             <div class="battery-wrap">
               <span class="stat-label">Lamp</span>
               <div class="bar battery"><div id="battery-fill"></div></div>
@@ -107,8 +92,6 @@
           </div>
         </div>
 
-        <div id="damage-vignette"></div>
-        <div id="muzzle-flash"></div>
         <div id="lightning"></div>
       </div>
 

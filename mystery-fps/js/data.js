@@ -1,7 +1,7 @@
 export const BRIEF = [
   "Lord Reginald Ashworth was found dead in his library at 21:15. Cause: aconitine poisoning.",
-  "The storm sealed Blackwood Manor. Hostiles are inside — private security gone rogue, or something worse.",
-  "Recover evidence with E. Review the case with Tab. Accuse when you have five exhibits.",
+  "The storm sealed Blackwood Manor. You are alone with the crime scene — and four suspects still on the grounds.",
+  "Search every room. Press E to examine exhibits. Tab opens your case journal. Accuse when you have five pieces of evidence.",
   "Suspects: Elena Voss (heiress), Marcus Ashworth (son), Dr. Whitmore (physician), Thomas Graves (butler).",
 ];
 
@@ -89,50 +89,27 @@ export const INTERACTABLES = [
   { id: "champagne", clue: "champagne", pos: [12, 1.2, 10], label: "Examine glass" },
 ];
 
-export const ENEMY_TYPES = {
-  runner: { hp: 3, speed: 3.6, ranged: false, scale: 0.92, color: 0x1a1820, eye: 0xff4466, dmg: 12 },
-  shooter: { hp: 4, speed: 2.0, ranged: true, scale: 1.0, color: 0x1a1218, eye: 0xff2233, dmg: 14 },
-  brute: { hp: 8, speed: 1.55, ranged: false, scale: 1.25, color: 0x221018, eye: 0xff6622, dmg: 22 },
-};
+/** Combat disabled — detective investigation only */
+export const ENEMY_TYPES = {};
+export const ENEMY_SPAWNS = [];
 
-export const ENEMY_SPAWNS = [
-  { x: -10, z: 4, type: "shooter" },
-  { x: 10, z: 1, type: "runner" },
-  { x: -4, z: 12, type: "brute" },
-  { x: 8, z: 14, type: "shooter" },
-  { x: 4, z: 22, type: "runner" },
-  { x: -12, z: 0, type: "shooter" },
-  { x: 14, z: 8, type: "brute" },
-  { x: 0, z: 16, type: "runner" },
-  { x: -8, z: 10, type: "shooter" },
-];
-
+/** Kept for module compatibility; weapons are unused in detective mode */
 export const WEAPONS = {
   pistol: {
-    id: "pistol", name: ".45 ACP",
-    magSize: 12, reserveStart: 48,
-    fireRate: 0.15, adsFireRate: 0.2,
-    damage: 1, pellets: 1, range: 32,
-    recoil: 0.14, adsRecoil: 0.06, spreadLabel: ".45 ACP",
-  },
-  shotgun: {
-    id: "shotgun", name: "12-GAUGE",
-    magSize: 6, reserveStart: 18,
-    fireRate: 0.7, adsFireRate: 0.85,
-    damage: 1, pellets: 6, range: 14,
-    recoil: 0.28, adsRecoil: 0.18, rangeLabel: "12-GA",
+    id: "pistol", name: "Notebook",
+    magSize: 0, reserveStart: 0,
+    fireRate: 1, adsFireRate: 1,
+    damage: 0, pellets: 0, range: 0,
+    recoil: 0, adsRecoil: 0, ammoLabel: "CASE",
   },
 };
 
+/** Atmosphere notes found while searching (no combat loot) */
 export const PICKUPS = [
-  { type: "health", amount: 25, x: -3, z: 0 },
-  { type: "ammo", amount: 12, x: 3, z: 2 },
-  { type: "health", amount: 35, x: -14, z: 5 },
-  { type: "ammo", amount: 18, x: 14, z: -1 },
-  { type: "ammo", amount: 12, x: -7, z: 15 },
-  { type: "health", amount: 25, x: 10, z: 15 },
-  { type: "ammo", amount: 12, x: 6, z: 25 },
-  { type: "shotgun", amount: 1, x: -5, z: 10 },
+  { type: "note", amount: 0, x: -3, z: 0, text: "Staff note: 'Do not serve Lord A. the soup until Elena approves the menu.'" },
+  { type: "note", amount: 0, x: 3, z: 2, text: "Guest card: Elena Voss — arrived early, requested kitchen access." },
+  { type: "note", amount: 0, x: 14, z: -1, text: "Whitmore's appointment book: 'Monkshood — literature consultation w/ E.V.'" },
+  { type: "note", amount: 0, x: 6, z: 25, text: "Garden gate log: size-six heels, 19:12 — outbound toward kitchen wing." },
 ];
 
 /** Study door unlocks after securing the library body clue */
@@ -143,12 +120,9 @@ export const STUDY_LOCK = {
 };
 
 export const RADIO = [
-  { atClues: 0, atKills: 0, once: false, text: "HQ: Comms live. Sweep the manor. Recover evidence." },
-  { atClues: 1, text: "HQ: First exhibit logged. Watch your six — hostiles are aggressive." },
-  { atClues: 3, text: "HQ: Pattern forming. Poison, not the brandy. Check the kitchen." },
-  { atClues: 5, text: "HQ: Enough for a charge. Confirm motive in the study, then accuse." },
-  { atClues: 8, text: "HQ: Full dossier. Confront the heiress if she shows herself." },
-  { atKills: 3, text: "HQ: Multiple hostiles down. Someone armed the estate on purpose." },
-  { atKills: 6, text: "HQ: Brutes in the east wing. Keep distance — or bash when close." },
-  { atBossPhase: 2, text: "HQ: She's calling reinforcements. Clear the adds, then finish her." },
+  { atClues: 0, text: "HQ: Comms live. Document the scene. Build a case before dawn." },
+  { atClues: 1, text: "HQ: First exhibit logged. Follow the poison — not the brandy." },
+  { atClues: 3, text: "HQ: Pattern forming. Cross-check the kitchen against the will." },
+  { atClues: 5, text: "HQ: Enough for a charge. Open your journal and name the killer." },
+  { atClues: 8, text: "HQ: Full dossier. Make your accusation when ready." },
 ];

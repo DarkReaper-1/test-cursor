@@ -486,25 +486,19 @@ export function buildWorld(scene) {
     group.userData.ring = ring;
   });
 
-  // Pickups (medkits / ammo)
+  // Field notes (detective atmosphere pickups)
   PICKUPS.forEach((p) => {
-    const isHealth = p.type === "health";
-    const isShotgun = p.type === "shotgun";
-    const color = isHealth ? 0x2a6a40 : isShotgun ? 0x4a3820 : 0x3a3a20;
-    const emissive = isHealth ? 0x114422 : isShotgun ? 0x3a2810 : 0x332200;
-    const m = box(isShotgun ? 0.55 : 0.35, 0.25, isShotgun ? 0.2 : 0.35, color, p.x, 0.35, p.z, {
-      emissive, emissiveIntensity: 0.55,
+    const color = 0x3a3428;
+    const m = box(0.32, 0.04, 0.42, color, p.x, 0.35, p.z, {
+      emissive: ACCENT, emissiveIntensity: 0.35,
     });
-    const cross = box(
-      isShotgun ? 0.4 : 0.25, 0.06, 0.06,
-      isHealth ? 0xff4444 : ACCENT,
-      p.x, 0.5, p.z
-    );
-    scene.add(m, cross);
+    const tab = box(0.12, 0.02, 0.16, ACCENT, p.x, 0.4, p.z);
+    scene.add(m, tab);
     pickups.push({
       type: p.type,
       amount: p.amount,
-      meshes: [m, cross],
+      text: p.text,
+      meshes: [m, tab],
       position: new THREE.Vector3(p.x, 0.35, p.z),
       taken: false,
     });
@@ -528,11 +522,9 @@ export function buildWorld(scene) {
     enemies.push(e);
   });
 
-  const pistol = makePistol();
-  const shotgun = makeShotgun();
+  // Weapon mesh unused in detective mode (kept hidden by main)
   const weaponRoot = new THREE.Group();
-  weaponRoot.add(pistol, shotgun);
-  weaponRoot.userData = { recoil: 0, muzzle: pistol.userData.muzzle, pistol, shotgun };
+  weaponRoot.visible = false;
 
   return {
     colliders, interactables, enemies, lights,
