@@ -10,7 +10,7 @@ This repository contains independent projects:
 
 ## Solo Health
 
-Hunter-ranked workout trainer with Daily Quests and a Penalty Quest system inspired by Solo Leveling.
+Hunter-ranked workout trainer with Daily Quests, Penalty Quests, and a **fully functional Camera Scanner** (MediaPipe pose tracking) inspired by Solo Leveling.
 
 ```bash
 cd solo-health
@@ -18,7 +18,7 @@ python3 -m http.server 8765 --directory ..
 # open http://127.0.0.1:8765/solo-health/
 ```
 
-See [solo-health/README.md](solo-health/README.md) for ranks, penalty rules, and demo recording.
+See [solo-health/README.md](solo-health/README.md) and [solo-health/docs/camera-scanner-research.md](solo-health/docs/camera-scanner-research.md).
 
 ---
 

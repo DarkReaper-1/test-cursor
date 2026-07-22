@@ -18,14 +18,14 @@ export const STAT_KEYS = [
   { key: "sen", label: "SEN", full: "Sense" },
 ];
 
-/** Daily quest pool — scaled lightly by rank index */
+/** Daily quest pool — scaled lightly by rank index (camera-verified) */
 export function buildDailyQuests(rankIndex = 0) {
   const scale = 1 + rankIndex * 0.15;
   return [
     {
       id: "pushups",
       name: "Push-ups",
-      target: Math.round(50 * scale),
+      target: Math.round(30 * scale),
       unit: "reps",
       stat: "str",
       xp: 25,
@@ -34,7 +34,7 @@ export function buildDailyQuests(rankIndex = 0) {
     {
       id: "situps",
       name: "Sit-ups",
-      target: Math.round(50 * scale),
+      target: Math.round(30 * scale),
       unit: "reps",
       stat: "vit",
       xp: 25,
@@ -43,7 +43,7 @@ export function buildDailyQuests(rankIndex = 0) {
     {
       id: "squats",
       name: "Squats",
-      target: Math.round(50 * scale),
+      target: Math.round(30 * scale),
       unit: "reps",
       stat: "str",
       xp: 25,
@@ -51,18 +51,17 @@ export function buildDailyQuests(rankIndex = 0) {
     },
     {
       id: "run",
-      name: "Run",
-      target: Math.round(10 * scale * 10) / 10,
+      name: "Run (jog in place)",
+      target: Math.round(2 * scale * 10) / 10,
       unit: "km",
       stat: "agi",
       xp: 40,
       progress: 0,
-      step: 0.5,
     },
     {
       id: "hydrate",
       name: "Hydration",
-      target: 8,
+      target: 6,
       unit: "glasses",
       stat: "vit",
       xp: 15,
@@ -71,12 +70,11 @@ export function buildDailyQuests(rankIndex = 0) {
     {
       id: "mind",
       name: "Focus Training",
-      target: 20,
+      target: 2,
       unit: "min",
       stat: "int",
       xp: 20,
       progress: 0,
-      step: 5,
     },
   ];
 }
@@ -88,34 +86,30 @@ export function buildPenaltyQuest(rankIndex = 0) {
     {
       id: "p-pushups",
       name: "Penalty Push-ups",
-      target: Math.round(100 * scale),
+      target: Math.round(50 * scale),
       unit: "reps",
       progress: 0,
-      step: 10,
     },
     {
       id: "p-situps",
       name: "Penalty Sit-ups",
-      target: Math.round(100 * scale),
+      target: Math.round(50 * scale),
       unit: "reps",
       progress: 0,
-      step: 10,
     },
     {
       id: "p-squats",
       name: "Penalty Squats",
-      target: Math.round(100 * scale),
+      target: Math.round(50 * scale),
       unit: "reps",
       progress: 0,
-      step: 10,
     },
     {
       id: "p-run",
       name: "Penalty Run",
-      target: Math.round(10 * scale * 10) / 10,
+      target: Math.round(5 * scale * 10) / 10,
       unit: "km",
       progress: 0,
-      step: 1,
     },
   ];
 }

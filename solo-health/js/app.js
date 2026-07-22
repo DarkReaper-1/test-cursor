@@ -7,11 +7,12 @@ import {
   rankIndex,
   xpToNextLevel,
 } from "./game-data.js";
+import { createScannerSession } from "./scanner.js";
 
-const STORAGE_KEY = "solo-health-v1";
+const STORAGE_KEY = "solo-health-v2";
 
 const defaultState = () => ({
-  name: "Player",
+  name: "Hunter",
   level: 1,
   xp: 0,
   totalXp: 0,
@@ -22,14 +23,26 @@ const defaultState = () => ({
   penaltyActive: false,
   penaltyQuests: [],
   penaltySeconds: 4 * 60 * 60,
-  log: ["[SYSTEM] Welcome, Hunter. Your training begins."],
+  log: ["[SYSTEM] Camera Scanner online. Quests require live verification."],
   lastCompletedDay: false,
 });
 
 let state = load();
+let activeQuest = null;
+let activeIsPenalty = false;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+const scanner = createScannerSession({
+  video: $("#scanner-video"),
+  canvas: $("#scanner-canvas"),
+  statusEl: $("#scanner-status"),
+  cueEl: $("#scanner-cue"),
+  countEl: $("#scanner-count"),
+  meterEl: $("#scanner-meter-fill"),
+  stageEl: $("#scanner-stage"),
+});
 
 function load() {
   try {
@@ -46,9 +59,8 @@ function save() {
 }
 
 function pushLog(msg) {
-  const stamp = `Day ${state.day}`;
-  state.log.unshift(`[${stamp}] ${msg}`);
-  state.log = state.log.slice(0, 40);
+  state.log.unshift(`[Day ${state.day}] ${msg}`);
+  state.log = state.log.slice(0, 50);
 }
 
 function currentRank() {
@@ -61,7 +73,6 @@ function showToast(message, kind = "info") {
   toast.dataset.kind = kind;
   toast.textContent = message;
   toast.classList.remove("show");
-  // reflow for animation restart
   void toast.offsetWidth;
   toast.classList.add("show");
   clearTimeout(showToast._t);
@@ -74,12 +85,11 @@ function showToast(message, kind = "info") {
 }
 
 function renderStats() {
-  const list = $("#stats-list");
-  list.innerHTML = STAT_KEYS.map(
+  $("#stats-list").innerHTML = STAT_KEYS.map(
     ({ key, label, full }) => `
     <li class="stat-item" title="${full}">
       <span class="stat-label">${label}</span>
-      <span class="stat-value" data-stat="${key}">${state.stats[key]}</span>
+      <span class="stat-value">${state.stats[key]}</span>
     </li>`
   ).join("");
 }
@@ -93,39 +103,40 @@ function renderStatus() {
   $("#rank-name").textContent = rank.name;
   $("#player-level").textContent = String(state.level);
   $("#player-title").textContent = state.name;
-
   const need = xpToNextLevel(state.level);
-  const pct = Math.min(100, (state.xp / need) * 100);
-  $("#xp-fill").style.width = `${pct}%`;
+  $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
   $("#xp-text").textContent = `${state.xp} / ${need} XP`;
   $("#streak-text").textContent = `Streak: ${state.streak} days`;
   renderStats();
 }
 
-function renderQuests() {
-  const list = $("#quest-list");
-  list.innerHTML = state.quests
-    .map((q) => {
-      const done = q.progress >= q.target;
-      const pct = Math.min(100, (q.progress / q.target) * 100);
-      return `
-      <li class="quest-item ${done ? "done" : ""}" data-id="${q.id}">
-        <div class="quest-top">
-          <div>
-            <p class="quest-name">${q.name}</p>
-            <p class="quest-meta">${q.progress} / ${q.target} ${q.unit} · +${q.xp} XP · ${q.stat.toUpperCase()}</p>
-          </div>
-          <button class="sys-btn tiny log-quest" data-id="${q.id}" type="button" ${done ? "disabled" : ""}>
-            ${done ? "DONE" : "LOG"}
-          </button>
+function questCard(q, { penalty = false } = {}) {
+  const done = q.progress >= q.target;
+  const pct = Math.min(100, (q.progress / q.target) * 100);
+  return `
+    <li class="quest-item ${done ? "done" : ""}" data-id="${q.id}">
+      <div class="quest-top">
+        <div>
+          <p class="quest-name">${q.name}</p>
+          <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
+            q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
+          }</p>
+          <p class="quest-scan-tag">📷 Camera verification required</p>
         </div>
-        <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
-      </li>`;
-    })
-    .join("");
+        <button class="sys-btn tiny ${penalty ? "scan-penalty" : "scan-quest"}" data-id="${q.id}" type="button" ${
+          done ? "disabled" : ""
+        }>
+          ${done ? "VERIFIED" : "SCAN"}
+        </button>
+      </div>
+      <div class="bar ${penalty ? "danger" : ""}"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </li>`;
+}
 
+function renderQuests() {
+  $("#quest-list").innerHTML = state.quests.map((q) => questCard(q)).join("");
   const doneCount = state.quests.filter((q) => q.progress >= q.target).length;
-  $("#quest-progress").textContent = `${doneCount} / ${state.quests.length} complete`;
+  $("#quest-progress").textContent = `${doneCount} / ${state.quests.length} verified`;
 }
 
 function renderPenalty() {
@@ -134,24 +145,11 @@ function renderPenalty() {
   if (!state.penaltyActive) return;
 
   $("#penalty-list").innerHTML = state.penaltyQuests
-    .map((q) => {
-      const done = q.progress >= q.target;
-      const pct = Math.min(100, (q.progress / q.target) * 100);
-      return `
-      <li class="quest-item ${done ? "done" : ""}">
-        <div class="quest-top">
-          <div>
-            <p class="quest-name">${q.name}</p>
-            <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}</p>
-          </div>
-          <button class="sys-btn tiny log-penalty" data-id="${q.id}" type="button" ${done ? "disabled" : ""}>
-            ${done ? "DONE" : "LOG"}
-          </button>
-        </div>
-        <div class="bar danger"><div class="bar-fill" style="width:${pct}%"></div></div>
-      </li>`;
-    })
+    .map((q) => questCard(q, { penalty: true }))
     .join("");
+
+  const allDone = state.penaltyQuests.every((q) => q.progress >= q.target);
+  $("#btn-clear-penalty").disabled = !allDone;
 
   const h = Math.floor(state.penaltySeconds / 3600);
   const m = Math.floor((state.penaltySeconds % 3600) / 60);
@@ -177,16 +175,11 @@ function renderRanks() {
 }
 
 function renderLog() {
-  $("#system-log").innerHTML = state.log
-    .map((line) => `<li>${escapeHtml(line)}</li>`)
-    .join("");
+  $("#system-log").innerHTML = state.log.map((line) => `<li>${escapeHtml(line)}</li>`).join("");
 }
 
 function escapeHtml(str) {
-  return str
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+  return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 function renderAll() {
@@ -206,19 +199,15 @@ function gainXp(amount) {
     state.xp -= xpToNextLevel(state.level);
     state.level += 1;
     leveled = true;
-    // small sense bump each level
     state.stats.sen += 1;
   }
   if (leveled) {
     pushLog(`Level up! You are now Lv.${state.level}.`);
     showToast(`LEVEL UP — Lv.${state.level}`, "success");
   }
-
   const before = $("#rank-badge").dataset.rank;
   const after = currentRank();
-  if (before && before !== after.id) {
-    celebrateRankUp(after);
-  }
+  if (before && before !== after.id) celebrateRankUp(after);
 }
 
 function celebrateRankUp(rank) {
@@ -239,25 +228,31 @@ function celebrateRankUp(rank) {
   }, 2800);
 }
 
-function logQuest(id, amount) {
-  const q = state.quests.find((x) => x.id === id);
-  if (!q || q.progress >= q.target) return;
-
-  const step = amount ?? q.step ?? 10;
-  const before = q.progress;
-  q.progress = Math.min(q.target, Math.round((q.progress + step) * 10) / 10);
-  const gained = q.progress - before;
+function addQuestProgress(quest, amount, { penalty = false } = {}) {
+  if (!quest || amount <= 0 || quest.progress >= quest.target) return;
+  const before = quest.progress;
+  const step = quest.unit === "km" || quest.unit === "min" ? amount : Math.round(amount);
+  quest.progress = Math.min(
+    quest.target,
+    Math.round((quest.progress + step) * 10) / 10
+  );
+  const gained = quest.progress - before;
   if (gained <= 0) return;
 
-  // proportional XP + stat
-  if (q.progress >= q.target && before < q.target) {
-    gainXp(q.xp);
-    state.stats[q.stat] += 1;
-    pushLog(`Daily objective cleared: ${q.name}. +${q.xp} XP`);
-    showToast(`QUEST COMPLETE — ${q.name}`, "success");
-    checkDailyClear();
-  } else {
-    showToast(`Logged ${gained} ${q.unit} — ${q.name}`);
+  if (quest.progress >= quest.target && before < quest.target) {
+    if (!penalty) {
+      gainXp(quest.xp);
+      state.stats[quest.stat] += 1;
+      pushLog(`Scanner verified: ${quest.name}. +${quest.xp} XP`);
+      showToast(`VERIFIED — ${quest.name}`, "success");
+      checkDailyClear();
+    } else {
+      pushLog(`Penalty objective verified: ${quest.name}.`);
+      showToast(`PENALTY CLEARED — ${quest.name}`, "success");
+      if (state.penaltyQuests.every((q) => q.progress >= q.target)) {
+        clearPenalty(true);
+      }
+    }
   }
   renderAll();
 }
@@ -269,21 +264,9 @@ function checkDailyClear() {
     state.streak += 1;
     state.stats.sen += 1;
     gainXp(50);
-    pushLog("Daily Quest cleared. Streak increased.");
+    pushLog("Daily Quest cleared via Camera Scanner. Streak +1.");
     showToast("DAILY QUEST CLEARED", "success");
   }
-}
-
-function logPenalty(id) {
-  const q = state.penaltyQuests.find((x) => x.id === id);
-  if (!q || q.progress >= q.target) return;
-  const step = q.step ?? 10;
-  q.progress = Math.min(q.target, Math.round((q.progress + step) * 10) / 10);
-  if (state.penaltyQuests.every((x) => x.progress >= x.target)) {
-    clearPenalty(true);
-    return;
-  }
-  renderAll();
 }
 
 function triggerPenalty() {
@@ -306,12 +289,10 @@ function clearPenalty(survived) {
     gainXp(30);
     showToast("PENALTY CLEARED — You survived.", "success");
   }
-  // prepare next day quests if advancing
   renderAll();
 }
 
 function failPenalty() {
-  // demote rank via XP loss + stat penalty
   const loss = Math.min(state.totalXp, 200);
   state.totalXp = Math.max(0, state.totalXp - loss);
   state.xp = Math.max(0, state.xp - 40);
@@ -330,19 +311,54 @@ function advanceDay() {
     showToast("Resolve the Penalty Quest first.", "danger");
     return;
   }
-
   const incomplete = state.quests.some((q) => q.progress < q.target);
   if (incomplete) {
     triggerPenalty();
     return;
   }
-
   state.day += 1;
   state.lastCompletedDay = false;
-  const idx = rankIndex(currentRank().id);
-  state.quests = buildDailyQuests(idx);
-  pushLog("A new day begins. Fresh Daily Quest assigned.");
+  state.quests = buildDailyQuests(rankIndex(currentRank().id));
+  pushLog("New day. Fresh Daily Quest assigned.");
   showToast(`DAY ${state.day} — New Daily Quest`);
+  renderAll();
+}
+
+async function openScanner(quest, { penalty = false, forceSynthetic = false } = {}) {
+  if (!quest || quest.progress >= quest.target) return;
+  activeQuest = quest;
+  activeIsPenalty = penalty;
+
+  $("#scanner-title").textContent = quest.name;
+  $("#scanner-target").textContent = `Target ${quest.target} ${quest.unit}`;
+  $("#scanner-view").hidden = false;
+  $("#camera-pill").textContent = "SCANNING";
+  $("#camera-pill").classList.add("live");
+
+  const params = new URLSearchParams(location.search);
+  const demo = params.get("demo") === "1" || forceSynthetic;
+
+  await scanner.start({
+    quest,
+    forceSynthetic: demo,
+    allowSynthFallback: demo || params.get("sim") === "1",
+    onProgress: (amount) => {
+      addQuestProgress(quest, amount, { penalty });
+      $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
+      if (quest.progress >= quest.target) {
+        $("#scanner-status").textContent = "OBJECTIVE VERIFIED";
+      }
+    },
+  });
+}
+
+function closeScanner() {
+  scanner.stop();
+  $("#scanner-view").hidden = true;
+  $("#camera-pill").textContent = "SCANNER READY";
+  $("#camera-pill").classList.remove("live");
+  activeQuest = null;
+  activeIsPenalty = false;
   renderAll();
 }
 
@@ -350,38 +366,41 @@ function bindEvents() {
   $("#btn-awaken").addEventListener("click", () => {
     $("#boot-screen").classList.remove("active");
     $("#main-screen").classList.add("active");
-    showToast("[SYSTEM] Connected.", "success");
+    showToast("[SYSTEM] Camera Scanner armed.", "success");
+    // preload model in background
+    scanner.ensureModel().catch(() => {});
   });
 
   $("#quest-list").addEventListener("click", (e) => {
-    const btn = e.target.closest(".log-quest");
-    if (!btn) return;
-    logQuest(btn.dataset.id);
+    const btn = e.target.closest(".scan-quest");
+    if (!btn || btn.disabled) return;
+    const quest = state.quests.find((q) => q.id === btn.dataset.id);
+    openScanner(quest, { penalty: false });
   });
 
-  $("#btn-complete-demo").addEventListener("click", () => {
-    const next = state.quests.find((q) => q.progress < q.target);
-    if (!next) {
-      showToast("All daily objectives complete.");
-      return;
-    }
-    logQuest(next.id, next.step ?? 10);
+  $("#penalty-list").addEventListener("click", (e) => {
+    const btn = e.target.closest(".scan-penalty");
+    if (!btn || btn.disabled) return;
+    const quest = state.penaltyQuests.find((q) => q.id === btn.dataset.id);
+    openScanner(quest, { penalty: true });
+  });
+
+  $("#btn-close-scanner").addEventListener("click", closeScanner);
+  $("#btn-finish-scan").addEventListener("click", closeScanner);
+
+  $("#btn-synth").addEventListener("click", () => {
+    scanner.enableSynthetic(true);
+    showToast("Simulation feed enabled", "info");
   });
 
   $("#btn-reset-day").addEventListener("click", advanceDay);
 
-  $("#penalty-list").addEventListener("click", (e) => {
-    const btn = e.target.closest(".log-penalty");
-    if (!btn) return;
-    logPenalty(btn.dataset.id);
-  });
-
   $("#btn-clear-penalty").addEventListener("click", () => {
-    // auto-complete for demo / mercy clear after effort
-    state.penaltyQuests.forEach((q) => {
-      q.progress = q.target;
-    });
-    clearPenalty(true);
+    if (state.penaltyQuests.every((q) => q.progress >= q.target)) {
+      clearPenalty(true);
+    } else {
+      showToast("Scan all penalty objectives first.", "danger");
+    }
   });
 
   $("#btn-fail-penalty").addEventListener("click", failPenalty);
@@ -400,15 +419,13 @@ function bindEvents() {
 
   $$(".close-view").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const which = btn.dataset.close;
-      $(`#${which}-view`).hidden = true;
+      $(`#${btn.dataset.close}-view`).hidden = true;
       $$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === "home"));
     });
   });
 }
 
 function tickTimers() {
-  // cosmetic daily countdown — resets conceptually at day advance
   const now = new Date();
   const end = new Date(now);
   end.setHours(23, 59, 59, 999);
@@ -420,18 +437,11 @@ function tickTimers() {
 
   if (state.penaltyActive && state.penaltySeconds > 0) {
     state.penaltySeconds -= 1;
-    if (state.penaltySeconds <= 0) {
-      failPenalty();
-    } else {
-      const ph = Math.floor(state.penaltySeconds / 3600);
-      const pm = Math.floor((state.penaltySeconds % 3600) / 60);
-      const ps = state.penaltySeconds % 60;
-      $("#penalty-timer").textContent = `${String(ph).padStart(2, "0")}:${String(pm).padStart(2, "0")}:${String(ps).padStart(2, "0")}`;
-    }
+    if (state.penaltySeconds <= 0) failPenalty();
+    else renderPenalty();
   }
 }
 
-// Demo helpers exposed for Playwright
 window.__SOLO__ = {
   getState: () => structuredClone(state),
   reset: () => {
@@ -440,24 +450,30 @@ window.__SOLO__ = {
     renderAll();
   },
   awaken: () => $("#btn-awaken").click(),
-  logQuest,
+  openScanner: (id, opts) => {
+    const q =
+      state.quests.find((x) => x.id === id) ||
+      state.penaltyQuests.find((x) => x.id === id);
+    return openScanner(q, { forceSynthetic: true, ...opts, penalty: !!state.penaltyQuests.find((x) => x.id === id) });
+  },
+  closeScanner,
   advanceDay,
   triggerPenalty,
-  clearPenalty: () => {
-    state.penaltyQuests.forEach((q) => {
-      q.progress = q.target;
-    });
-    clearPenalty(true);
-  },
-  failPenalty,
   grantXp: (n) => {
     gainXp(n);
     renderAll();
   },
+  addProgress: (id, amount) => {
+    const q =
+      state.quests.find((x) => x.id === id) ||
+      state.penaltyQuests.find((x) => x.id === id);
+    if (!q) return;
+    addQuestProgress(q, amount, { penalty: state.penaltyQuests.includes(q) });
+  },
+  scanner,
 };
 
 function init() {
-  // fresh session for cleaner demos unless ?persist=1
   const params = new URLSearchParams(location.search);
   if (params.get("persist") !== "1") {
     state = defaultState();

@@ -4,8 +4,8 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 
 const ARTIFACTS = "/opt/cursor/artifacts";
-const OUTPUT = path.join(ARTIFACTS, "solo-health-demo.mp4");
-const BASE = process.env.DEMO_URL || "http://127.0.0.1:8765/solo-health/";
+const OUTPUT = path.join(ARTIFACTS, "solo-health-scanner-demo.mp4");
+const BASE = process.env.DEMO_URL || "http://127.0.0.1:8765/solo-health/?demo=1";
 
 async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -14,84 +14,72 @@ async function sleep(ms) {
 async function main() {
   fs.mkdirSync(ARTIFACTS, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--use-fake-ui-for-media-stream",
+      "--use-fake-device-for-media-stream",
+      "--autoplay-policy=no-user-gesture-required",
+    ],
+  });
+
   const context = await browser.newContext({
     viewport: { width: 430, height: 860 },
     deviceScaleFactor: 2,
+    permissions: ["camera"],
     recordVideo: { dir: ARTIFACTS, size: { width: 430, height: 860 } },
   });
 
   const page = await context.newPage();
   await page.goto(BASE, { waitUntil: "networkidle" });
 
-  // Boot screen
-  await sleep(1800);
+  // Boot
+  await sleep(2000);
   await page.click("#btn-awaken");
-  await sleep(1400);
+  await sleep(1500);
 
-  // Log several daily quest reps manually
-  for (let i = 0; i < 8; i++) {
-    await page.click("#btn-complete-demo");
-    await sleep(400);
-  }
+  // Open push-up scanner (demo=1 → synthetic pose feed + real pipeline)
+  await page.click('.scan-quest[data-id="pushups"]');
+  await page.waitForSelector("#scanner-view:not([hidden])");
+  await sleep(9000);
 
-  // Open ranks
+  // Finish scan session
+  await page.click("#btn-finish-scan");
+  await sleep(1000);
+
+  // Squats scanner
+  await page.click('.scan-quest[data-id="squats"]');
+  await sleep(7000);
+  await page.click("#btn-finish-scan");
+  await sleep(800);
+
+  // Hydration sip pose
+  await page.click('.scan-quest[data-id="hydrate"]');
+  await sleep(5500);
+  await page.click("#btn-finish-scan");
+  await sleep(800);
+
+  // Ranks
   await page.click('.nav-btn[data-view="ranks"]');
   await sleep(1600);
   await page.click("#ranks-view .close-view");
-  await sleep(700);
-
-  // Finish remaining daily objectives (visible progress jumps)
-  await page.evaluate(() => {
-    const s = window.__SOLO__.getState();
-    for (const q of s.quests) {
-      while (
-        window.__SOLO__.getState().quests.find((x) => x.id === q.id).progress <
-        q.target
-      ) {
-        window.__SOLO__.logQuest(q.id, q.step ?? 10);
-      }
-    }
-  });
-  await sleep(1400);
-
-  // Show system log
-  await page.click('.nav-btn[data-view="log"]');
-  await sleep(1500);
-  await page.click('#log-view .close-view');
   await sleep(600);
 
-  // Advance day cleanly, then fail next day to trigger penalty
-  await page.click("#btn-reset-day");
-  await sleep(1200);
-
-  // New day — leave incomplete and advance to trigger penalty
+  // Incomplete day → penalty
   await page.click("#btn-reset-day");
   await sleep(1800);
 
-  // Interact with penalty quest
-  for (let i = 0; i < 4; i++) {
-    const btn = page.locator(".log-penalty:not(:disabled)").first();
-    if (await btn.count()) {
-      await btn.click();
-      await sleep(400);
-    }
-  }
-  await sleep(900);
+  // Scan a penalty objective
+  await page.click('.scan-penalty[data-id="p-pushups"]');
+  await sleep(6500);
+  await page.click("#btn-finish-scan");
+  await sleep(1000);
 
-  // Survive penalty
-  await page.click("#btn-clear-penalty");
-  await sleep(1600);
-
-  // Boost XP to show rank up
-  await page.evaluate(() => window.__SOLO__.grantXp(260));
-  await sleep(3200);
-
-  // Final status linger
-  await page.click('.nav-btn[data-view="ranks"]');
+  // Show log
+  await page.click('.nav-btn[data-view="log"]');
   await sleep(1800);
-  await page.click('#ranks-view .close-view');
-  await sleep(1200);
+  await page.click("#log-view .close-view");
+  await sleep(1000);
 
   const video = page.video();
   await context.close();
@@ -102,8 +90,6 @@ async function main() {
     `ffmpeg -y -i "${webmPath}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${OUTPUT}"`,
     { stdio: "inherit" }
   );
-
-  // cleanup webm
   try {
     fs.unlinkSync(webmPath);
   } catch {}

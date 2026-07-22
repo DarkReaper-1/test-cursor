@@ -1,14 +1,23 @@
 # Solo Health
 
-A Solo Leveling–inspired health trainer. Complete **Daily Quests**, raise your **Hunter Rank** (E → National Level), and survive the **Penalty Quest** if you fail.
+Solo Leveling–inspired health trainer. **Every quest is verified by an in-app Camera Scanner** (MediaPipe Pose Landmarker + joint-angle rep counting).
 
 ## Features
 
-- **Hunter ranks**: E, D, C, B, A, S, National Level — based on total XP
-- **Status window**: Level, XP bar, streak, STR / AGI / VIT / INT / SEN
-- **Daily Quest**: Push-ups, sit-ups, squats, run, hydration, focus training
-- **Penalty Quest**: Issued when a day ends with incomplete objectives — clear it or take stat/XP penalties
-- **System log**: Quest clears, rank-ups, and warnings
+- **Hunter ranks**: E → D → C → B → A → S → National Level
+- **Status window**: level, XP, streak, STR / AGI / VIT / INT / SEN
+- **Daily Quests** (camera-only): push-ups, sit-ups, squats, jog-in-place, hydration sips, focus stillness
+- **Penalty Quest** if the day ends incomplete — also scanner-verified
+- **System UI** with skeleton overlay, form cues, and live progress HUD
+
+## Camera Scanner
+
+Research notes: [docs/camera-scanner-research.md](docs/camera-scanner-research.md)
+
+- Live webcam via `getUserMedia`
+- MediaPipe Pose Landmarker (lite) runs fully in-browser
+- Reps counted with up/down joint-angle state machines
+- `?demo=1` enables a synthetic pose feed for demos/CI (same counters)
 
 ## Run locally
 
@@ -17,7 +26,8 @@ cd solo-health
 python3 -m http.server 8765 --directory ..
 ```
 
-Open http://127.0.0.1:8765/solo-health/
+Open http://127.0.0.1:8765/solo-health/  
+Allow camera access, tap **SCAN** on a quest, perform the movement in frame.
 
 ## Demo video
 
@@ -25,17 +35,8 @@ Open http://127.0.0.1:8765/solo-health/
 cd solo-health
 npm install
 npx playwright install chromium
-npm start &   # serves repo root on :8765
+python3 -m http.server 8765 --directory .. &
 npm run demo
 ```
 
-Output: `/opt/cursor/artifacts/solo-health-demo.mp4`
-
-## Controls
-
-| Action | Effect |
-|--------|--------|
-| **LOG / LOG +10** | Add progress toward a daily objective |
-| **NEXT DAY** | Advance the day (incomplete → Penalty Quest) |
-| **COMPLETE TRIAL** | Clear an active Penalty Quest |
-| **SURRENDER** | Fail the penalty (stat loss + XP loss) |
+Output: `/opt/cursor/artifacts/solo-health-scanner-demo.mp4`
