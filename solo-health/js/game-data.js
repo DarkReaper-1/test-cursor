@@ -10,12 +10,23 @@ export const RANKS = [
   { id: "N", name: "National Level", minXp: 10000, color: "#00e5ff", next: null },
 ];
 
+/** Flavor "Job" shown in the Status Window, unlocked with rank. */
+export const RANK_JOBS = {
+  E: "None",
+  D: "Fighter",
+  C: "Assassin",
+  B: "Tank",
+  A: "Mage",
+  S: "Necromancer",
+  N: "Shadow Monarch",
+};
+
 export const STAT_KEYS = [
   { key: "str", label: "STR", full: "Strength" },
   { key: "agi", label: "AGI", full: "Agility" },
   { key: "vit", label: "VIT", full: "Vitality" },
   { key: "int", label: "INT", full: "Intelligence" },
-  { key: "sen", label: "SEN", full: "Sense" },
+  { key: "per", label: "PER", full: "Perception" },
 ];
 
 /** Daily quest pool — scaled lightly by rank index (camera-verified) */

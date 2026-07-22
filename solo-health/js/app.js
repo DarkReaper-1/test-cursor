@@ -1,5 +1,6 @@
 import {
   RANKS,
+  RANK_JOBS,
   STAT_KEYS,
   buildDailyQuests,
   buildPenaltyQuest,
@@ -19,7 +20,7 @@ const defaultState = () => ({
   xp: 0,
   totalXp: 0,
   streak: 0,
-  stats: { str: 10, agi: 10, vit: 10, int: 10, sen: 10 },
+  stats: { str: 10, agi: 10, vit: 10, int: 10, per: 10 },
   quests: buildDailyQuests(0),
   day: 1,
   penaltyActive: false,
@@ -106,6 +107,14 @@ function renderStats() {
   ).join("");
 }
 
+function fatigueLevel() {
+  if (state.penaltyActive) return "Critical";
+  const done = state.quests.filter((q) => q.progress >= q.target).length;
+  if (done >= state.quests.length) return "Low";
+  if (done === 0) return "High";
+  return "Moderate";
+}
+
 function renderStatus() {
   const rank = currentRank();
   const badge = $("#rank-badge");
@@ -114,7 +123,14 @@ function renderStatus() {
   badge.dataset.rank = rank.id;
   $("#rank-name").textContent = rank.name;
   $("#player-level").textContent = String(state.level);
-  $("#player-title").textContent = state.name;
+  $("#stat-name").textContent = state.name;
+  $("#stat-title").textContent = "Player";
+  $("#stat-job").textContent = RANK_JOBS[rank.id] || "None";
+  const hp = 100 + (state.stats.vit - 10) * 8;
+  const mp = 10 + (state.stats.int - 10) * 4;
+  $("#stat-hp").textContent = `${hp} / ${hp}`;
+  $("#stat-mp").textContent = `${mp} / ${mp}`;
+  $("#stat-fatigue").textContent = fatigueLevel();
   const need = xpToNextLevel(state.level);
   $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
   $("#xp-text").textContent = `${state.xp} / ${need} XP`;
@@ -129,7 +145,7 @@ function questCard(q, { penalty = false } = {}) {
     <li class="quest-item ${done ? "done" : ""}" data-id="${q.id}">
       <div class="quest-top">
         <div>
-          <p class="quest-name">${q.name}</p>
+          <p class="quest-name"><span class="quest-check">${done ? "☑" : "☐"}</span>${q.name}</p>
           <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
             q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
           }</p>
@@ -243,7 +259,7 @@ function gainXp(amount) {
     state.xp -= xpToNextLevel(state.level);
     state.level += 1;
     leveled = true;
-    state.stats.sen += 1;
+    state.stats.per += 1;
   }
   if (leveled) {
     pushLog(`Level up! You are now Lv.${state.level}.`);
@@ -306,7 +322,7 @@ function checkDailyClear() {
   if (allDone && !state.lastCompletedDay) {
     state.lastCompletedDay = true;
     state.streak += 1;
-    state.stats.sen += 1;
+    state.stats.per += 1;
     gainXp(50);
     pushLog("Daily Quest cleared via Camera Scanner. Streak +1.");
     showToast("DAILY QUEST CLEARED", "success");
@@ -431,11 +447,19 @@ function closeScanner() {
 
 function bindEvents() {
   $("#btn-awaken").addEventListener("click", () => {
-    $("#boot-screen").classList.remove("active");
-    $("#main-screen").classList.add("active");
-    showToast("[SYSTEM] Camera Scanner armed.", "success");
-    // preload model in background
+    const flash = $("#welcome-flash");
+    flash.hidden = false;
+    requestAnimationFrame(() => flash.classList.add("show"));
     scanner.ensureModel().catch(() => {});
+    setTimeout(() => {
+      flash.classList.remove("show");
+      $("#boot-screen").classList.remove("active");
+      $("#main-screen").classList.add("active");
+      setTimeout(() => {
+        flash.hidden = true;
+      }, 400);
+      showToast("[SYSTEM] Camera Scanner armed.", "success");
+    }, 1900);
   });
 
   $("#quest-list").addEventListener("click", (e) => {

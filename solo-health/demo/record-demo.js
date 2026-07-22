@@ -39,12 +39,15 @@ async function main() {
   });
 
   const page = await context.newPage();
-  await page.goto(BASE, { waitUntil: "networkidle" });
+  // domcontentloaded, not networkidle: external font/CDN requests can be slow
+  // or policy-blocked in sandboxed networks, and networkidle would otherwise
+  // stall the whole recording waiting on them.
+  await page.goto(BASE, { waitUntil: "domcontentloaded" });
 
-  // Boot
-  await sleep(2000);
+  // Boot — "Would you like to be registered as a Player?"
+  await sleep(2600);
   await page.click("#btn-awaken");
-  await sleep(1500);
+  await sleep(2600); // welcome flash → main screen transition
 
   // Open push-up scanner (demo=1 → synthetic pose feed + real pipeline)
   await page.click('.scan-quest[data-id="pushups"]');
