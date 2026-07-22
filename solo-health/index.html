@@ -80,11 +80,32 @@
         </div>
       </article>
 
+      <article id="critique-window" class="panel critique-panel" hidden>
+        <div class="panel-header">
+          <h2>CRITIQUE AI</h2>
+          <span id="critique-grade" class="chip grade">—</span>
+        </div>
+        <p id="critique-latest-title" class="quest-brief">Awaiting scan data…</p>
+        <ul id="critique-latest-lines" class="critique-lines"></ul>
+      </article>
+
       <nav class="bottom-nav" aria-label="Primary">
         <button class="nav-btn active" data-view="home" type="button">STATUS</button>
         <button class="nav-btn" data-view="ranks" type="button">RANKS</button>
+        <button class="nav-btn" data-view="critique" type="button">CRITIQUE</button>
         <button class="nav-btn" data-view="log" type="button">LOG</button>
       </nav>
+    </section>
+
+    <section id="critique-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>CRITIQUE AI — HISTORY</h2>
+          <button class="ghost-btn close-view" type="button" data-close="critique">CLOSE</button>
+        </div>
+        <p class="quest-brief">Every scan is graded on tracking lock, rep depth, and tempo — the System does not accept partial reps.</p>
+        <ul id="critique-history" class="critique-history"></ul>
+      </div>
     </section>
 
     <section id="ranks-view" class="overlay-view" hidden>

@@ -8,6 +8,8 @@ import {
   xpToNextLevel,
 } from "./game-data.js";
 import { createScannerSession } from "./scanner.js";
+import { questKind } from "./rep-counter.js";
+import { createFormTracker, critiqueQuest, critiqueDay } from "./critique-ai.js";
 
 const STORAGE_KEY = "solo-health-v2";
 
@@ -25,11 +27,13 @@ const defaultState = () => ({
   penaltySeconds: 4 * 60 * 60,
   log: ["[SYSTEM] Camera Scanner online. Quests require live verification."],
   lastCompletedDay: false,
+  critiques: [],
 });
 
 let state = load();
 let activeQuest = null;
 let activeIsPenalty = false;
+let formTracker = null;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -65,6 +69,14 @@ function pushLog(msg) {
 
 function currentRank() {
   return rankForXp(state.totalXp);
+}
+
+function pushCritique(entry) {
+  state.critiques.unshift(entry);
+  state.critiques = state.critiques.slice(0, 30);
+  pushLog(`[Critique AI] ${entry.questName}: ${entry.gradeLabel} (${entry.score}/100)`);
+  showToast(`CRITIQUE AI — ${entry.gradeLabel}`, entry.score >= 62 ? "success" : "danger");
+  renderCritique();
 }
 
 function showToast(message, kind = "info") {
@@ -178,6 +190,37 @@ function renderLog() {
   $("#system-log").innerHTML = state.log.map((line) => `<li>${escapeHtml(line)}</li>`).join("");
 }
 
+function critiqueCard(entry) {
+  return `
+    <li class="critique-card grade-${entry.grade.toLowerCase()}">
+      <div class="critique-card-top">
+        <p class="critique-card-name">${escapeHtml(entry.questName)}</p>
+        <span class="chip grade">${entry.grade} · ${entry.score}</span>
+      </div>
+      <ul class="critique-lines">
+        ${entry.lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}
+      </ul>
+    </li>`;
+}
+
+function renderCritique() {
+  const latest = state.critiques[0];
+  const panel = $("#critique-window");
+  if (latest) {
+    panel.hidden = false;
+    $("#critique-grade").textContent = `${latest.grade} · ${latest.score}`;
+    $("#critique-grade").className = `chip grade grade-${latest.grade.toLowerCase()}`;
+    $("#critique-latest-title").innerHTML = `<strong>${escapeHtml(latest.questName)}</strong> — ${escapeHtml(latest.gradeLabel)}`;
+    $("#critique-latest-lines").innerHTML = latest.lines
+      .map((l) => `<li>${escapeHtml(l)}</li>`)
+      .join("");
+  } else {
+    panel.hidden = true;
+  }
+  $("#critique-history").innerHTML = state.critiques.map(critiqueCard).join("") ||
+    `<li class="critique-empty">No scans reviewed yet. Complete a quest for the Critique AI to analyze your form.</li>`;
+}
+
 function escapeHtml(str) {
   return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
@@ -188,6 +231,7 @@ function renderAll() {
   renderPenalty();
   renderRanks();
   renderLog();
+  renderCritique();
   save();
 }
 
@@ -266,6 +310,14 @@ function checkDailyClear() {
     gainXp(50);
     pushLog("Daily Quest cleared via Camera Scanner. Streak +1.");
     showToast("DAILY QUEST CLEARED", "success");
+    pushCritique(
+      critiqueDay({
+        quests: state.quests,
+        streak: state.streak,
+        stats: state.stats,
+        rank: currentRank().name,
+      })
+    );
   }
 }
 
@@ -338,10 +390,13 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
   const params = new URLSearchParams(location.search);
   const demo = params.get("demo") === "1" || forceSynthetic;
 
+  formTracker = createFormTracker(questKind(quest.id));
+
   await scanner.start({
     quest,
     forceSynthetic: demo,
     allowSynthFallback: demo || params.get("sim") === "1",
+    onFrame: (result) => formTracker?.record(result),
     onProgress: (amount) => {
       addQuestProgress(quest, amount, { penalty });
       $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
@@ -357,6 +412,18 @@ function closeScanner() {
   $("#scanner-view").hidden = true;
   $("#camera-pill").textContent = "SCANNER READY";
   $("#camera-pill").classList.remove("live");
+  if (activeQuest && formTracker?.hasData()) {
+    pushCritique(
+      critiqueQuest({
+        name: activeQuest.name,
+        kind: questKind(activeQuest.id),
+        target: activeQuest.target,
+        achieved: activeQuest.progress,
+        tracker: formTracker,
+      })
+    );
+  }
+  formTracker = null;
   activeQuest = null;
   activeIsPenalty = false;
   renderAll();
@@ -412,8 +479,10 @@ function bindEvents() {
       const view = btn.dataset.view;
       $("#ranks-view").hidden = view !== "ranks";
       $("#log-view").hidden = view !== "log";
+      $("#critique-view").hidden = view !== "critique";
       if (view === "ranks") renderRanks();
       if (view === "log") renderLog();
+      if (view === "critique") renderCritique();
     });
   });
 
