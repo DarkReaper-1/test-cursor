@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SYSTEM — Solo Health Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="boot-screen" class="screen active" aria-live="polite">
+      <div class="boot-grid"></div>
+      <div class="scanlines"></div>
+      <div class="boot-content">
+        <p class="system-tag">[ SYSTEM ]</p>
+        <h1 class="brand">SOLO HEALTH</h1>
+        <p class="boot-sub">Daily Quests are verified by the Camera Scanner. No shortcuts. No false logs.</p>
+        <ul class="boot-points">
+          <li>Pose landmarker tracks your body live</li>
+          <li>Reps only count when form cycles complete</li>
+          <li>Fail the day → Penalty Quest</li>
+        </ul>
+        <button id="btn-awaken" class="sys-btn primary" type="button">ENTER THE SYSTEM</button>
+      </div>
+    </section>
+
+    <section id="main-screen" class="screen">
+      <header class="top-bar">
+        <div class="brand-mark">
+          <span class="system-dot"></span>
+          <span>SOLO HEALTH</span>
+        </div>
+        <div class="top-actions">
+          <span id="camera-pill" class="chip scan">SCANNER READY</span>
+          <button id="btn-reset-day" class="ghost-btn" type="button" title="Advance day">NEXT DAY</button>
+        </div>
+      </header>
+
+      <article id="status-window" class="panel status-panel">
+        <div class="panel-header">
+          <h2>STATUS WINDOW</h2>
+          <span id="player-title" class="chip">Hunter</span>
+        </div>
+        <div class="status-layout">
+          <div class="rank-block">
+            <p class="label">HUNTER RANK</p>
+            <div id="rank-badge" class="rank-badge rank-e" data-rank="E">E</div>
+            <p id="rank-name" class="rank-name">E-Rank Hunter</p>
+          </div>
+          <div class="level-block">
+            <div class="level-row">
+              <span>LV.</span>
+              <strong id="player-level">1</strong>
+            </div>
+            <div class="xp-track" aria-label="Experience progress">
+              <div id="xp-fill" class="xp-fill"></div>
+            </div>
+            <p id="xp-text" class="meta">0 / 100 XP</p>
+            <p id="streak-text" class="meta streak">Streak: 0 days</p>
+          </div>
+        </div>
+        <ul id="stats-list" class="stats-grid"></ul>
+      </article>
+
+      <article id="quest-window" class="panel quest-panel">
+        <div class="panel-header">
+          <h2>DAILY QUEST</h2>
+          <span id="quest-timer" class="chip warn">23:59:59</span>
+        </div>
+        <p class="quest-brief">
+          Open the <strong>Camera Scanner</strong> for each objective. Progress is verified by pose tracking — manual logging is disabled.
+        </p>
+        <ul id="quest-list" class="quest-list"></ul>
+        <div class="quest-footer">
+          <p id="quest-progress">0 / 0 verified</p>
+          <p class="footer-hint">Face the scanner. Survive the System.</p>
+        </div>
+      </article>
+
+      <nav class="bottom-nav" aria-label="Primary">
+        <button class="nav-btn active" data-view="home" type="button">STATUS</button>
+        <button class="nav-btn" data-view="ranks" type="button">RANKS</button>
+        <button class="nav-btn" data-view="log" type="button">LOG</button>
+      </nav>
+    </section>
+
+    <section id="ranks-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>HUNTER RANKS</h2>
+          <button class="ghost-btn close-view" type="button" data-close="ranks">CLOSE</button>
+        </div>
+        <p class="quest-brief">Rise by verified XP. Penalty failures can set you back.</p>
+        <ol id="rank-ladder" class="rank-ladder"></ol>
+      </div>
+    </section>
+
+    <section id="log-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>SYSTEM LOG</h2>
+          <button class="ghost-btn close-view" type="button" data-close="log">CLOSE</button>
+        </div>
+        <ul id="system-log" class="system-log"></ul>
+      </div>
+    </section>
+
+    <!-- Camera Scanner -->
+    <section id="scanner-view" class="scanner-view" hidden>
+      <div class="scanner-top">
+        <div>
+          <p class="system-tag">[ CAMERA SCANNER ]</p>
+          <h2 id="scanner-title">Push-ups</h2>
+        </div>
+        <button id="btn-close-scanner" class="ghost-btn" type="button">EXIT</button>
+      </div>
+      <div id="scanner-stage" class="scanner-stage">
+        <video id="scanner-video" playsinline muted></video>
+        <canvas id="scanner-canvas"></canvas>
+        <div class="scanner-hud">
+          <p id="scanner-status" class="scanner-status">Initializing…</p>
+          <p id="scanner-count" class="scanner-count">0</p>
+          <p id="scanner-target" class="scanner-target">Target 0</p>
+          <div class="scanner-meter"><div id="scanner-meter-fill"></div></div>
+          <p id="scanner-cue" class="scanner-cue">Step into frame</p>
+        </div>
+      </div>
+      <div class="scanner-actions">
+        <button id="btn-synth" class="sys-btn secondary" type="button" title="Use synthetic hunter when no camera body">SIM FEED</button>
+        <button id="btn-finish-scan" class="sys-btn primary" type="button">LOCK PROGRESS</button>
+      </div>
+    </section>
+
+    <div id="penalty-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="penalty-title">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel penalty">
+        <p class="system-tag danger">[ WARNING ]</p>
+        <h2 id="penalty-title">PENALTY QUEST</h2>
+        <p class="penalty-copy">Daily Quest incomplete. Clear each trial in the Camera Scanner or suffer demotion.</p>
+        <ul id="penalty-list" class="quest-list"></ul>
+        <div class="penalty-timer-wrap">
+          <p class="label">TIME REMAINING</p>
+          <p id="penalty-timer" class="penalty-timer">04:00:00</p>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-fail-penalty" class="sys-btn danger" type="button">SURRENDER</button>
+          <button id="btn-clear-penalty" class="sys-btn primary" type="button" disabled title="Clear by scanning all penalty objectives">SCAN TO CLEAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <div id="rankup-overlay" class="rankup" hidden>
+      <div class="rankup-inner">
+        <p class="system-tag">[ SYSTEM NOTICE ]</p>
+        <h2>RANK UP</h2>
+        <p id="rankup-text">You have been promoted.</p>
+        <div id="rankup-badge" class="rank-badge rank-d">D</div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

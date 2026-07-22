@@ -21,8 +21,10 @@ __pycache__/
 .venv/
 
 # Node (demo recorder)
+node_modules/
 record/node_modules/
 demo/node_modules/
+solo-health/node_modules/
 
 # Secrets found during analysis — never commit
 **/credentials*

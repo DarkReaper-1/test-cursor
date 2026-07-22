@@ -1,0 +1,107 @@
+const { chromium } = require("playwright");
+const path = require("path");
+const fs = require("fs");
+const { execSync } = require("child_process");
+
+const ARTIFACTS = "/opt/cursor/artifacts";
+const OUTPUT = path.join(ARTIFACTS, "solo-health-scanner-demo.mp4");
+const BASE = process.env.DEMO_URL || "http://127.0.0.1:8765/solo-health/?demo=1";
+
+async function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function main() {
+  fs.mkdirSync(ARTIFACTS, { recursive: true });
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      "--use-fake-ui-for-media-stream",
+      "--use-fake-device-for-media-stream",
+      "--autoplay-policy=no-user-gesture-required",
+    ],
+  });
+
+  const context = await browser.newContext({
+    viewport: { width: 430, height: 860 },
+    deviceScaleFactor: 2,
+    permissions: ["camera"],
+    recordVideo: { dir: ARTIFACTS, size: { width: 430, height: 860 } },
+  });
+
+  const page = await context.newPage();
+  await page.goto(BASE, { waitUntil: "networkidle" });
+
+  // Boot
+  await sleep(2000);
+  await page.click("#btn-awaken");
+  await sleep(1500);
+
+  // Open push-up scanner (demo=1 → synthetic pose feed + real pipeline)
+  await page.click('.scan-quest[data-id="pushups"]');
+  await page.waitForSelector("#scanner-view:not([hidden])");
+  await sleep(9000);
+
+  // Finish scan session
+  await page.click("#btn-finish-scan");
+  await sleep(1000);
+
+  // Squats scanner
+  await page.click('.scan-quest[data-id="squats"]');
+  await sleep(7000);
+  await page.click("#btn-finish-scan");
+  await sleep(800);
+
+  // Hydration sip pose
+  await page.click('.scan-quest[data-id="hydrate"]');
+  await sleep(5500);
+  await page.click("#btn-finish-scan");
+  await sleep(800);
+
+  // Ranks
+  await page.click('.nav-btn[data-view="ranks"]');
+  await sleep(1600);
+  await page.click("#ranks-view .close-view");
+  await sleep(600);
+
+  // Incomplete day → penalty
+  await page.click("#btn-reset-day");
+  await sleep(1800);
+
+  // Scan a penalty objective (modal stays open underneath)
+  await page.click('.scan-penalty[data-id="p-pushups"]');
+  await sleep(6500);
+  await page.click("#btn-finish-scan");
+  await sleep(1200);
+
+  // Close penalty for rest of tour
+  await page.click("#btn-fail-penalty");
+  await sleep(1400);
+
+  // Show log
+  await page.click('.nav-btn[data-view="log"]');
+  await sleep(1800);
+  await page.click("#log-view .close-view");
+  await sleep(1000);
+
+  const video = page.video();
+  await context.close();
+  await browser.close();
+
+  const webmPath = await video.path();
+  execSync(
+    `ffmpeg -y -i "${webmPath}" -c:v libx264 -pix_fmt yuv420p -movflags +faststart "${OUTPUT}"`,
+    { stdio: "inherit" }
+  );
+  try {
+    fs.unlinkSync(webmPath);
+  } catch {}
+
+  console.log("VIDEO_SAVED:", OUTPUT);
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
