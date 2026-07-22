@@ -431,6 +431,14 @@ kbd {
   background: linear-gradient(0deg, rgba(5,7,10,0.9), transparent);
 }
 
+.case-block .stat-label { display: block; margin-bottom: 0.25rem; }
+#case-progress {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
 .stat-label {
   font-family: var(--font-mono);
   font-size: 0.6rem;
