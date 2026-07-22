@@ -1010,6 +1010,144 @@ function trySlideMove(entity, dx, dz, radius = 0.4) {
   return false;
 }
 
+function lerpPose(pose, key, target, rate) {
+  pose[key] += (target - pose[key]) * rate;
+}
+
+function animateEnemy(e, dt, moved, mode) {
+  const u = e.userData;
+  if (!u.shoulderL || !u.pose) return;
+
+  const pose = u.pose;
+  const telegraphing = (u.telegraph || 0) > 0;
+  const staggered = u.stagger > 0;
+  const meleeing = (u.meleeAnim || 0) > 0;
+  if (u.meleeAnim > 0) u.meleeAnim = Math.max(0, u.meleeAnim - dt);
+
+  // Movement blend 0..1
+  const moveTarget = moved ? (mode === "combat" ? 1 : mode === "suspicious" ? 0.65 : 0.4) : 0;
+  u.moveAmt += (moveTarget - (u.moveAmt || 0)) * Math.min(1, dt * 8);
+  const move = u.moveAmt || 0;
+
+  // Cycle speed by type / state
+  const baseSpeed = u.type === "runner" ? 11 : u.type === "brute" ? 6.5 : 8;
+  const cycle = mode === "combat" ? baseSpeed * 1.25 : mode === "patrol" ? baseSpeed * 0.7 : baseSpeed;
+  u.animPhase = (u.animPhase || 0) + dt * cycle * (0.35 + move * 0.9);
+  const phase = u.animPhase;
+  const swing = Math.sin(phase);
+  const swing2 = Math.sin(phase * 2);
+
+  // Defaults — idle breathing
+  let armLX = Math.sin(phase * 0.35) * 0.06;
+  let armRX = -Math.sin(phase * 0.35) * 0.06;
+  let armLZ = 0.08;
+  let armRZ = -0.08;
+  let legLX = 0;
+  let legRX = 0;
+  let torsoY = Math.sin(phase * 0.4) * 0.03;
+  let torsoZ = 0;
+  let headY = 0;
+  let headX = Math.sin(phase * 0.3) * 0.04;
+  let rootY = Math.sin(phase * 0.5) * 0.015;
+  let rootTilt = 0;
+
+  if (move > 0.05) {
+    const amp = mode === "combat" ? 0.7 : 0.45;
+    const legAmp = mode === "combat" ? 0.85 : 0.55;
+    armLX = swing * amp * move;
+    armRX = -swing * amp * move;
+    legLX = -swing * legAmp * move;
+    legRX = swing * legAmp * move;
+    rootY = Math.abs(swing2) * 0.04 * move;
+    torsoY = swing * 0.06 * move;
+    torsoZ = -0.05 * move;
+    rootTilt = swing * 0.04 * move;
+    if (u.type === "brute") {
+      armLX *= 0.7;
+      armRX *= 0.7;
+      torsoZ = -0.1 * move;
+    }
+    if (u.type === "runner") {
+      armLX *= 1.15;
+      armRX *= 1.15;
+      legLX *= 1.2;
+      legRX *= 1.2;
+      rootY *= 1.3;
+    }
+  }
+
+  // Aim / telegraph — raise gun arm
+  if (telegraphing && u.ranged) {
+    armRX = -1.45;
+    armRZ = -0.35;
+    armLX = 0.35;
+    armLZ = 0.25;
+    headX = -0.12;
+    torsoZ = 0.08;
+  } else if (mode === "combat" && u.ranged && move < 0.4) {
+    // Ready-gun idle in combat
+    armRX = -0.85;
+    armRZ = -0.25;
+    armLX = 0.25;
+  }
+
+  // Melee swing
+  if (meleeing) {
+    const t = 1 - u.meleeAnim / 0.45;
+    armRX = -0.3 + Math.sin(t * Math.PI) * -1.6;
+    armRZ = -0.4;
+    torsoY = Math.sin(t * Math.PI) * 0.25;
+  }
+
+  // Hurt flinch
+  if (staggered) {
+    armLX = 0.5;
+    armRX = 0.4;
+    headX = 0.25;
+    torsoZ = -0.15;
+    rootTilt = 0.12;
+  }
+
+  // Suspicious — peer forward
+  if (mode === "suspicious" && move < 0.3) {
+    headX = -0.15;
+    headY = Math.sin(phase * 0.6) * 0.2;
+  }
+
+  const rate = Math.min(1, dt * 12);
+  lerpPose(pose, "armLX", armLX, rate);
+  lerpPose(pose, "armRX", armRX, rate);
+  lerpPose(pose, "armLZ", armLZ, rate);
+  lerpPose(pose, "armRZ", armRZ, rate);
+  lerpPose(pose, "legLX", legLX, rate);
+  lerpPose(pose, "legRX", legRX, rate);
+  lerpPose(pose, "torsoY", torsoY, rate);
+  lerpPose(pose, "torsoZ", torsoZ, rate);
+  lerpPose(pose, "headY", headY, rate);
+  lerpPose(pose, "headX", headX, rate);
+  lerpPose(pose, "rootY", rootY, rate);
+  lerpPose(pose, "rootTilt", rootTilt, rate);
+
+  u.shoulderL.rotation.x = pose.armLX;
+  u.shoulderL.rotation.z = pose.armLZ;
+  u.shoulderR.rotation.x = pose.armRX;
+  u.shoulderR.rotation.z = pose.armRZ;
+  u.hipL.rotation.x = pose.legLX;
+  u.hipR.rotation.x = pose.legRX;
+  if (u.torso) {
+    u.torso.rotation.y = pose.torsoY;
+    u.torso.rotation.x = pose.torsoZ;
+  }
+  if (u.headPivot) {
+    u.headPivot.rotation.y = pose.headY;
+    u.headPivot.rotation.x = pose.headX;
+  }
+  if (u.root) {
+    u.root.position.y = pose.rootY;
+    u.root.rotation.z = pose.rootTilt;
+  }
+}
+
 function enemyFire(e, playerPos) {
   const origin = e.position.clone().add(new THREE.Vector3(0, 1.5, 0));
   if (!hasLineOfSight(origin, playerPos.clone())) return false;
@@ -1032,44 +1170,47 @@ function updateEnemies(dt) {
     // Death fall animation
     if (e.userData.dying) {
       e.userData.deathT -= dt;
-      e.rotation.x += dt * 2.2;
-      e.position.y = Math.max(-0.2, e.position.y - dt * 0.6);
+      e.rotation.x += dt * 2.4;
+      e.rotation.z = Math.sin(e.userData.deathT * 6) * 0.15;
+      if (e.userData.root) e.userData.root.position.y = Math.max(-0.4, (e.userData.root.position.y || 0) - dt * 0.8);
+      e.position.y = Math.max(-0.15, e.position.y - dt * 0.35);
       if (e.userData.deathT <= 0) e.visible = false;
       return;
     }
     if (!e.userData.alive) return;
 
-    e.userData.bob += dt * 5;
     e.userData.stagger = Math.max(0, e.userData.stagger - dt);
     const telegraphing = (e.userData.telegraph || 0) > 0;
-
-    const swing = Math.sin(e.userData.bob) * (e.userData.alert === "patrol" ? 0.18 : 0.35);
-    if (e.userData.armL) e.userData.armL.rotation.x = telegraphing ? 0.2 : swing;
-    if (e.userData.armR) e.userData.armR.rotation.x = telegraphing ? -1.35 : -swing;
-    if (e.userData.legL) e.userData.legL.rotation.x = telegraphing ? 0 : -swing;
-    if (e.userData.legR) e.userData.legR.rotation.x = telegraphing ? 0 : swing;
+    let moved = false;
 
     const eyeIdle = e.userData.eyeColor || (e.userData.boss ? 0xffcc44 : 0xff2233);
     if (e.userData.hurtFlash > 0) {
       e.userData.hurtFlash -= dt;
       e.userData.eyes?.forEach((eye) => eye.material.color.setHex(0xffffff));
+      if (e.userData.glow) e.userData.glow.intensity = 1.6;
     } else if (telegraphing) {
       e.userData.eyes?.forEach((eye) => eye.material.color.setHex(0xffeeaa));
+      if (e.userData.glow) e.userData.glow.intensity = (e.userData.boss ? 0.9 : 0.45) * 1.4;
     } else {
       e.userData.eyes?.forEach((eye) => eye.material.color.setHex(
         e.userData.alert === "combat" ? eyeIdle : 0x446688
       ));
+      if (e.userData.glow) {
+        e.userData.glow.intensity = (e.userData.boss ? 0.9 : 0.45) * (e.userData.alert === "combat" ? 1 : 0.55);
+      }
     }
 
     const toPlayer = playerPos.clone().sub(e.position);
     toPlayer.y = 0;
     const dist = toPlayer.length();
-    if (dist > 26) return;
+    if (dist > 26) {
+      animateEnemy(e, dt, false, e.userData.alert || "patrol");
+      return;
+    }
 
     const eyeFrom = e.position.clone().add(new THREE.Vector3(0, 1.45, 0));
     const canSee = dist < 2.2 || hasLineOfSight(eyeFrom, playerPos.clone());
 
-    // Acquire target: sight cone, proximity, or flashlight glare (needs LOS except melee range)
     if (e.userData.alert !== "combat") {
       const seeR = e.userData.seeRadius || 14;
       const hearR = e.userData.hearRadius || 12;
@@ -1096,13 +1237,15 @@ function updateEnemies(dt) {
       const toHome = new THREE.Vector3(hx - e.position.x, 0, hz - e.position.z);
       if (toHome.length() > 0.2) {
         toHome.normalize().multiplyScalar(e.userData.speed * 0.35 * dt);
-        if (!trySlideMove(e, toHome.x, toHome.z)) e.userData.patrolAngle += Math.PI * 0.55;
+        moved = trySlideMove(e, toHome.x, toHome.z);
+        if (!moved) e.userData.patrolAngle += Math.PI * 0.55;
       }
       e.lookAt(
         e.position.x + Math.sin(e.userData.patrolAngle),
         e.position.y,
         e.position.z + Math.cos(e.userData.patrolAngle)
       );
+      animateEnemy(e, dt, moved, "patrol");
       return;
     }
 
@@ -1111,13 +1254,17 @@ function updateEnemies(dt) {
       e.userData.patrolAngle = Math.atan2(toPlayer.x, toPlayer.z);
       if (canSee && dist < (e.userData.seeRadius || 14) * 0.75) e.userData.alert = "combat";
       const step = toPlayer.clone().normalize().multiplyScalar(e.userData.speed * 0.55 * dt);
-      trySlideMove(e, step.x, step.z);
+      moved = trySlideMove(e, step.x, step.z);
+      animateEnemy(e, dt, moved, "suspicious");
       return;
     }
 
     // Combat
     e.lookAt(playerPos.x, e.position.y, playerPos.z);
-    if (e.userData.stagger > 0) return;
+    if (e.userData.stagger > 0) {
+      animateEnemy(e, dt, false, "combat");
+      return;
+    }
 
     if (e.userData.ranged && dist > 3 && dist < 16) {
       if ((e.userData.telegraph || 0) > 0) {
@@ -1140,14 +1287,16 @@ function updateEnemies(dt) {
     const stopDist = e.userData.ranged && dist < 7 ? 5.5 : 1.35;
     if (dist > stopDist) {
       const step = toPlayer.clone().normalize().multiplyScalar(e.userData.speed * dt);
-      trySlideMove(e, step.x, step.z);
+      moved = trySlideMove(e, step.x, step.z);
     } else if (dist <= 1.35) {
       e.userData.cooldown -= dt;
       if (e.userData.cooldown <= 0) {
         e.userData.cooldown = e.userData.boss ? 0.7 : e.userData.type === "brute" ? 1.15 : 0.95;
+        e.userData.meleeAnim = 0.45;
         hurtPlayer(e.userData.meleeDmg || 14);
       }
     }
+    animateEnemy(e, dt, moved, "combat");
   });
 }
 
@@ -1613,6 +1762,7 @@ function startMission() {
   world.enemies.forEach((e) => {
     e.visible = true;
     e.rotation.x = 0;
+    e.rotation.z = 0;
     e.position.y = 0;
     if (e.userData.home) {
       e.position.x = e.userData.home.x;
@@ -1623,9 +1773,20 @@ function startMission() {
     e.userData.hp = e.userData.maxHp || 4;
     e.userData.stagger = 0;
     e.userData.shootCd = 0.5;
+    e.userData.telegraph = 0;
+    e.userData.meleeAnim = 0;
+    e.userData.moveAmt = 0;
+    e.userData.animPhase = Math.random() * Math.PI * 2;
     e.userData.alert = e.userData.boss ? "combat" : "patrol";
     e.userData.patrolT = Math.random() * 3;
     e.userData.patrolAngle = Math.random() * Math.PI * 2;
+    if (e.userData.root) {
+      e.userData.root.position.y = 0;
+      e.userData.root.rotation.z = 0;
+    }
+    if (e.userData.pose) {
+      Object.keys(e.userData.pose).forEach((k) => { e.userData.pose[k] = 0; });
+    }
     if (e.userData.boss) {
       e.userData.phase = 1;
       e.userData.summoned = false;

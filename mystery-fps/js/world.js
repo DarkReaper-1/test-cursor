@@ -61,23 +61,104 @@ function makeEnemy(opts = {}) {
   const def = ENEMY_TYPES[type] || ENEMY_TYPES.shooter;
   const coatCol = opts.boss ? 0x2a1020 : def.color;
   const eyeCol = opts.boss ? 0xffcc44 : def.eye;
+  const s = opts.boss ? 1.15 : def.scale;
   const coat = boxMat(coatCol);
   const skin = boxMat(0x2a1a1a);
-  const scale = opts.boss ? 1.15 : def.scale;
-  const body = mesh(new THREE.BoxGeometry(0.65 * scale, 1.1 * scale, 0.4 * scale), coat, 0, 1.15 * scale, 0);
-  const hips = mesh(new THREE.BoxGeometry(0.55 * scale, 0.35 * scale, 0.35 * scale), boxMat(0x121018), 0, 0.5 * scale, 0);
-  const head = mesh(new THREE.SphereGeometry(0.26 * scale, 14, 14), skin, 0, 1.95 * scale, 0);
-  const armL = mesh(new THREE.BoxGeometry(0.18, 0.7 * scale, 0.18), coat, -0.45 * scale, 1.15 * scale, 0);
-  const armR = mesh(new THREE.BoxGeometry(0.18, 0.7 * scale, 0.18), coat, 0.45 * scale, 1.15 * scale, 0);
-  const legL = mesh(new THREE.BoxGeometry(0.2, 0.55 * scale, 0.22), boxMat(0x101018), -0.16 * scale, 0.2 * scale, 0);
-  const legR = mesh(new THREE.BoxGeometry(0.2, 0.55 * scale, 0.22), boxMat(0x101018), 0.16 * scale, 0.2 * scale, 0);
+  const pants = boxMat(0x101018);
+  const metal = boxMat(0x2a3038, { metalness: 0.55, roughness: 0.35 });
+
+  // Root offsets for bobbing without breaking foot contact
+  const root = new THREE.Group();
+  root.position.y = 0;
+  g.add(root);
+
+  // Torso
+  const torso = new THREE.Group();
+  torso.position.y = 0.95 * s;
+  const body = mesh(new THREE.BoxGeometry(0.62 * s, 0.95 * s, 0.38 * s), coat, 0, 0.15 * s, 0);
+  const hips = mesh(new THREE.BoxGeometry(0.52 * s, 0.28 * s, 0.32 * s), pants, 0, -0.4 * s, 0);
+  torso.add(body, hips);
+
+  // Head on neck pivot
+  const headPivot = new THREE.Group();
+  headPivot.position.set(0, 0.72 * s, 0);
+  const head = mesh(new THREE.SphereGeometry(0.24 * s, 14, 14), skin, 0, 0.12 * s, 0);
   const eyeMat = new THREE.MeshBasicMaterial({ color: eyeCol });
-  const eyeL = mesh(new THREE.SphereGeometry(0.055 * scale, 8, 8), eyeMat, -0.09 * scale, 2.0 * scale, 0.2 * scale);
-  const eyeR = mesh(new THREE.SphereGeometry(0.055 * scale, 8, 8), eyeMat.clone(), 0.09 * scale, 2.0 * scale, 0.2 * scale);
+  const eyeL = mesh(new THREE.SphereGeometry(0.05 * s, 8, 8), eyeMat, -0.08 * s, 0.14 * s, 0.18 * s);
+  const eyeR = mesh(new THREE.SphereGeometry(0.05 * s, 8, 8), eyeMat.clone(), 0.08 * s, 0.14 * s, 0.18 * s);
+  headPivot.add(head, eyeL, eyeR);
+  torso.add(headPivot);
+
+  // Arms — pivot at shoulders
+  const shoulderL = new THREE.Group();
+  shoulderL.position.set(-0.4 * s, 0.45 * s, 0);
+  const armL = mesh(new THREE.BoxGeometry(0.16 * s, 0.68 * s, 0.16 * s), coat, 0, -0.32 * s, 0);
+  shoulderL.add(armL);
+
+  const shoulderR = new THREE.Group();
+  shoulderR.position.set(0.4 * s, 0.45 * s, 0);
+  const armR = mesh(new THREE.BoxGeometry(0.16 * s, 0.68 * s, 0.16 * s), coat, 0, -0.32 * s, 0);
+  // Sidearm / rifle for shooters & boss
+  let gun = null;
+  if (def.ranged || opts.boss) {
+    gun = new THREE.Group();
+    gun.position.set(0, -0.62 * s, -0.12 * s);
+    const grip = mesh(new THREE.BoxGeometry(0.08 * s, 0.18 * s, 0.1 * s), metal, 0, 0, 0);
+    const barrel = mesh(new THREE.BoxGeometry(0.07 * s, 0.07 * s, 0.35 * s), metal, 0, 0.04 * s, -0.2 * s);
+    gun.add(grip, barrel);
+    armR.add(gun);
+  }
+  shoulderR.add(armR);
+  torso.add(shoulderL, shoulderR);
+
+  // Legs — pivot at hips
+  const hipL = new THREE.Group();
+  hipL.position.set(-0.15 * s, 0.52 * s, 0);
+  const legL = mesh(new THREE.BoxGeometry(0.18 * s, 0.55 * s, 0.2 * s), pants, 0, -0.28 * s, 0);
+  const bootL = mesh(new THREE.BoxGeometry(0.2 * s, 0.1 * s, 0.28 * s), boxMat(0x0a0a10), 0, -0.55 * s, 0.02 * s);
+  hipL.add(legL, bootL);
+
+  const hipR = new THREE.Group();
+  hipR.position.set(0.15 * s, 0.52 * s, 0);
+  const legR = mesh(new THREE.BoxGeometry(0.18 * s, 0.55 * s, 0.2 * s), pants, 0, -0.28 * s, 0);
+  const bootR = mesh(new THREE.BoxGeometry(0.2 * s, 0.1 * s, 0.28 * s), boxMat(0x0a0a10), 0, -0.55 * s, 0.02 * s);
+  hipR.add(legR, bootR);
+
+  root.add(torso, hipL, hipR);
+
   const glow = new THREE.PointLight(eyeCol, opts.boss ? 0.9 : 0.45, opts.boss ? 5 : 3);
-  glow.position.set(0, 1.9 * scale, 0.3);
-  g.add(body, hips, head, armL, armR, legL, legR, eyeL, eyeR, glow);
-  g.userData = { armL, armR, legL, legR, eyes: [eyeL, eyeR], body, head, type, eyeColor: eyeCol };
+  glow.position.set(0, 1.85 * s, 0.25 * s);
+  g.add(glow);
+
+  g.userData = {
+    type,
+    eyeColor: eyeCol,
+    scale: s,
+    root,
+    torso,
+    headPivot,
+    shoulderL,
+    shoulderR,
+    hipL,
+    hipR,
+    armL,
+    armR,
+    legL,
+    legR,
+    body,
+    head,
+    hips,
+    gun,
+    eyes: [eyeL, eyeR],
+    glow,
+    // animation pose targets (smoothed each frame)
+    pose: {
+      armLX: 0, armRX: 0, armLZ: 0, armRZ: 0,
+      legLX: 0, legRX: 0,
+      torsoY: 0, torsoZ: 0, headY: 0, headX: 0,
+      rootY: 0, rootTilt: 0,
+    },
+  };
   return g;
 }
 
@@ -94,6 +175,9 @@ function enemyStats(e, overrides = {}) {
     shootCd: 0.5 + Math.random(),
     alive: true,
     bob: Math.random() * Math.PI,
+    animPhase: Math.random() * Math.PI * 2,
+    moveAmt: 0,
+    meleeAnim: 0,
     hurtFlash: 0,
     stagger: 0,
     ranged: def.ranged,
