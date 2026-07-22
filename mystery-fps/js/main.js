@@ -151,8 +151,6 @@ function initEngine() {
 
   clock = new THREE.Clock();
   world = buildWorld(scene);
-  // Detective mode: no firearm in view — lamp only
-  if (world.weapon) world.weapon.visible = false;
   if (world.flashlight) {
     camera.add(world.flashlight);
     camera.add(world.flashlight.target);
@@ -260,7 +258,6 @@ function maybeRadio() {
   for (const msg of RADIO) {
     const key = msg.text;
     if (state.radioFired.has(key)) continue;
-    if (msg.atBossPhase != null) continue; // fired manually
     const clueOk = msg.atClues == null || state.clues.size >= msg.atClues;
     if (clueOk) {
       state.radioFired.add(key);
@@ -920,7 +917,6 @@ function startMission() {
   camera.position.set(0, 1.65, 2);
   camera.fov = 72;
   camera.updateProjectionMatrix();
-  if (world.weapon) world.weapon.visible = false;
   syncFlashlight();
   $("#radio-log").innerHTML = "";
 

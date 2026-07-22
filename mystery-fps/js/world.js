@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { INTERACTABLES, ENEMY_SPAWNS, PICKUPS, STUDY_LOCK, ENEMY_TYPES } from "./data.js";
+import { INTERACTABLES, PICKUPS, STUDY_LOCK } from "./data.js";
 import {
-  woodTexture, wallpaperTexture, carpetTexture, stoneTexture, metalTexture, applyMap,
+  woodTexture, wallpaperTexture, carpetTexture, stoneTexture, metalTexture,
 } from "./textures.js";
 
 const ACCENT = 0xc9a14a;
@@ -55,219 +55,9 @@ function wallSeg(x0, z0, x1, z1, h = 4) {
   return m;
 }
 
-function makeEnemy(opts = {}) {
-  const g = new THREE.Group();
-  const type = opts.type || "shooter";
-  const def = ENEMY_TYPES[type] || ENEMY_TYPES.shooter;
-  const coatCol = opts.boss ? 0x2a1020 : def.color;
-  const eyeCol = opts.boss ? 0xffcc44 : def.eye;
-  const s = opts.boss ? 1.15 : def.scale;
-  const coat = boxMat(coatCol);
-  const skin = boxMat(0x2a1a1a);
-  const pants = boxMat(0x101018);
-  const metal = boxMat(0x2a3038, { metalness: 0.55, roughness: 0.35 });
-
-  // Root offsets for bobbing without breaking foot contact
-  const root = new THREE.Group();
-  root.position.y = 0;
-  g.add(root);
-
-  // Torso
-  const torso = new THREE.Group();
-  torso.position.y = 0.95 * s;
-  const body = mesh(new THREE.BoxGeometry(0.62 * s, 0.95 * s, 0.38 * s), coat, 0, 0.15 * s, 0);
-  const hips = mesh(new THREE.BoxGeometry(0.52 * s, 0.28 * s, 0.32 * s), pants, 0, -0.4 * s, 0);
-  torso.add(body, hips);
-
-  // Head on neck pivot
-  const headPivot = new THREE.Group();
-  headPivot.position.set(0, 0.72 * s, 0);
-  const head = mesh(new THREE.SphereGeometry(0.24 * s, 14, 14), skin, 0, 0.12 * s, 0);
-  const eyeMat = new THREE.MeshBasicMaterial({ color: eyeCol });
-  const eyeL = mesh(new THREE.SphereGeometry(0.05 * s, 8, 8), eyeMat, -0.08 * s, 0.14 * s, 0.18 * s);
-  const eyeR = mesh(new THREE.SphereGeometry(0.05 * s, 8, 8), eyeMat.clone(), 0.08 * s, 0.14 * s, 0.18 * s);
-  headPivot.add(head, eyeL, eyeR);
-  torso.add(headPivot);
-
-  // Arms — pivot at shoulders
-  const shoulderL = new THREE.Group();
-  shoulderL.position.set(-0.4 * s, 0.45 * s, 0);
-  const armL = mesh(new THREE.BoxGeometry(0.16 * s, 0.68 * s, 0.16 * s), coat, 0, -0.32 * s, 0);
-  shoulderL.add(armL);
-
-  const shoulderR = new THREE.Group();
-  shoulderR.position.set(0.4 * s, 0.45 * s, 0);
-  const armR = mesh(new THREE.BoxGeometry(0.16 * s, 0.68 * s, 0.16 * s), coat, 0, -0.32 * s, 0);
-  // Sidearm / rifle for shooters & boss
-  let gun = null;
-  if (def.ranged || opts.boss) {
-    gun = new THREE.Group();
-    gun.position.set(0, -0.62 * s, -0.12 * s);
-    const grip = mesh(new THREE.BoxGeometry(0.08 * s, 0.18 * s, 0.1 * s), metal, 0, 0, 0);
-    const barrel = mesh(new THREE.BoxGeometry(0.07 * s, 0.07 * s, 0.35 * s), metal, 0, 0.04 * s, -0.2 * s);
-    gun.add(grip, barrel);
-    armR.add(gun);
-  }
-  shoulderR.add(armR);
-  torso.add(shoulderL, shoulderR);
-
-  // Legs — pivot at hips
-  const hipL = new THREE.Group();
-  hipL.position.set(-0.15 * s, 0.52 * s, 0);
-  const legL = mesh(new THREE.BoxGeometry(0.18 * s, 0.55 * s, 0.2 * s), pants, 0, -0.28 * s, 0);
-  const bootL = mesh(new THREE.BoxGeometry(0.2 * s, 0.1 * s, 0.28 * s), boxMat(0x0a0a10), 0, -0.55 * s, 0.02 * s);
-  hipL.add(legL, bootL);
-
-  const hipR = new THREE.Group();
-  hipR.position.set(0.15 * s, 0.52 * s, 0);
-  const legR = mesh(new THREE.BoxGeometry(0.18 * s, 0.55 * s, 0.2 * s), pants, 0, -0.28 * s, 0);
-  const bootR = mesh(new THREE.BoxGeometry(0.2 * s, 0.1 * s, 0.28 * s), boxMat(0x0a0a10), 0, -0.55 * s, 0.02 * s);
-  hipR.add(legR, bootR);
-
-  root.add(torso, hipL, hipR);
-
-  const glow = new THREE.PointLight(eyeCol, opts.boss ? 0.9 : 0.45, opts.boss ? 5 : 3);
-  glow.position.set(0, 1.85 * s, 0.25 * s);
-  g.add(glow);
-
-  g.userData = {
-    type,
-    eyeColor: eyeCol,
-    scale: s,
-    root,
-    torso,
-    headPivot,
-    shoulderL,
-    shoulderR,
-    hipL,
-    hipR,
-    armL,
-    armR,
-    legL,
-    legR,
-    body,
-    head,
-    hips,
-    gun,
-    eyes: [eyeL, eyeR],
-    glow,
-    // animation pose targets (smoothed each frame)
-    pose: {
-      armLX: 0, armRX: 0, armLZ: 0, armRZ: 0,
-      legLX: 0, legRX: 0,
-      torsoY: 0, torsoZ: 0, headY: 0, headX: 0,
-      rootY: 0, rootTilt: 0,
-    },
-  };
-  return g;
-}
-
-function enemyStats(e, overrides = {}) {
-  const def = ENEMY_TYPES[e.userData.type] || ENEMY_TYPES.shooter;
-  Object.assign(e.userData, {
-    kind: "enemy",
-    hp: def.hp,
-    maxHp: def.hp,
-    speed: def.speed,
-    baseSpeed: def.speed,
-    meleeDmg: def.dmg,
-    cooldown: 0,
-    shootCd: 0.5 + Math.random(),
-    alive: true,
-    bob: Math.random() * Math.PI,
-    animPhase: Math.random() * Math.PI * 2,
-    moveAmt: 0,
-    meleeAnim: 0,
-    hurtFlash: 0,
-    stagger: 0,
-    ranged: def.ranged,
-    dying: false,
-    deathT: 0,
-    alert: "patrol", // patrol | suspicious | combat
-    home: e.position.clone(),
-    patrolAngle: Math.random() * Math.PI * 2,
-    patrolT: Math.random() * 3,
-    hearRadius: 12,
-    seeRadius: 14,
-    ...overrides,
-  });
-  return e;
-}
-
-export function createBoss(scene) {
-  const e = makeEnemy({ boss: true, type: "shooter" });
-  e.position.set(8, 0, 12);
-  enemyStats(e, {
-    boss: true,
-    name: "Elena Voss",
-    hp: 22,
-    maxHp: 22,
-    speed: 2.8,
-    baseSpeed: 2.8,
-    meleeDmg: 18,
-    ranged: true,
-    phase: 1,
-    summoned: false,
-    alert: "combat",
-  });
-  scene.add(e);
-  return e;
-}
-
-export function createAdd(scene, x, z, type = "runner") {
-  const e = makeEnemy({ type });
-  e.position.set(x, 0, z);
-  enemyStats(e, { add: true, alert: "combat" });
-  scene.add(e);
-  return e;
-}
-
-function makePistol() {
-  const w = new THREE.Group();
-  const metal = applyMap(boxMat(0x2a3038, { metalness: 0.6, roughness: 0.35 }), TEX.metal, 1);
-  const dark = boxMat(0x111418, { metalness: 0.5, roughness: 0.4 });
-  const wood = applyMap(boxMat(0x2a1e14), TEX.wood, 1);
-
-  const slide = mesh(new THREE.BoxGeometry(0.16, 0.16, 0.5), metal, 0, 0, 0);
-  const barrel = mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.28, 10), dark, 0, 0, -0.36);
-  barrel.rotation.x = Math.PI / 2;
-  const grip = mesh(new THREE.BoxGeometry(0.12, 0.38, 0.16), wood, 0, -0.22, 0.06);
-  grip.rotation.x = 0.25;
-  const trigger = mesh(new THREE.BoxGeometry(0.04, 0.1, 0.08), dark, 0, -0.12, -0.02);
-  const sight = mesh(new THREE.BoxGeometry(0.03, 0.06, 0.03), metal, 0, 0.1, -0.18);
-  const muzzle = new THREE.PointLight(0xffaa55, 0, 2.5);
-  muzzle.position.set(0, 0, -0.5);
-
-  w.add(slide, barrel, grip, trigger, sight, muzzle);
-  w.userData = { recoil: 0, muzzle, id: "pistol" };
-  w.visible = true;
-  return w;
-}
-
-function makeShotgun() {
-  const w = new THREE.Group();
-  const metal = applyMap(boxMat(0x3a4038, { metalness: 0.55, roughness: 0.4 }), TEX.metal, 1);
-  const wood = applyMap(boxMat(0x3a2818), TEX.wood, 1);
-  const dark = boxMat(0x151820, { metalness: 0.5, roughness: 0.4 });
-
-  const receiver = mesh(new THREE.BoxGeometry(0.14, 0.16, 0.45), metal, 0, 0, -0.05);
-  const barrel = mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.55, 10), dark, 0, 0.02, -0.55);
-  barrel.rotation.x = Math.PI / 2;
-  const stock = mesh(new THREE.BoxGeometry(0.12, 0.14, 0.35), wood, 0, -0.05, 0.28);
-  const pump = mesh(new THREE.BoxGeometry(0.1, 0.1, 0.2), wood, 0, -0.02, -0.35);
-  const muzzle = new THREE.PointLight(0xff9944, 0, 3);
-  muzzle.position.set(0, 0, -0.85);
-
-  w.add(receiver, barrel, stock, pump, muzzle);
-  w.userData = { recoil: 0, muzzle, id: "shotgun" };
-  w.visible = false;
-  return w;
-}
-
 export function buildWorld(scene) {
   const colliders = [];
   const interactables = [];
-  const enemies = [];
   const lights = [];
   const pickups = [];
   const fx = [];
@@ -513,46 +303,11 @@ export function buildWorld(scene) {
   scene.add(studyDoor, seal);
   colliders.push(studyDoor);
 
-  // Enemies
-  ENEMY_SPAWNS.forEach((spawn) => {
-    const e = makeEnemy({ type: spawn.type || "shooter" });
-    e.position.set(spawn.x, 0, spawn.z);
-    enemyStats(e);
-    scene.add(e);
-    enemies.push(e);
-  });
-
-  // Weapon mesh unused in detective mode (kept hidden by main)
-  const weaponRoot = new THREE.Group();
-  weaponRoot.visible = false;
-
   return {
-    colliders, interactables, enemies, lights,
-    weapon: weaponRoot, flashlight, pickups, fx,
-    studyDoor, studySeal: seal, projectiles: [],
+    colliders, interactables, lights,
+    flashlight, pickups, fx,
+    studyDoor, studySeal: seal,
   };
-}
-
-/** Runtime loot drop (ammo / med) at world position */
-export function spawnLootPickup(scene, pickups, type, amount, x, z) {
-  const isHealth = type === "health";
-  const color = isHealth ? 0x2a6a40 : 0x3a3a20;
-  const emissive = isHealth ? 0x114422 : 0x332200;
-  const m = box(0.32, 0.22, 0.32, color, x, 0.35, z, {
-    emissive, emissiveIntensity: 0.65,
-  });
-  const cross = box(0.22, 0.05, 0.05, isHealth ? 0xff4444 : ACCENT, x, 0.5, z);
-  scene.add(m, cross);
-  const entry = {
-    type,
-    amount,
-    meshes: [m, cross],
-    position: new THREE.Vector3(x, 0.35, z),
-    taken: false,
-    dynamic: true,
-  };
-  pickups.push(entry);
-  return entry;
 }
 
 export function playerCollides(pos, colliders, radius = 0.35) {
@@ -568,24 +323,4 @@ export function playerCollides(pos, colliders, radius = 0.35) {
     }
   }
   return false;
-}
-
-export function spawnHitSparks(scene, point) {
-  const group = new THREE.Group();
-  for (let i = 0; i < 8; i++) {
-    const p = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03, 4, 4),
-      new THREE.MeshBasicMaterial({ color: 0xff6644 })
-    );
-    p.position.copy(point);
-    p.userData.vel = new THREE.Vector3(
-      (Math.random() - 0.5) * 3,
-      Math.random() * 2,
-      (Math.random() - 0.5) * 3
-    );
-    p.userData.life = 0.35;
-    group.add(p);
-  }
-  scene.add(group);
-  return group;
 }

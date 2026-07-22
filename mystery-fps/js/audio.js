@@ -32,45 +32,10 @@ export class AudioBus {
     o.stop(t + dur);
   }
 
-  gunshot() {
-    if (!this.ctx || !this.enabled) return;
-    const t = this.ctx.currentTime;
-    const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.15, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-    const src = this.ctx.createBufferSource();
-    src.buffer = buffer;
-    const f = this.ctx.createBiquadFilter();
-    f.type = "lowpass";
-    f.frequency.value = 1200;
-    const g = this.ctx.createGain();
-    g.gain.setValueAtTime(0.35, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    src.connect(f);
-    f.connect(g);
-    g.connect(this.master);
-    src.start(t);
-    this.tone(90, 0.12, "square", 0.1);
-  }
-
-  hit() {
-    this.tone(220, 0.08, "sawtooth", 0.05);
-    this.tone(110, 0.15, "square", 0.04, 0.02);
-  }
-
   pickup() {
     this.tone(523, 0.1, "sine", 0.06);
     this.tone(659, 0.12, "sine", 0.05, 0.08);
     this.tone(784, 0.18, "sine", 0.04, 0.16);
-  }
-
-  hurt() {
-    this.tone(80, 0.25, "sawtooth", 0.12);
-  }
-
-  reload() {
-    this.tone(180, 0.06, "triangle", 0.05);
-    this.tone(140, 0.08, "triangle", 0.04, 0.1);
   }
 
   footstep() {
@@ -92,11 +57,6 @@ export class AudioBus {
     this.tone(1100, 0.05, "sine", 0.02, 0.1);
   }
 
-  enemyShot() {
-    this.tone(160, 0.08, "square", 0.06);
-    this.tone(80, 0.12, "sawtooth", 0.05);
-  }
-
   thunder() {
     if (!this.ctx || !this.enabled) return;
     const t = this.ctx.currentTime;
@@ -114,40 +74,9 @@ export class AudioBus {
     o.stop(t + 1.4);
   }
 
-  death() {
-    this.tone(100, 0.2, "sawtooth", 0.07);
-    this.tone(60, 0.3, "triangle", 0.05, 0.05);
-  }
-
-  killConfirm() {
-    this.tone(520, 0.05, "sine", 0.04);
-    this.tone(780, 0.08, "triangle", 0.035, 0.04);
-  }
-
-  empty() {
-    this.tone(90, 0.05, "square", 0.03);
-  }
-
   unlock() {
     this.tone(320, 0.08, "triangle", 0.05);
     this.tone(480, 0.12, "triangle", 0.04, 0.08);
-  }
-
-  melee() {
-    this.tone(90, 0.08, "square", 0.07);
-    this.tone(140, 0.1, "sawtooth", 0.05, 0.03);
-  }
-
-  meleeHit() {
-    this.tone(70, 0.12, "sawtooth", 0.1);
-    this.tone(200, 0.08, "triangle", 0.05, 0.02);
-  }
-
-  shotgun() {
-    if (!this.ctx || !this.enabled) return;
-    this.gunshot();
-    this.tone(60, 0.2, "sawtooth", 0.12);
-    this.tone(40, 0.25, "square", 0.08, 0.02);
   }
 
   setTension(level) {

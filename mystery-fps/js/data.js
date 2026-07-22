@@ -89,22 +89,7 @@ export const INTERACTABLES = [
   { id: "champagne", clue: "champagne", pos: [12, 1.2, 10], label: "Examine glass" },
 ];
 
-/** Combat disabled — detective investigation only */
-export const ENEMY_TYPES = {};
-export const ENEMY_SPAWNS = [];
-
-/** Kept for module compatibility; weapons are unused in detective mode */
-export const WEAPONS = {
-  pistol: {
-    id: "pistol", name: "Notebook",
-    magSize: 0, reserveStart: 0,
-    fireRate: 1, adsFireRate: 1,
-    damage: 0, pellets: 0, range: 0,
-    recoil: 0, adsRecoil: 0, ammoLabel: "CASE",
-  },
-};
-
-/** Atmosphere notes found while searching (no combat loot) */
+/** Atmosphere notes found while searching */
 export const PICKUPS = [
   { type: "note", amount: 0, x: -3, z: 0, text: "Staff note: 'Do not serve Lord A. the soup until Elena approves the menu.'" },
   { type: "note", amount: 0, x: 3, z: 2, text: "Guest card: Elena Voss — arrived early, requested kitchen access." },
