@@ -1,0 +1,108 @@
+{
+  "name": "WrongAnswerOnly",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "GameManager": {
+        "$path": "src/server/GameManager.server.lua"
+      },
+      "RoundSystem": {
+        "$path": "src/server/RoundSystem.lua"
+      },
+      "EliminationHandler": {
+        "$path": "src/server/EliminationHandler.lua"
+      },
+      "DataStoreManager": {
+        "$path": "src/server/DataStoreManager.server.lua"
+      },
+      "SpectatorSystem": {
+        "$path": "src/server/SpectatorSystem.server.lua"
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "RoundConfig": {
+        "$path": "src/shared/RoundConfig.lua"
+      },
+      "GameUtils": {
+        "$path": "src/shared/GameUtils.lua"
+      },
+      "GameEvents": {
+        "$className": "Folder",
+        "RoundStarted": { "$className": "RemoteEvent" },
+        "RoundEnded": { "$className": "RemoteEvent" },
+        "PlayerEliminated": { "$className": "RemoteEvent" },
+        "GameOver": { "$className": "RemoteEvent" },
+        "CountdownTick": { "$className": "RemoteEvent" },
+        "RuleReveal": { "$className": "RemoteEvent" },
+        "SpectatorMode": { "$className": "RemoteEvent" },
+        "UpdateLeaderboard": { "$className": "RemoteEvent" }
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "ClientController": {
+          "$path": "src/client/ClientController.client.lua"
+        },
+        "SpectatorController": {
+          "$path": "src/client/SpectatorController.client.lua"
+        }
+      }
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "GameHUD": {
+        "$className": "ScreenGui",
+        "$properties": {
+          "ResetOnSpawn": false,
+          "ZIndexBehavior": "Sibling",
+          "IgnoreGuiInset": true
+        },
+        "RoundBanner": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        },
+        "CountdownFrame": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        },
+        "PlayerCount": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        },
+        "EliminationBanner": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        },
+        "SpectatorLabel": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        },
+        "WinnerScreen": {
+          "$className": "Frame",
+          "$properties": { "Visible": false, "BackgroundTransparency": 1, "Size": { "UDim2": [[1, 0], [1, 0]] } }
+        }
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "FilteringEnabled": true
+      },
+      "Maps": {
+        "$className": "Folder",
+        "MapScripts": {
+          "$className": "Folder",
+          "LavaKill": { "$path": "src/maps/LavaKill.server.lua" },
+          "PlatformKill": { "$path": "src/maps/PlatformKill.server.lua" },
+          "ChaseMechanic": { "$path": "src/maps/ChaseMechanic.server.lua" },
+          "CoinMechanic": { "$path": "src/maps/CoinMechanic.server.lua" },
+          "SwapMechanic": { "$path": "src/maps/SwapMechanic.server.lua" }
+        }
+      }
+    }
+  }
+}
