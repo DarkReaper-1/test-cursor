@@ -1,9 +1,24 @@
 # test-cursor
 
-This repository contains two independent projects:
+This repository contains independent projects:
 
-1. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-2. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+1. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
+2. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
+3. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+
+---
+
+## Solo Health
+
+Hunter-ranked workout trainer with Daily Quests and a Penalty Quest system inspired by Solo Leveling.
+
+```bash
+cd solo-health
+python3 -m http.server 8765 --directory ..
+# open http://127.0.0.1:8765/solo-health/
+```
+
+See [solo-health/README.md](solo-health/README.md) for ranks, penalty rules, and demo recording.
 
 ---
 
