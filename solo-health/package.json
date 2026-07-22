@@ -1,8 +1,8 @@
 {
   "name": "solo-health",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Solo Leveling–inspired health app with hunter ranks and penalty quests",
+  "description": "Solo Leveling–inspired health app with hunter ranks, penalty quests, and camera scanner",
   "scripts": {
     "start": "python3 -m http.server 8765 --directory ..",
     "demo": "node demo/record-demo.js",

@@ -69,11 +69,15 @@ async function main() {
   await page.click("#btn-reset-day");
   await sleep(1800);
 
-  // Scan a penalty objective
+  // Scan a penalty objective (modal stays open underneath)
   await page.click('.scan-penalty[data-id="p-pushups"]');
   await sleep(6500);
   await page.click("#btn-finish-scan");
-  await sleep(1000);
+  await sleep(1200);
+
+  // Close penalty for rest of tour
+  await page.click("#btn-fail-penalty");
+  await sleep(1400);
 
   // Show log
   await page.click('.nav-btn[data-view="log"]');
