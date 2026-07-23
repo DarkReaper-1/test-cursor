@@ -2,9 +2,30 @@
 
 This repository contains independent projects:
 
-1. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
-2. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-3. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+1. **[PressWell](#presswell)** — Blood pressure companion (finger wellness check + cuff log) for Android & iPhone
+2. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
+3. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
+4. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+
+---
+
+## PressWell
+
+Lightweight blood pressure companion for Android & iPhone:
+
+- Camera PPG → heart rate (signal processing engine)
+- Manual cuff → blood pressure
+- Analytics, charts, reminders, CSV/PDF export
+
+```bash
+cd presswell
+npm install
+npm start
+# open http://127.0.0.1:8787/presswell/
+```
+
+Architecture: [presswell/docs/architecture.md](presswell/docs/architecture.md) · App notes: [presswell/README.md](presswell/README.md)
+
 
 ---
 
