@@ -1,0 +1,21 @@
+{
+  "name": "presswell",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PressWell — lightweight blood pressure companion for Android & iPhone (PWA + Capacitor)",
+  "scripts": {
+    "start": "python3 -m http.server 8787 --directory ..",
+    "demo": "node demo/record-demo.js",
+    "record": "node demo/record-demo.js",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
+  }
+}
