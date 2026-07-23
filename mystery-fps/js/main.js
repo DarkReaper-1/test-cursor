@@ -1094,7 +1094,8 @@ function loop() {
 
     if (state.openingCam > 0) {
       state.openingCam -= dt;
-      const t = 1 - Math.max(0, state.openingCam) / 2.8;
+      const dur = state.openingCamDur || 2.8;
+      const t = 1 - Math.max(0, state.openingCam) / dur;
       camera.position.z = 3.4 - t * 1.4;
       camera.fov = 78 - t * 6;
       camera.updateProjectionMatrix();
@@ -1240,7 +1241,8 @@ async function startMission() {
   state.accuseReadyAnnounced = false;
   state.onboardFirstClue = false;
   state.onboardPinHint = false;
-  state.openingCam = DEMO ? 0.8 : 2.8;
+  state.openingCamDur = DEMO ? 0.8 : 2.8;
+  state.openingCam = state.openingCamDur;
   state.vx = 0;
   state.vz = 0;
   $("#accuse-select").value = "";
