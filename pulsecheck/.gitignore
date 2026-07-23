@@ -1,0 +1,13 @@
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.metadata
+pubspec.lock
+
+# android/ and ios/ are intentionally NOT ignored: once you run
+# `flutter create .` to generate them (see SETUP.md), commit them like any
+# other source.
