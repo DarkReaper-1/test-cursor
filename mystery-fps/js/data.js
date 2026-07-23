@@ -1,11 +1,22 @@
+/** Voiceover-style opening — detective movie narration */
 export const BRIEF = [
-  "Lord Reginald Ashworth was found dead in his library at 21:15. Cause: aconitine poisoning.",
-  "The storm sealed Blackwood Manor. You are alone with the crime scene — and four suspects still on the grounds.",
-  "Search every room. Press E to examine. In your journal, pin exhibits to suspects to build a theory — then accuse.",
-  "Suspects: Elena Voss (heiress), Marcus Ashworth (son), Dr. Whitmore (physician), Thomas Graves (butler).",
+  "Rain on the manor. A dead lord in the library. Poison in the blood.",
+  "The storm locked every door. Four suspects. No escape until dawn.",
+  "Walk the rooms. Examine what the night left behind. Pin your theories — then name the killer.",
+  "Elena Voss. Marcus Ashworth. Dr. Whitmore. Thomas Graves. One of them poured the death.",
 ];
 
 export const SOLUTION = "elena";
+
+/** Room cards as film chapter titles */
+export const ROOM_CARDS = {
+  entrance: { act: "ACT I", line: "The Threshold" },
+  library: { act: "ACT I", line: "The Body in the Library" },
+  study: { act: "ACT II", line: "Paper Knives" },
+  kitchen: { act: "ACT II", line: "Where Poison Waits" },
+  ballroom: { act: "ACT III", line: "Broken Alibis" },
+  garden: { act: "ACT III", line: "Tracks in the Rain" },
+};
 
 /** Display kinds are non-spoiling; implicates are truth data for case resolution only */
 export const CLUES = {
@@ -13,41 +24,49 @@ export const CLUES = {
     id: "body", title: "Ashworth's Body", kind: "physical",
     text: "No trauma. Blue lips. Classic aconitine. The brandy beside him is clean — the poison came earlier, at dinner.",
     room: "library", implicates: ["elena", "whitmore"],
+    sting: "The camera finds him first.",
   },
   letter: {
     id: "letter", title: "Torn Threat Letter", kind: "document",
     text: "Fragments: '...amend the will by week's end...' Handwriting mimics Whitmore's, but the paper is decades old. A plant.",
     room: "library", implicates: ["whitmore"],
+    sting: "Someone wanted a convenient villain.",
   },
   will: {
     id: "will", title: "Revised Will", kind: "document",
     text: "Three days old. Entire estate to Elena Voss. Marcus, Victoria, and Thomas cut out. Motive for everyone — including her.",
     room: "study", implicates: ["elena", "marcus", "thomas"],
+    sting: "Fortune redrawn in ink.",
   },
   safe: {
     id: "safe", title: "Unsigned Reversal", kind: "document",
     text: "Safe cracked tonight. Inside: an unsigned draft restoring the old heirs. Someone killed him before he could sign.",
     room: "study", implicates: ["elena"],
+    sting: "The rewrite that never happened.",
   },
   extract: {
     id: "extract", title: "Monkshood Extract", kind: "chemical",
     text: "Medical jar nearly empty. Seal broken tonight. Only Whitmore and kitchen staff knew the shelf — and Elena visited last month.",
     room: "kitchen", implicates: ["elena", "whitmore"],
+    sting: "Death in a glass vial.",
   },
   ledger: {
     id: "ledger", title: "Kitchen Log", kind: "document",
     text: "7:15 PM — Elena Voss entered the kitchen for 'dietary restrictions.' Soup served 7:30. Ashworth collapsed 8:45.",
     room: "kitchen", implicates: ["elena"],
+    sting: "The clock never lies.",
   },
   prints: {
     id: "prints", title: "Muddy Heels", kind: "trace",
     text: "Size-six heels from garden gate to kitchen door. Match Elena's dinner shoes. She claimed she never left the ballroom.",
     room: "garden", implicates: ["elena"],
+    sting: "A path cut through the storm.",
   },
   champagne: {
     id: "champagne", title: "Untouched Flute", kind: "physical",
     text: "Elena's champagne still full on the sill. Victoria saw her slip out at 7:10. Her alibi collapses.",
     room: "ballroom", implicates: ["elena"],
+    sting: "The glass she never drank.",
   },
 };
 
@@ -145,13 +164,14 @@ export const PICKUPS = [
 export const STUDY_LOCK = {
   clueRequired: "body",
   block: { x: 6, z: 2, w: 0.5, h: 2.6, d: 2.2 },
-  message: "Study door sealed. Examine the body in the library first.",
+  message: "The study stays sealed. The body in the library must speak first.",
 };
 
+/** Detective narration — film voiceover, not HQ radio */
 export const RADIO = [
-  { atClues: 0, text: "HQ: Comms live. Document the scene. Build a case before dawn." },
-  { atClues: 1, text: "HQ: First exhibit logged. Pin theories in your journal — follow the poison." },
-  { atClues: 3, text: "HQ: Pattern forming. Cross-check the kitchen against the will." },
-  { atClues: 5, text: "HQ: Enough for a charge. Review your pins, then name the killer." },
-  { atClues: 8, text: "HQ: Full dossier. Make your accusation when ready." },
+  { atClues: 0, text: "Voiceover: The manor holds its breath. So do you." },
+  { atClues: 1, text: "Voiceover: First cut of the reel. Follow the poison — not the brandy." },
+  { atClues: 3, text: "Voiceover: The plot thickens. Kitchen against will. Time against alibi." },
+  { atClues: 5, text: "Voiceover: Enough for the final act. Pin your theory. Name the killer." },
+  { atClues: 8, text: "Voiceover: Every frame in place. The accusation waits." },
 ];

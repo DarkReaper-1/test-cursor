@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {
-  BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, SUSPECTS, STUDY_LOCK, RADIO, KIND_LABELS,
+  BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, ROOM_CARDS, SUSPECTS, STUDY_LOCK, RADIO, KIND_LABELS,
 } from "./data.js";
 import { AudioBus } from "./audio.js";
 import { buildWorld, playerCollides, resetInvestigation } from "./world.js";
@@ -48,6 +48,8 @@ const state = {
   accuseReadyAnnounced: false,
   onboardFirstClue: false,
   onboardPinHint: false,
+  cinemaBusy: false,
+  openingCam: 0,
   vx: 0,
   vz: 0,
 };
@@ -87,7 +89,43 @@ function showRoomBanner(name) {
   bannerTimer = setTimeout(() => {
     el.classList.remove("show");
     setTimeout(() => el.classList.add("hidden"), 400);
-  }, 1600);
+  }, 1800);
+}
+
+function waitMs(ms) {
+  return new Promise((r) => setTimeout(r, DEMO ? Math.min(ms, 220) : ms));
+}
+
+async function cinemaFade(on, ms = 700) {
+  const el = $("#cinema-fade");
+  if (!el) return;
+  if (on) {
+    el.classList.add("on");
+    await waitMs(ms);
+  } else {
+    el.classList.remove("on");
+    await waitMs(ms * 0.6);
+  }
+}
+
+async function showTitleCard({ act = "", title = "", sub = "", hold = 2200 } = {}) {
+  const card = $("#title-card");
+  if (!card) return;
+  $("#tc-act").textContent = act;
+  $("#tc-title").textContent = title;
+  $("#tc-sub").textContent = sub;
+  card.classList.remove("hidden");
+  audio.noirHit();
+  await waitMs(hold);
+  card.classList.add("hidden");
+  await waitMs(280);
+}
+
+function roomChapter(roomId) {
+  const card = ROOM_CARDS[roomId];
+  const name = ROOM_BOUNDS[roomId]?.name || roomId;
+  if (!card) return name;
+  return `${card.act}\n${card.line}`;
 }
 
 function totalPins() {
@@ -180,7 +218,7 @@ function initEngine() {
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1.15;
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.08, 120);
@@ -384,7 +422,7 @@ function markClueSecured(marker) {
 }
 
 function tryInteract() {
-  if (state.modalOpen || state.journalOpen) return;
+  if (state.modalOpen || state.journalOpen || state.cinemaBusy) return;
   const target = getLookTarget();
   if (!target) {
     const near = nearestClueMarker(2.2);
@@ -412,13 +450,13 @@ function collectClue(clue, marker) {
 
   if (!state.onboardFirstClue) {
     state.onboardFirstClue = true;
-    setTimeout(() => toast("Tab opens Case Journal — pin theories to suspects"), 400);
+    setTimeout(() => toast("Tab — the journal. Pin your theories."), 500);
   }
 
   if (state.clues.size >= 5 && !state.accuseReadyAnnounced) {
     state.accuseReadyAnnounced = true;
-    showRoomBanner("ACCUSATION READY");
-    pushRadio("HQ: Enough for a charge. Review your pins, then accuse when ready.");
+    showRoomBanner("ACT III\nAccusation Ready");
+    pushRadio("Voiceover: Enough for the final act. Review your pins, then accuse.");
   }
 
   maybeRadio();
@@ -460,6 +498,11 @@ function openFlavor(marker) {
   marker.userData.examined = true;
   $("#ev-title").textContent = marker.userData.title;
   $("#ev-body").textContent = marker.userData.text;
+  const sting = $("#ev-sting");
+  if (sting) {
+    sting.textContent = "A detail the camera almost missed.";
+    sting.classList.remove("hidden");
+  }
   $("#ev-room").textContent = `Observation — ${ROOM_BOUNDS[state.room]?.name || state.room}`;
   const cat = $("#ev-category");
   cat.textContent = KIND_LABELS.flavor;
@@ -476,21 +519,28 @@ function openEvidence(clue, opts = {}) {
   if (document.pointerLockElement) document.exitPointerLock();
   $("#ev-title").textContent = clue.title;
   $("#ev-body").textContent = clue.text;
-  $("#ev-room").textContent = `Found in: ${ROOM_BOUNDS[clue.room]?.name || clue.room}`;
+  const sting = $("#ev-sting");
+  if (sting) {
+    sting.textContent = clue.sting || "";
+    sting.classList.toggle("hidden", !clue.sting);
+  }
+  $("#ev-room").textContent = `Scene: ${ROOM_BOUNDS[clue.room]?.name || clue.room}`;
   const cat = $("#ev-category");
   cat.textContent = KIND_LABELS[clue.kind] || "Evidence";
   cat.className = `ev-cat ${clue.kind || ""}`;
   $("#ev-pin-zone").classList.remove("hidden");
   renderPinChips(clue.id);
-  $("#btn-close-ev").textContent = opts.revisit ? "Close" : "Log & Continue";
+  $("#btn-close-ev").textContent = opts.revisit ? "Close" : "Hold on Frame";
   $("#evidence-modal").classList.remove("hidden");
+  if (!opts.revisit) audio.sting();
+  else audio.click();
 }
 
 function closeEvidence() {
   $("#evidence-modal").classList.add("hidden");
   state.modalOpen = false;
   const justLogged = state.activeClueId && state.clues.has(state.activeClueId);
-  if (justLogged && $("#btn-close-ev").textContent.includes("Log")) {
+  if (justLogged && ($("#btn-close-ev").textContent.includes("Hold") || $("#btn-close-ev").textContent.includes("Log"))) {
     toast(`Exhibit logged: ${CLUES[state.activeClueId].title}`);
   }
   state.activeClueId = null;
@@ -633,7 +683,13 @@ function updateBattery(dt) {
 }
 
 function updatePlayer(dt) {
-  if (!state.playing || state.modalOpen || state.journalOpen) return;
+  if (!state.playing || state.modalOpen || state.journalOpen || state.cinemaBusy) return;
+  if (state.openingCam > 0.15) {
+    camera.rotation.order = "YXZ";
+    camera.rotation.y = state.yaw;
+    camera.rotation.x = state.pitch;
+    return;
+  }
 
   state.studyToastCd = Math.max(0, state.studyToastCd - dt);
   if (!state.studyUnlocked) {
@@ -713,7 +769,8 @@ function updatePlayer(dt) {
   if (room !== state.room) {
     state.room = room;
     updateHUD();
-    showRoomBanner(ROOM_BOUNDS[room].name);
+    showRoomBanner(roomChapter(room));
+    audio.noirHit();
   }
 
   const target = getLookTarget();
@@ -748,7 +805,7 @@ function updatePlayer(dt) {
 function updateStorm(dt) {
   state.thunderT -= dt;
   state.exposureBoost = Math.max(0, state.exposureBoost - dt * 1.8);
-  if (renderer) renderer.toneMappingExposure = 1.3 + state.exposureBoost;
+  if (renderer) renderer.toneMappingExposure = 1.15 + state.exposureBoost;
 
   if (state.thunderT <= 0) {
     state.thunderT = 7 + Math.random() * 12;
@@ -923,25 +980,35 @@ function closeDossier() {
   renderJournal();
 }
 
-function confirmAccusation() {
+async function confirmAccusation() {
   const choice = $("#accuse-select").value;
-  if (!choice || state.clues.size < 5) return;
+  if (!choice || state.clues.size < 5 || state.cinemaBusy) return;
   $("#accuse-modal").classList.add("hidden");
   state.modalOpen = false;
   const won = choice === SOLUTION;
   const pinned = pinsForSuspect(choice);
   const text = won
-    ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. Your dossier held."
-    : "Wrong charge. The kitchen trail and garden heels pointed elsewhere — reopen and rebuild your theory.";
+    ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. The final frame holds."
+    : "Wrong charge. The kitchen trail and garden heels pointed elsewhere — rewrite the scene and try again.";
   state.journalOpen = false;
   $("#journal").classList.add("hidden");
-  state.timeScale = 0.28;
-  state.slowMoT = 1.1;
+  state.cinemaBusy = true;
+  state.timeScale = 0.22;
+  state.slowMoT = 1.4;
+  audio.finale(won);
   pushRadio(won
-    ? "HQ: Accusation logged. Case closed — Elena Voss."
-    : "HQ: Accusation rejected. Re-examine the kitchen log and heels.");
-  showRoomBanner(won ? "CASE CLOSED" : "WRONG ACCUSED");
-  setTimeout(() => endGame(won, text, { pinned, trueHits }), 1100);
+    ? "Voiceover: Cut. Print it. Case closed — Elena Voss."
+    : "Voiceover: The cut doesn't hold. Back to the kitchen trail.");
+  showRoomBanner(won ? "CASE CLOSED" : "WRONG CUT");
+  await cinemaFade(true, DEMO ? 300 : 900);
+  await showTitleCard({
+    act: won ? "THE END" : "FADE OUT",
+    title: won ? "Case Closed" : "Case Failed",
+    sub: won ? "The heiress poured the death." : "The reel rejects your accusation.",
+    hold: DEMO ? 500 : 2100,
+  });
+  state.cinemaBusy = false;
+  endGame(won, text, { pinned });
 }
 
 function accuse() {
@@ -962,9 +1029,12 @@ function endGame(won, text, meta = {}) {
     ? (state.clues.size >= 8 && pinScore >= 4 ? "S" : state.clues.size >= 6 ? "A" : "B")
     : "F";
 
+  const eyebrow = $("#result-eyebrow");
+  if (eyebrow) eyebrow.textContent = won ? "Finale — Print" : "Finale — Reshoot";
   $("#result-grade").textContent = grade;
   $("#result-title").textContent = won ? "Case Closed" : "Case Failed";
   $("#result-text").textContent = text;
+  $("#cinema-fade")?.classList.remove("on");
 
   const chain = $("#result-chain");
   if (won) {
@@ -1020,6 +1090,15 @@ function loop() {
         + (state.clues.size >= 5 ? 0.15 : 0)
     );
     audio.setTension(tension);
+    audio.setScoreIntensity(tension);
+
+    if (state.openingCam > 0) {
+      state.openingCam -= dt;
+      const t = 1 - Math.max(0, state.openingCam) / 2.8;
+      camera.position.z = 3.4 - t * 1.4;
+      camera.fov = 78 - t * 6;
+      camera.updateProjectionMatrix();
+    }
 
     world.lights.forEach((l, i) => {
       if (l === world.flashlight) return;
@@ -1102,18 +1181,35 @@ async function runDemo() {
 }
 
 async function playBrief() {
+  await cinemaFade(true, DEMO ? 200 : 500);
   showScreen("#screen-brief");
+  await cinemaFade(false, DEMO ? 200 : 600);
+  audio.noirHit();
   const box = $("#brief-lines");
   box.innerHTML = "";
   for (const line of BRIEF) {
     const p = document.createElement("p");
     p.textContent = line;
     box.appendChild(p);
-    await new Promise((r) => setTimeout(r, DEMO ? 180 : 650));
+    audio.radio();
+    await waitMs(DEMO ? 180 : 720);
   }
 }
 
-function startMission() {
+async function startMission() {
+  if (state.cinemaBusy) return;
+  state.cinemaBusy = true;
+  audio.init();
+  audio.resume();
+
+  await cinemaFade(true, DEMO ? 250 : 700);
+  await showTitleCard({
+    act: "ACT I",
+    title: "Blackwood Manor",
+    sub: "Nightfall. A locked estate. A dead lord.",
+    hold: DEMO ? 450 : 2300,
+  });
+
   state.playing = true;
   state.clues = new Set();
   state.notes = 0;
@@ -1123,7 +1219,7 @@ function startMission() {
   state.activeClueId = null;
   state.startTime = Date.now();
   state.yaw = 0;
-  state.pitch = 0;
+  state.pitch = -0.08;
   state.room = "entrance";
   state.modalOpen = false;
   state.journalOpen = false;
@@ -1131,7 +1227,7 @@ function startMission() {
   state.flashlightOn = true;
   state.battery = 100;
   state.crouching = false;
-  state.fov = 72;
+  state.fov = 78;
   state.studyUnlocked = false;
   state.studyDoorT = 0;
   state.radioFired = new Set();
@@ -1144,6 +1240,7 @@ function startMission() {
   state.accuseReadyAnnounced = false;
   state.onboardFirstClue = false;
   state.onboardPinHint = false;
+  state.openingCam = DEMO ? 0.8 : 2.8;
   state.vx = 0;
   state.vz = 0;
   $("#accuse-select").value = "";
@@ -1151,8 +1248,8 @@ function startMission() {
   $("#accuse-modal").classList.add("hidden");
   $("#result-chain").innerHTML = "";
   syncAccuseButton();
-  camera.position.set(0, 1.65, 2);
-  camera.fov = 72;
+  camera.position.set(0, 1.65, 3.4);
+  camera.fov = 78;
   camera.updateProjectionMatrix();
   syncFlashlight();
   $("#radio-log").innerHTML = "";
@@ -1173,12 +1270,13 @@ function startMission() {
   $("#journal").classList.add("hidden");
   $("#evidence-modal").classList.add("hidden");
   updateHUD();
-  showRoomBanner("Entrance Hall");
-  pushRadio("HQ: Comms live. Document the scene. Build a case before dawn.");
+  showRoomBanner(roomChapter("entrance"));
+  pushRadio("Voiceover: The manor holds its breath. So do you.");
   state.radioFired.add(RADIO[0].text);
-  audio.init();
-  audio.resume();
   audio.startAmbience();
+  audio.startScore();
+  await cinemaFade(false, DEMO ? 250 : 800);
+  state.cinemaBusy = false;
 
   if (DEMO) {
     $("#pause-hint").classList.add("hidden");

@@ -62,11 +62,11 @@ export function buildWorld(scene) {
   const pickups = [];
   const fx = [];
 
-  scene.background = new THREE.Color(0x0a1018);
-  scene.fog = new THREE.FogExp2(0x0c1420, 0.016);
+  scene.background = new THREE.Color(0x080a10);
+  scene.fog = new THREE.FogExp2(0x0a0e16, 0.018);
 
-  scene.add(new THREE.HemisphereLight(0x9aabb8, 0x2a2018, 0.75));
-  scene.add(new THREE.AmbientLight(0x3a4555, 0.4));
+  scene.add(new THREE.HemisphereLight(0x8a9aaa, 0x2a1810, 0.65));
+  scene.add(new THREE.AmbientLight(0x2e3545, 0.35));
 
   const moon = new THREE.DirectionalLight(0xc0d0e8, 0.65);
   moon.position.set(-20, 30, 10);

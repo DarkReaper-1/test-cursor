@@ -19,10 +19,107 @@
 
 html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); }
 
-#app { height: 100%; }
+#app { height: 100%; position: relative; }
 
 .screen { display: none; height: 100%; }
 .screen.active { display: flex; }
+
+/* Film overlays */
+#film-grain {
+  position: fixed;
+  inset: -20%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainShift 0.45s steps(2) infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes grainShift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 1%); }
+  50% { transform: translate(1%, -2%); }
+  75% { transform: translate(-1%, 2%); }
+  100% { transform: translate(0, 0); }
+}
+
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 89;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.letterbox {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+.letterbox span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 7.5vh;
+  background: #000;
+}
+.letterbox span:first-child { top: 0; }
+.letterbox span:last-child { bottom: 0; }
+.game-letterbox span { height: 6vh; }
+.title-letterbox span { height: 9vh; }
+
+.cinema-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+}
+.cinema-fade.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.title-card {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.72);
+  padding: 2rem;
+  transition: opacity 0.45s ease;
+}
+.title-card.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.title-card .tc-act {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.45em;
+  color: var(--accent);
+  margin-bottom: 0.8rem;
+}
+.title-card h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 8vw, 4.2rem);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 40px var(--accent-glow);
+}
+.title-card .tc-sub {
+  margin-top: 0.7rem;
+  font-style: italic;
+  color: var(--dim);
+  max-width: 28rem;
+  line-height: 1.6;
+}
 
 /* Title */
 #screen-title {
@@ -30,17 +127,18 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   justify-content: center;
   position: relative;
   background:
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(155, 44, 58, 0.18), transparent),
-    radial-gradient(ellipse 40% 30% at 20% 20%, rgba(201, 161, 74, 0.08), transparent),
-    linear-gradient(180deg, #070a10, #05070a);
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(155, 44, 58, 0.22), transparent),
+    radial-gradient(ellipse 40% 30% at 20% 20%, rgba(201, 161, 74, 0.1), transparent),
+    linear-gradient(180deg, #0a0c12, #05070a 55%, #12080c);
 }
 
 .title-bg {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to top, #05070a 0%, transparent 40%),
-    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.015) 80px, rgba(255,255,255,0.015) 81px);
+    linear-gradient(to top, #05070a 0%, transparent 45%),
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255,255,255,0.015) 80px, rgba(255,255,255,0.015) 81px),
+    radial-gradient(ellipse 90% 40% at 50% 110%, rgba(201, 161, 74, 0.08), transparent);
   pointer-events: none;
 }
 
@@ -156,32 +254,57 @@ kbd {
   font-size: 0.9rem;
 }
 
-/* Briefing */
+/* Briefing / voiceover crawl */
 #screen-brief {
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 80%, rgba(201, 161, 74, 0.08), transparent),
+    #05070a;
 }
 
 .brief-card {
   width: min(560px, 92vw);
   padding: 2.5rem 2rem;
-  background: var(--panel);
+  background: rgba(12, 16, 22, 0.92);
   border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
   box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  position: relative;
+  z-index: 2;
 }
 
 .brief-card h2 {
   font-family: var(--font-display);
   font-size: 2.4rem;
   letter-spacing: 0.08em;
-  margin: 0.4rem 0 1.4rem;
+  margin: 0.4rem 0 1rem;
+}
+
+.vo-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.35em;
+  color: var(--danger-lit);
+  margin-bottom: 1rem;
 }
 
 #brief-lines p {
   margin-bottom: 0.9rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text);
+  font-style: italic;
+  opacity: 0;
+  animation: voLine 0.7s ease forwards;
+}
+#brief-lines p:nth-child(1) { animation-delay: 0.05s; }
+#brief-lines p:nth-child(2) { animation-delay: 0.15s; }
+#brief-lines p:nth-child(3) { animation-delay: 0.25s; }
+#brief-lines p:nth-child(4) { animation-delay: 0.35s; }
+@keyframes voLine {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 #btn-deploy { margin-top: 1.2rem; }
@@ -280,8 +403,8 @@ kbd {
 .radio-log {
   position: absolute;
   left: 1.2rem;
-  bottom: 5.5rem;
-  max-width: 320px;
+  bottom: 6.2rem;
+  max-width: 340px;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: #9ec4a0;
@@ -294,9 +417,11 @@ kbd {
   opacity: 0;
   animation: radioIn 0.4s ease forwards;
   margin-bottom: 0.35rem;
-  background: rgba(8, 16, 12, 0.55);
-  border-left: 2px solid #4a8a5a;
+  background: rgba(12, 12, 18, 0.6);
+  border-left: 2px solid var(--accent);
   padding: 0.3rem 0.5rem;
+  font-style: italic;
+  color: #c8c2b4;
 }
 
 @keyframes radioIn {
@@ -442,7 +567,7 @@ kbd {
 .room-banner {
   position: absolute;
   left: 50%;
-  top: 22%;
+  top: 18%;
   transform: translateX(-50%);
   font-family: var(--font-display);
   font-size: 2.2rem;
@@ -450,11 +575,35 @@ kbd {
   color: var(--text);
   text-shadow: 0 0 30px rgba(0,0,0,0.9);
   opacity: 0;
-  transition: opacity 0.4s;
+  transition: opacity 0.5s;
   pointer-events: none;
+  text-align: center;
+  white-space: pre-line;
 }
 
 .room-banner.show { opacity: 1; }
+
+.ev-sting {
+  font-style: italic !important;
+  color: var(--accent) !important;
+  font-size: 0.95rem !important;
+  margin-top: -0.4rem !important;
+}
+
+.closeup-card {
+  animation: closeupIn 0.45s ease;
+}
+@keyframes closeupIn {
+  from { opacity: 0; transform: scale(1.04); filter: blur(2px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+.finale-card {
+  animation: rise 0.8s ease;
+}
+.finale-card .eyebrow {
+  margin-bottom: 0.2rem;
+}
 
 #minimap {
   position: absolute;
@@ -523,6 +672,7 @@ kbd {
   border: 1px solid var(--border);
   padding: 0.45rem 0.75rem;
   cursor: pointer;
+  pointer-events: auto;
 }
 .hud-journal-btn:hover { border-color: var(--accent); color: var(--accent); }
 .badge {
@@ -870,7 +1020,10 @@ kbd {
 #screen-result {
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  position: relative;
+  background:
+    radial-gradient(ellipse 50% 40% at 50% 60%, rgba(201, 161, 74, 0.1), transparent),
+    #05070a;
 }
 
 .result-card {

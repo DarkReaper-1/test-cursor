@@ -38,6 +38,66 @@ export class AudioBus {
     this.tone(784, 0.18, "sine", 0.04, 0.16);
   }
 
+  /** Noir sting — clue close-up */
+  sting() {
+    this.tone(196, 0.35, "sine", 0.05);
+    this.tone(247, 0.4, "triangle", 0.035, 0.08);
+    this.tone(392, 0.55, "sine", 0.025, 0.18);
+  }
+
+  /** Soft piano-ish noir chord */
+  noirHit() {
+    this.tone(110, 0.5, "sine", 0.04);
+    this.tone(165, 0.55, "triangle", 0.03, 0.05);
+    this.tone(220, 0.7, "sine", 0.025, 0.12);
+  }
+
+  /** Accusation finale */
+  finale(won = true) {
+    if (won) {
+      this.tone(130, 0.4, "sine", 0.06);
+      this.tone(196, 0.5, "triangle", 0.045, 0.1);
+      this.tone(262, 0.7, "sine", 0.04, 0.22);
+      this.tone(330, 0.9, "sine", 0.03, 0.4);
+    } else {
+      this.tone(98, 0.55, "sawtooth", 0.05);
+      this.tone(92, 0.7, "triangle", 0.04, 0.15);
+      this.tone(70, 0.9, "sine", 0.045, 0.3);
+    }
+  }
+
+  startScore() {
+    if (!this.ctx || !this.enabled || this._score) return;
+    const t = this.ctx.currentTime;
+    const make = (freq, type, vol) => {
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = vol;
+      o.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      return { o, g };
+    };
+    this._score = {
+      a: make(55, "sine", 0.012),
+      b: make(82.5, "triangle", 0.008),
+    };
+  }
+
+  setScoreIntensity(level) {
+    if (!this._score || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const a = 0.008 + level * 0.02;
+    const b = 0.005 + level * 0.015;
+    this._score.a.g.gain.cancelScheduledValues(now);
+    this._score.b.g.gain.cancelScheduledValues(now);
+    this._score.a.g.gain.linearRampToValueAtTime(a, now + 0.5);
+    this._score.b.g.gain.linearRampToValueAtTime(b, now + 0.5);
+    this._score.a.o.frequency.linearRampToValueAtTime(50 + level * 18, now + 0.6);
+  }
+
   footstep() {
     this.tone(70 + Math.random() * 20, 0.05, "triangle", 0.025);
   }
