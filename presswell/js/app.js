@@ -48,6 +48,20 @@
     return c;
   }
 
+  function syncMonitor() {
+    const sys = Number($("#sys-input").value);
+    const dia = Number($("#dia-input").value);
+    const pulse = Number($("#pulse-input").value);
+    $("#monitor-sys").textContent = Number.isFinite(sys) ? sys : "--";
+    $("#monitor-dia").textContent = Number.isFinite(dia) ? dia : "--";
+    $("#monitor-pulse").textContent = Number.isFinite(pulse) ? pulse : "--";
+    const c = paintCategory($("#live-category"), sys, dia);
+    // Map category to needle position across range strip segments
+    const map = { normal: 12, elevated: 34, high: c.level >= 3 ? 72 : 55, crisis: 90, unknown: 12 };
+    const pct = map[c.key] ?? 12;
+    $("#range-needle").style.left = `calc(${pct}% - 2px)`;
+  }
+
   function fmt(n, digits = 0) {
     if (!Number.isFinite(n)) return "—";
     return Math.round(n * 10 ** digits) / 10 ** digits;
@@ -168,7 +182,7 @@
     if (name === "home") renderDash();
     if (name === "history") renderHistory();
     if (name === "charts") renderCharts();
-    if (name === "log") paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value));
+    if (name === "log") syncMonitor();
     if (name === "pulse") preparePulseView();
   }
 
@@ -206,6 +220,7 @@
       try {
         cameraSession = await Camera.openCamera({ preferTorch: true });
         await Camera.attach($("#camera-video"), cameraSession.stream);
+        $("#camera-frame").classList.add("has-video");
         $("#camera-hint").textContent = cameraSession.torchOn
           ? "Torch on — keep fingertip covering the lens"
           : "Cover the lens fully with your fingertip";
@@ -288,6 +303,7 @@
       cameraSession = null;
       $("#camera-video").srcObject = null;
     }
+    $("#camera-frame")?.classList.remove("has-video");
   }
 
   function stopMeasurement(silent) {
@@ -361,7 +377,7 @@
     $("#dia-input").value = 82;
     $("#pulse-input").value = 76;
     $("#note-input").value = "After coffee";
-    paintCategory($("#live-category"), 128, 82);
+    syncMonitor();
     await wait(900);
     $("#cuff-form").requestSubmit();
     await wait(1200);
@@ -394,15 +410,11 @@
         const field = btn.dataset.field;
         const input = $(`#${field}-input`);
         input.value = BP.clamp(Number(input.value) + Number(btn.dataset.delta), Number(input.min), Number(input.max));
-        if (field === "sys" || field === "dia") {
-          paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value));
-        }
+        syncMonitor();
       });
     });
-    ["sys-input", "dia-input"].forEach((id) =>
-      $(`#${id}`).addEventListener("input", () =>
-        paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value))
-      )
+    ["sys-input", "dia-input", "pulse-input"].forEach((id) =>
+      $(`#${id}`).addEventListener("input", syncMonitor)
     );
 
     $("#cuff-form").addEventListener("submit", (e) => {

@@ -51,8 +51,16 @@
   <div id="app" class="app" hidden>
     <header class="topbar">
       <button type="button" class="brand-home" data-go="home" aria-label="PressWell home">
-        <span class="brand-mark sm">PressWell</span>
-        <span class="topbar-sub" id="greeting">Welcome</span>
+        <span class="brand-lockup">
+          <svg class="brand-glyph" viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="9" fill="currentColor"/>
+            <path d="M6 18c5-9 8-9 10 0s5 9 10 0" fill="none" stroke="#e8f6f4" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          <span>
+            <span class="brand-mark sm">PressWell</span>
+            <span class="topbar-sub" id="greeting">Welcome</span>
+          </span>
+        </span>
       </button>
       <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
@@ -64,6 +72,13 @@
     <main class="main">
       <section id="view-home" class="view active" aria-label="Home">
         <div class="home-hero">
+          <div class="hero-visual" aria-hidden="true">
+            <span class="hero-ring"></span>
+            <span class="hero-ring delay"></span>
+            <svg viewBox="0 0 160 64" class="hero-wave">
+              <path d="M4 36c18-28 30-28 42 0s30 28 42 0 30-28 42 0 30 28 42 0" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
           <p class="brand-mark hero-brand">PressWell</p>
           <h2 class="hero-title">Check in calmly</h2>
           <p class="hero-copy">Camera for pulse. Cuff for blood pressure.</p>
@@ -72,7 +87,7 @@
         <div class="action-stack">
           <button type="button" class="action-tile primary" data-go="pulse">
             <span class="tile-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 2a3 3 0 0 1 3 3v1.1A7 7 0 0 1 19 13v1l2 3H3l2-3v-1a7 7 0 0 1 4-6.1V5a3 3 0 0 1 3-3Zm-1 14h2v4h-2v-4Z"/></svg>
+              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 7h3l1.2-2h7.6L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-2.2a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Z"/></svg>
             </span>
             <span class="tile-copy">
               <span class="tile-kicker">Camera · PPG</span>
@@ -111,9 +126,15 @@
         <p class="view-lead">Cover the rear camera. Stay still. This estimates <strong>pulse only</strong> — not blood pressure.</p>
 
         <div class="camera-stage">
-          <div class="camera-frame">
+          <div class="camera-frame" id="camera-frame">
             <video id="camera-video" playsinline muted autoplay></video>
             <canvas id="sample-canvas" width="64" height="64" hidden></canvas>
+            <div class="camera-placeholder" id="camera-placeholder" aria-hidden="true">
+              <svg class="finger-sil" viewBox="0 0 80 120" fill="none">
+                <path d="M28 8c6-4 18-4 24 2 4 4 5 10 4 28v34c0 8-4 12-10 12s-10-4-10-12V42c0-6-2-8-6-8s-6 3-6 8v40c0 22 12 34 30 34h4c20 0 30-14 30-36V48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+              <p>Place fingertip over camera</p>
+            </div>
             <div class="camera-guide" aria-hidden="true">
               <span class="guide-ring"></span>
               <span class="guide-ring delay"></span>
@@ -151,6 +172,39 @@
         <button type="button" class="back-btn" data-back>← Back</button>
         <h2 class="view-title">Blood pressure</h2>
         <p class="view-lead">Type the numbers from your cuff. The phone does <strong>not</strong> measure blood pressure.</p>
+
+        <div class="monitor-panel" aria-live="polite">
+          <div class="monitor-readout">
+            <div class="monitor-pair">
+              <span class="monitor-label">SYS</span>
+              <strong id="monitor-sys">120</strong>
+            </div>
+            <span class="monitor-slash">/</span>
+            <div class="monitor-pair">
+              <span class="monitor-label">DIA</span>
+              <strong id="monitor-dia">80</strong>
+            </div>
+            <div class="monitor-pulse">
+              <span class="monitor-label">PULSE</span>
+              <strong id="monitor-pulse">72</strong>
+            </div>
+          </div>
+          <div class="range-strip" aria-hidden="true">
+            <div class="range-track">
+              <span class="seg normal"></span>
+              <span class="seg elevated"></span>
+              <span class="seg stage1"></span>
+              <span class="seg stage2"></span>
+              <span class="seg crisis"></span>
+              <span class="range-needle" id="range-needle"></span>
+            </div>
+            <div class="range-labels">
+              <span>Normal</span><span>Elevated</span><span>High</span><span>Crisis</span>
+            </div>
+          </div>
+          <p id="live-category" class="category-chip preview">Normal</p>
+        </div>
+
         <form id="cuff-form" class="cuff-form">
           <div class="stepper-grid">
             <fieldset>
@@ -182,7 +236,6 @@
             <span>Note (optional)</span>
             <input id="note-input" type="text" maxlength="80" placeholder="Morning, after walk, …" />
           </label>
-          <p id="live-category" class="category-chip preview">Normal</p>
           <button type="submit" class="btn btn-primary btn-xl">Save cuff reading</button>
         </form>
       </section>
