@@ -50,6 +50,7 @@ const state = {
   onboardPinHint: false,
   cinemaBusy: false,
   openingCam: 0,
+  openingCamDur: 2.8,
   vx: 0,
   vz: 0,
 };
