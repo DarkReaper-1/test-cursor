@@ -11,7 +11,11 @@ This repository contains independent projects:
 
 ## PressWell
 
-Lightweight, senior-friendly blood pressure companion: honest finger wellness estimates, cuff logging, history, and store-ready PWA/Capacitor packaging. No ads, no account.
+Lightweight blood pressure companion for Android & iPhone:
+
+- Camera PPG → heart rate (signal processing engine)
+- Manual cuff → blood pressure
+- Analytics, charts, reminders, CSV/PDF export
 
 ```bash
 cd presswell
@@ -20,7 +24,8 @@ npm start
 # open http://127.0.0.1:8787/presswell/
 ```
 
-See [presswell/README.md](presswell/README.md) and [presswell/docs/research-findings.md](presswell/docs/research-findings.md).
+Architecture: [presswell/docs/architecture.md](presswell/docs/architecture.md) · App notes: [presswell/README.md](presswell/README.md)
+
 
 ---
 
