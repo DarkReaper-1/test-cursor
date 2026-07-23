@@ -1183,7 +1183,8 @@ legend {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(6rem + var(--safe-bottom));
+  top: calc(1rem + env(safe-area-inset-top, 0px));
+  bottom: auto;
   transform: translateX(-50%);
   background: var(--brand-deep);
   color: #fff;

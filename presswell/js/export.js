@@ -78,7 +78,7 @@
         <thead><tr><th>When</th><th>BP</th><th>HR</th><th>Stress cue</th><th>Note</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <script>onload=()=>print()</script>
+      <script>onload=()=>print()<\/script>
       </body></html>`);
     win.document.close();
   }

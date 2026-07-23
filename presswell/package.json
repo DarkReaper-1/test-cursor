@@ -5,6 +5,7 @@
   "description": "PressWell — lightweight blood pressure companion for Android & iPhone (PWA + Capacitor)",
   "scripts": {
     "start": "python3 -m http.server 8787 --directory ..",
+    "build:single": "node scripts/build-single.js",
     "demo": "node demo/record-demo.js",
     "record": "node demo/record-demo.js",
     "cap:sync": "npx cap sync",
