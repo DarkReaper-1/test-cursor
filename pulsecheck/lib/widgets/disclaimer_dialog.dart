@@ -29,8 +29,9 @@ class DisclaimerDialog extends StatelessWidget {
           '• Do not use this app to diagnose, monitor, or make decisions '
           'about any medical condition. If you feel unwell, contact a '
           'doctor or emergency services.\n\n'
-          '• Everything you measure stays on this device. No account, '
-          'no ads, no data leaves your phone.',
+          '• Everything you measure stays on this device by default. No account, '
+          'no ads, no server. You can optionally sync to Apple Health / Health '
+          'Connect or export a report — both are off unless you turn them on.',
           style: TextStyle(fontSize: 16, height: 1.4),
         ),
       ),

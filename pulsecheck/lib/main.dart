@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/root_nav.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -28,7 +28,7 @@ class PulseCheckApp extends StatelessWidget {
           child: child!,
         );
       },
-      home: const HomeScreen(),
+      home: const RootNav(),
     );
   }
 }

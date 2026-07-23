@@ -51,23 +51,69 @@ per frame is kept, in memory, for the duration of one measurement.
 
 ```
 lib/
-  main.dart                     # app entry, theme, text-scale handling
-  theme/app_theme.dart          # high-contrast, large-touch-target theme
+  main.dart                          # app entry, theme, text-scale handling
+  theme/app_theme.dart               # high-contrast, large-touch-target theme
+  db/
+    app_database.dart                # sqflite schema (heart_rate_readings, blood_pressure_readings)
+  models/
+    heart_rate_reading.dart
+    blood_pressure_reading.dart      # includes a reference-range label (informational only)
   services/
-    camera_ppg_service.dart     # camera + torch + brightness streaming
-    ppg_processor.dart          # signal processing: filtering, peak/BPM/HRV
-    history_store.dart          # on-device-only local history (SharedPreferences)
+    camera_ppg_service.dart          # camera + torch + brightness streaming
+    ppg_processor.dart               # signal processing: filtering, peak/BPM/HRV
+    health_repository.dart           # all reads/writes to the local database
+    settings_store.dart              # small on-device flags (reminders, health sync, disclaimer ack)
+    analytics_service.dart           # averages / min / max / weekly & monthly trends / HRV
+    insights_service.dart            # rule-based lifestyle insights (not ML, not cloud)
+    notification_service.dart        # local daily reminders (flutter_local_notifications)
+    export_service.dart              # CSV + PDF report generation and sharing
+    healthkit_service.dart           # opt-in Apple Health / Health Connect write sync
   screens/
-    home_screen.dart            # measurement flow (idle/measuring/result)
-    history_screen.dart         # local reading history
-    about_screen.dart           # how it works, privacy, disclaimer
+    root_nav.dart                    # bottom navigation: Dashboard/History/Trends/Insights/Settings
+    home_screen.dart                 # dashboard: latest readings + quick actions
+    heart_rate_measure_screen.dart   # the camera PPG measurement flow
+    blood_pressure_log_screen.dart   # manual BP entry (from an external cuff)
+    history_screen.dart              # full reading history, tabbed HR/BP
+    charts_screen.dart               # fl_chart trend lines, 7d/30d/90d
+    insights_screen.dart             # rule-based insight cards
+    settings_screen.dart             # reminders, Health sync, export, delete-all-data
+    about_screen.dart                # how it works, privacy, disclaimer
   widgets/
-    waveform_painter.dart       # live pulse waveform
-    quality_badge.dart          # plain-language signal quality indicator
-    disclaimer_dialog.dart      # first-launch medical disclaimer
+    waveform_painter.dart            # live pulse waveform
+    quality_badge.dart                # plain-language signal quality indicator
+    disclaimer_dialog.dart           # first-launch medical disclaimer
 test/
-  ppg_processor_test.dart       # synthetic-signal unit tests for the DSP pipeline
+  ppg_processor_test.dart            # synthetic-signal unit tests for the DSP pipeline
 ```
+
+## Module map
+
+Mirrors the architecture this was built against, adapted to what a
+lightweight, no-account, offline-first app actually needs:
+
+```
+PulseCheck
+├── Camera Module            → services/camera_ppg_service.dart
+├── Pulse Detection Engine   → services/ppg_processor.dart
+├── Blood Pressure Logger    → screens/blood_pressure_log_screen.dart (manual entry, no phone-measured BP)
+├── Health Database          → db/app_database.dart, services/health_repository.dart
+├── Analytics Engine         → services/analytics_service.dart
+├── Graph Generator          → screens/charts_screen.dart
+├── AI/Insight Module        → services/insights_service.dart (rule-based, on-device, lifestyle-only)
+├── Notification Service     → services/notification_service.dart
+├── Export Service           → services/export_service.dart
+├── Apple Health Integration → services/healthkit_service.dart (opt-in, write-only)
+└── Settings                 → screens/settings_screen.dart
+```
+
+**Deliberately not included: Authentication and a cloud User Profile.**
+Forced account creation just to log a heart rate was one of the most common
+complaints in the app-review research this project started from (see the
+top-level table above), so there's no login, no server-side profile, and no
+cloud sync of any kind — everything above runs against the on-device SQLite
+database. If you want per-person profiles later (e.g. a shared family
+phone), that's a local, no-login "profile switcher" over the same local DB,
+not an account system.
 
 ## Status / what's been verified vs. not
 
