@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIGHTWIRE — Concept Trailer & Previsualization</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,ital,wght@8..60,400;8..60,600;8..60,400i&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/trailer.css" />
+</head>
+<body>
+  <div id="film-grain" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+  <div class="letterbox" aria-hidden="true"><span></span><span></span></div>
+
+  <canvas id="stage"></canvas>
+  <div id="cinema-fade" class="cinema-fade"></div>
+  <div id="overlay-root"></div>
+
+  <div id="title-card" class="title-card hidden">
+    <p class="tc-act" id="tc-act"></p>
+    <h1 id="tc-title"></h1>
+    <p class="tc-sub" id="tc-sub"></p>
+  </div>
+
+  <p id="caption" class="caption hidden"></p>
+  <p id="vo-line" class="vo-line hidden"></p>
+
+  <!-- INTRO GATE -->
+  <section id="intro-gate" class="gate">
+    <div class="gate-inner">
+      <p class="eyebrow">Meridian Pictures Interactive</p>
+      <h1>NIGHTWIRE</h1>
+      <p class="subtitle">Concept Trailer & Gameplay Previsualization</p>
+      <p class="pitch">
+        A neo-noir detective game for PC & mobile — 1980s–90s crime cinema energy,<br />
+        modern investigation systems, cinematic storytelling.
+      </p>
+      <p class="notice">
+        <strong>Production hold:</strong> This trailer is the vision review.
+        No development begins until you approve.
+      </p>
+      <button id="btn-start-trailer" class="btn primary">Play Concept Trailer</button>
+      <button id="btn-open-deck" class="btn ghost">Open Vision Deck</button>
+      <p class="hint"><kbd>Space</kbd> Play / Next beat · Storyboard to scrub</p>
+    </div>
+  </section>
+
+  <!-- TRAILER CHROME -->
+  <div id="trailer-chrome" class="chrome hidden">
+    <div class="chrome-top">
+      <span class="brand">NIGHTWIRE · PREVIS</span>
+      <span id="beat-label" class="beat-label"></span>
+      <div class="chrome-actions">
+        <button id="btn-skip" class="btn tiny">Next Beat</button>
+        <button id="btn-play" class="btn tiny">Playing…</button>
+      </div>
+    </div>
+    <div class="progress"><div id="progress-fill"></div></div>
+    <div id="storyboard-strip" class="storyboard"></div>
+  </div>
+
+  <div id="trailer-complete" class="complete hidden">
+    <p>Trailer complete — review the Vision Deck, then approve Phase 1.</p>
+    <button class="btn primary" onclick="document.getElementById('vision-deck').classList.remove('hidden')">Open Vision Deck</button>
+  </div>
+
+  <!-- VISION DECK -->
+  <aside id="vision-deck" class="deck hidden">
+    <header class="deck-head">
+      <div>
+        <p class="eyebrow">Vision Deck — Not a GDD yet</p>
+        <h2>NIGHTWIRE</h2>
+      </div>
+      <button id="btn-close-deck" class="btn ghost">Close</button>
+    </header>
+    <nav class="deck-tabs">
+      <button class="deck-tab active" data-deck="pitch">Pitch</button>
+      <button class="deck-tab" data-deck="story">Story Hook</button>
+      <button class="deck-tab" data-deck="cast">Cast</button>
+      <button class="deck-tab" data-deck="world">World</button>
+      <button class="deck-tab" data-deck="systems">Systems</button>
+      <button class="deck-tab" data-deck="tech">Tech</button>
+      <button class="deck-tab" data-deck="gate">Approval Gate</button>
+    </nav>
+    <div class="deck-body">
+      <section id="deck-pitch" class="deck-panel">
+        <h3>Announcement Pitch</h3>
+        <p><em>NIGHTWIRE</em> is a cinematic 3D detective game blending 1980s–1990s neo-noir crime films with modern investigation gameplay. You play Detective Mara Quinn in Port Meridian — a rainy, neon-soaked semi-open city where every district hides environmental stories, schedules, and lies.</p>
+        <p>This package is a <strong>concept trailer + previs</strong> only: camera language, sample systems UI, atmosphere, and logo. Full documentation and production start only after your greenlight.</p>
+        <ul class="bullets">
+          <li>Tone: dark, rainy, suspenseful, cinematic, immersive</li>
+          <li>Fantasy: feel like the lead in a premium crime thriller</li>
+          <li>Platforms (planned): Windows, macOS, Linux optional, Android, iOS</li>
+          <li>Controls (planned): KBM, controller, touch</li>
+        </ul>
+      </section>
+      <section id="deck-story" class="deck-panel hidden">
+        <h3>Story Hook (Trailer Cut)</h3>
+        <p>A city planner vanishes from the Meridian Motel. The blood on the sill isn’t hers. A ghost radio channel links the docks to Precinct 7. Captain Boone wants the file closed. Quinn was reinstated to rubber-stamp it — she refuses.</p>
+        <p>Full multi-chapter bible, twists, false suspects, moral branches, and endings are Phase 1–3 deliverables after approval. Trailer promise: every clue matters; the wire never lies — people do.</p>
+      </section>
+      <section id="deck-cast" class="deck-panel hidden">
+        <h3>Cast Preview</h3>
+        <ul id="cast-list" class="cast"></ul>
+      </section>
+      <section id="deck-world" class="deck-panel hidden">
+        <h3>Port Meridian — Districts (Planned)</h3>
+        <ul id="district-list" class="districts"></ul>
+        <p class="dim">Semi-open world with streaming districts, day/night, dynamic weather, and environmental storytelling in every location.</p>
+      </section>
+      <section id="deck-systems" class="deck-panel hidden">
+        <h3>Systems Shown in Trailer</h3>
+        <ul class="bullets">
+          <li>Crime scene investigation & evidence photography</li>
+          <li>Detective Vision (prints, traces, concealed objects)</li>
+          <li>Inventory / Case Kit</li>
+          <li>Evidence Board (links, timeline, motives)</li>
+          <li>Branching dialogue / interrogation pressure</li>
+          <li>Driving, surveillance / tailing</li>
+          <li>Lockpicking & signal-trace puzzles</li>
+          <li>NPC schedules & living city promise</li>
+        </ul>
+      </section>
+      <section id="deck-tech" class="deck-panel hidden">
+        <h3>Technical Direction (Proposed)</h3>
+        <p><strong>Engine:</strong> Unreal Engine 5 preferred for cinematic lighting, Nanite/Lumen, and dual PC/mobile scalability via scalability tiers. Unity remains a fallback if mobile-first tooling is prioritized after Phase 1.</p>
+        <ul class="bullets">
+          <li>Clean modular architecture, data-driven cases</li>
+          <li>Asset streaming, save/load, input abstraction</li>
+          <li>Quality tiers: High PC · Mid PC · Mobile</li>
+        </ul>
+        <p class="dim">No engine project is scaffolded in this previs package.</p>
+      </section>
+      <section id="deck-gate" class="deck-panel hidden">
+        <h3>Awaiting Your Approval</h3>
+        <p>If you approve this vision, the next step is <strong>Phase 1 — Game Design Document</strong> only. Subsequent phases (world, story bible, systems, UI, AI, audio, optimization, QA, polish) each end with a summary and wait for your sign-off.</p>
+        <p class="gate-box">Reply with approval (e.g. “Approved — begin Phase 1”) to unlock the GDD and full deliverable set. Until then, production stays locked.</p>
+      </section>
+    </div>
+  </aside>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="js/trailer.js"></script>
+</body>
+</html>
