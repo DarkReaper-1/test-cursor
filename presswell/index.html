@@ -4,9 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0A5C63" />
-  <meta name="description" content="PressWell — simple blood pressure companion. Finger wellness check plus cuff logging. No ads, private, easy for every age." />
+  <meta name="description" content="PressWell — camera heart-rate checks and cuff blood-pressure logging. Simple, honest, built for every age." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="PressWell" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="public/icon.svg" type="image/svg+xml" />
@@ -20,31 +19,26 @@
 <body>
   <a class="skip-link" href="#app">Skip to app</a>
 
-  <!-- Onboarding / honesty gate -->
   <section id="onboarding" class="screen onboarding" aria-labelledby="ob-title">
     <div class="ob-bg" aria-hidden="true"></div>
     <div class="ob-inner">
       <p class="brand-mark">PressWell</p>
-      <h1 id="ob-title">Know your numbers.<br />Keep them honest.</h1>
-      <p class="lead">A calm companion for every age: finger wellness checks, and real cuff logging when it matters.</p>
-
-      <ul class="promise-list" aria-label="What this app does differently">
+      <h1 id="ob-title">Heart rate by camera.<br />Blood pressure by cuff.</h1>
+      <p class="lead">A calm companion for every age — PPG pulse from your fingertip camera, and honest cuff logging for blood pressure.</p>
+      <ul class="promise-list">
+        <li>Camera estimates <strong>heart rate</strong> only (PPG).</li>
+        <li>Blood pressure is entered from a <strong>real cuff monitor</strong>.</li>
         <li>No ads. No account. Data stays on your device.</li>
-        <li>Large type and big buttons — built for every age.</li>
-        <li>Finger checks are <strong>estimates only</strong>, not medical readings.</li>
-        <li>A home cuff is still the right tool for care decisions.</li>
+        <li>Large type, charts, reminders, and doctor-ready export.</li>
       </ul>
-
       <label class="accept-row">
         <input type="checkbox" id="accept-disclaimer" />
-        <span>I understand PressWell is not a medical device and will not use estimates to change medicines or skip a clinician.</span>
+        <span>I understand PressWell is not a medical device. Camera readings are wellness estimates; cuff numbers are for personal logging only.</span>
       </label>
-
       <button type="button" id="btn-enter" class="btn btn-primary btn-xl" disabled>Continue</button>
     </div>
   </section>
 
-  <!-- Main app shell -->
   <div id="app" class="app" hidden>
     <header class="topbar">
       <div>
@@ -54,89 +48,91 @@
       <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">⚙</button>
     </header>
 
-    <main id="main" class="main">
-      <!-- Home -->
-      <section id="view-home" class="view active" aria-label="Home">
+    <main class="main">
+      <!-- Dashboard -->
+      <section id="view-home" class="view active" aria-label="Dashboard">
         <div class="hero-panel">
-          <h2 class="hero-title">Check in calmly</h2>
-          <p class="hero-copy">Two clear paths. Pick one.</p>
+          <h2 class="hero-title">Dashboard</h2>
+          <p class="hero-copy">Camera for pulse. Cuff for blood pressure.</p>
         </div>
-
         <div class="action-stack">
-          <button type="button" class="action-tile primary" data-go="scan">
-            <span class="tile-kicker">Wellness estimate</span>
-            <span class="tile-title">Finger check</span>
-            <span class="tile-desc">Hold your finger on the pad for about 20 seconds.</span>
+          <button type="button" class="action-tile primary" data-go="pulse">
+            <span class="tile-kicker">Camera · PPG</span>
+            <span class="tile-title">Measure heart rate</span>
+            <span class="tile-desc">Cover the camera with your fingertip. Flash helps when available.</span>
           </button>
           <button type="button" class="action-tile" data-go="log">
-            <span class="tile-kicker">Recommended for care</span>
-            <span class="tile-title">Log from cuff</span>
-            <span class="tile-desc">Enter numbers from a home blood pressure monitor.</span>
+            <span class="tile-kicker">Manual input</span>
+            <span class="tile-title">Log blood pressure</span>
+            <span class="tile-desc">Enter systolic / diastolic from your home monitor.</span>
           </button>
         </div>
 
-        <section class="latest-block" aria-labelledby="latest-heading">
+        <div class="stat-grid" id="dash-stats" aria-label="Quick stats"></div>
+
+        <section class="latest-block">
           <div class="section-head">
-            <h3 id="latest-heading">Latest reading</h3>
+            <h3>Latest</h3>
             <button type="button" class="text-btn" data-go="history">History</button>
           </div>
-          <div id="latest-card" class="latest-card empty">
-            <p>No readings yet. Start with a cuff log or a finger check.</p>
-          </div>
+          <div id="latest-card" class="latest-card empty"><p>No readings yet.</p></div>
         </section>
 
-        <p class="soft-note">Estimates never replace a clinician or a validated cuff.</p>
+        <section class="insight-block" aria-labelledby="insight-heading">
+          <h3 id="insight-heading">Wellness insight</h3>
+          <p id="insight-text" class="insight-text">Log a few readings to see calm, non-diagnostic pattern notes.</p>
+        </section>
       </section>
 
-      <!-- Finger scan -->
-      <section id="view-scan" class="view" aria-label="Finger check" hidden>
+      <!-- Heart rate / camera PPG -->
+      <section id="view-pulse" class="view" hidden aria-label="Heart rate">
         <button type="button" class="back-btn" data-back>← Back</button>
-        <h2 class="view-title">Finger check</h2>
-        <p class="view-lead">Place one fingertip on the pad. Stay still. This is a <strong>wellness estimate</strong>, not a medical blood pressure reading.</p>
+        <h2 class="view-title">Heart rate</h2>
+        <p class="view-lead">Cover the rear camera with one fingertip. Stay still. This estimates <strong>pulse only</strong> — not blood pressure.</p>
 
-        <div class="scan-stage">
-          <div id="finger-pad" class="finger-pad" role="button" tabindex="0" aria-label="Finger pad. Press and hold to start scanning.">
-            <div class="pulse-ring" aria-hidden="true"></div>
-            <div class="pulse-ring delay" aria-hidden="true"></div>
-            <span id="pad-label" class="pad-label">Hold here</span>
-            <span id="pad-sub" class="pad-sub">Press firmly and stay still</span>
+        <div class="camera-stage">
+          <div class="camera-frame">
+            <video id="camera-video" playsinline muted autoplay></video>
+            <canvas id="sample-canvas" width="64" height="64" hidden></canvas>
+            <div class="camera-guide" aria-hidden="true"></div>
+            <p id="camera-hint" class="camera-hint">Allow camera access to begin</p>
           </div>
-          <div class="scan-meter" aria-hidden="true">
-            <div id="scan-progress" class="scan-progress"></div>
+          <canvas id="ppg-wave" width="640" height="140" aria-label="Pulse waveform"></canvas>
+          <div class="hr-live">
+            <span class="hr-num" id="live-bpm">--</span>
+            <span class="hr-unit">BPM</span>
           </div>
-          <p id="scan-status" class="scan-status" aria-live="polite">Ready when you are.</p>
-          <canvas id="pulse-wave" width="640" height="120" aria-hidden="true"></canvas>
+          <p id="pulse-status" class="scan-status" aria-live="polite">Starting camera…</p>
+          <div class="scan-meter"><div id="pulse-progress" class="scan-progress"></div></div>
+          <div class="btn-row compact">
+            <button type="button" id="btn-start-pulse" class="btn btn-primary">Start measurement</button>
+            <button type="button" id="btn-stop-pulse" class="btn btn-ghost" hidden>Stop</button>
+          </div>
         </div>
 
-        <div id="scan-result" class="scan-result" hidden>
-          <p class="estimate-badge">Wellness estimate · not clinical</p>
-          <div class="bp-big">
-            <span id="est-sys">--</span><span class="slash">/</span><span id="est-dia">--</span>
-            <span class="unit">mmHg</span>
-          </div>
-          <p class="pulse-line">Pulse ≈ <strong id="est-pulse">--</strong> bpm</p>
-          <p id="est-category" class="category-chip">—</p>
-          <p class="result-note">Use a home cuff to confirm before making any health decision.</p>
+        <div id="pulse-result" class="scan-result" hidden>
+          <p class="estimate-badge">Camera PPG · wellness estimate</p>
+          <div class="bp-big"><span id="result-bpm">--</span><span class="unit">beats per minute</span></div>
+          <p class="pulse-line">HRV (approx) <strong id="result-hrv">--</strong> ms · Stress cue: <strong id="result-stress">—</strong></p>
           <div class="btn-row">
-            <button type="button" id="btn-save-estimate" class="btn btn-primary">Save estimate</button>
-            <button type="button" id="btn-rescan" class="btn btn-ghost">Try again</button>
+            <button type="button" id="btn-save-pulse" class="btn btn-primary">Save heart rate</button>
+            <button type="button" id="btn-retry-pulse" class="btn btn-ghost">Measure again</button>
           </div>
         </div>
       </section>
 
-      <!-- Cuff log -->
-      <section id="view-log" class="view" aria-label="Log from cuff" hidden>
+      <!-- Blood pressure log -->
+      <section id="view-log" class="view" hidden aria-label="Blood pressure log">
         <button type="button" class="back-btn" data-back>← Back</button>
-        <h2 class="view-title">Log from cuff</h2>
-        <p class="view-lead">Type the numbers shown on your blood pressure monitor.</p>
-
+        <h2 class="view-title">Blood pressure</h2>
+        <p class="view-lead">Type the numbers from your cuff monitor. The phone does <strong>not</strong> measure blood pressure.</p>
         <form id="cuff-form" class="cuff-form">
           <div class="stepper-grid">
             <fieldset>
               <legend>Systolic <span class="hint">(top)</span></legend>
               <div class="stepper">
                 <button type="button" class="step" data-field="sys" data-delta="-1" aria-label="Decrease systolic">−</button>
-                <input id="sys-input" name="sys" type="number" inputmode="numeric" min="70" max="250" value="120" aria-label="Systolic" />
+                <input id="sys-input" type="number" inputmode="numeric" min="70" max="250" value="120" aria-label="Systolic" />
                 <button type="button" class="step" data-field="sys" data-delta="1" aria-label="Increase systolic">+</button>
               </div>
             </fieldset>
@@ -144,7 +140,7 @@
               <legend>Diastolic <span class="hint">(bottom)</span></legend>
               <div class="stepper">
                 <button type="button" class="step" data-field="dia" data-delta="-1" aria-label="Decrease diastolic">−</button>
-                <input id="dia-input" name="dia" type="number" inputmode="numeric" min="40" max="150" value="80" aria-label="Diastolic" />
+                <input id="dia-input" type="number" inputmode="numeric" min="40" max="150" value="80" aria-label="Diastolic" />
                 <button type="button" class="step" data-field="dia" data-delta="1" aria-label="Increase diastolic">+</button>
               </div>
             </fieldset>
@@ -152,64 +148,89 @@
               <legend>Pulse <span class="hint">(optional)</span></legend>
               <div class="stepper">
                 <button type="button" class="step" data-field="pulse" data-delta="-1" aria-label="Decrease pulse">−</button>
-                <input id="pulse-input" name="pulse" type="number" inputmode="numeric" min="30" max="220" value="72" aria-label="Pulse" />
+                <input id="pulse-input" type="number" inputmode="numeric" min="30" max="220" value="72" aria-label="Pulse" />
                 <button type="button" class="step" data-field="pulse" data-delta="1" aria-label="Increase pulse">+</button>
               </div>
             </fieldset>
           </div>
-
           <label class="field">
             <span>Note (optional)</span>
-            <input id="note-input" type="text" maxlength="80" placeholder="After walk, morning, …" />
+            <input id="note-input" type="text" maxlength="80" placeholder="Morning, after walk, …" />
           </label>
-
-          <p id="live-category" class="category-chip preview" aria-live="polite">Normal</p>
+          <p id="live-category" class="category-chip preview">Normal</p>
           <button type="submit" class="btn btn-primary btn-xl">Save cuff reading</button>
         </form>
       </section>
 
+      <!-- Charts / trends -->
+      <section id="view-charts" class="view" hidden aria-label="Charts">
+        <button type="button" class="back-btn" data-back>← Back</button>
+        <h2 class="view-title">Charts &amp; trends</h2>
+        <p class="view-lead">Visualize heart rate and blood pressure over time.</p>
+        <div class="chart-block">
+          <h3>Blood pressure</h3>
+          <canvas id="chart-bp" width="720" height="240" aria-label="Blood pressure chart"></canvas>
+        </div>
+        <div class="chart-block">
+          <h3>Heart rate</h3>
+          <canvas id="chart-hr" width="720" height="220" aria-label="Heart rate chart"></canvas>
+        </div>
+        <div class="stat-grid" id="trend-stats"></div>
+      </section>
+
       <!-- History -->
-      <section id="view-history" class="view" aria-label="History" hidden>
+      <section id="view-history" class="view" hidden aria-label="History">
         <button type="button" class="back-btn" data-back>← Back</button>
         <div class="section-head tight">
           <h2 class="view-title">History</h2>
-          <button type="button" id="btn-export" class="text-btn">Print / export</button>
+          <button type="button" id="btn-export-menu" class="text-btn">Export</button>
         </div>
-        <p class="view-lead">Color follows American Heart Association adult categories.</p>
-        <canvas id="trend-chart" width="720" height="220" aria-label="Blood pressure trend chart"></canvas>
+        <p class="view-lead">All saved camera and cuff records on this device.</p>
         <ul id="history-list" class="history-list"></ul>
       </section>
 
       <!-- Settings -->
-      <section id="view-settings" class="view" aria-label="Settings" hidden>
+      <section id="view-settings" class="view" hidden aria-label="Settings">
         <button type="button" class="back-btn" data-back>← Back</button>
         <h2 class="view-title">Settings</h2>
 
         <label class="toggle-row">
-          <span>
-            <strong>Extra-large text</strong>
-            <small>Easier reading for every age</small>
-          </span>
+          <span><strong>Extra-large text</strong><small>Easier reading for every age</small></span>
           <input type="checkbox" id="toggle-xl" />
         </label>
         <label class="toggle-row">
-          <span>
-            <strong>High contrast</strong>
-            <small>Stronger edges and colors</small>
-          </span>
+          <span><strong>High contrast</strong><small>Stronger edges and colors</small></span>
           <input type="checkbox" id="toggle-contrast" />
         </label>
         <label class="toggle-row">
-          <span>
-            <strong>Reduce motion</strong>
-            <small>Calmer animations</small>
-          </span>
+          <span><strong>Reduce motion</strong><small>Calmer animations</small></span>
           <input type="checkbox" id="toggle-motion" />
         </label>
 
         <div class="settings-block">
-          <h3>About estimates</h3>
-          <p>Phones cannot medically measure blood pressure with a fingerprint. PressWell’s finger check is a wellness estimate. For care decisions, use a validated cuff and talk to a clinician.</p>
+          <h3>Reminders</h3>
+          <label class="toggle-row flat">
+            <span><strong>Morning BP check</strong><small>Around 9:00</small></span>
+            <input type="checkbox" id="toggle-remind-am" />
+          </label>
+          <label class="toggle-row flat">
+            <span><strong>Evening heart rate</strong><small>Around 20:00</small></span>
+            <input type="checkbox" id="toggle-remind-pm" />
+          </label>
+          <button type="button" id="btn-enable-notes" class="btn btn-ghost">Enable notification permission</button>
+        </div>
+
+        <div class="settings-block">
+          <h3>Export</h3>
+          <div class="btn-row">
+            <button type="button" id="btn-export-csv" class="btn btn-ghost">Download CSV</button>
+            <button type="button" id="btn-export-pdf" class="btn btn-ghost">Print / PDF report</button>
+          </div>
+        </div>
+
+        <div class="settings-block">
+          <h3>How this works</h3>
+          <p>Camera + flashlight detect tiny color changes in your fingertip (PPG) to estimate pulse. Blood pressure must be logged from a cuff. Not for diagnosis or medication changes.</p>
         </div>
 
         <button type="button" id="btn-clear" class="btn btn-danger-ghost">Clear all readings on this device</button>
@@ -218,16 +239,14 @@
 
     <nav class="tabbar" aria-label="Main">
       <button type="button" class="tab active" data-go="home" aria-current="page">Home</button>
-      <button type="button" class="tab" data-go="scan">Finger</button>
-      <button type="button" class="tab" data-go="log">Cuff</button>
+      <button type="button" class="tab" data-go="pulse">Pulse</button>
+      <button type="button" class="tab" data-go="log">BP</button>
+      <button type="button" class="tab" data-go="charts">Charts</button>
       <button type="button" class="tab" data-go="history">History</button>
     </nav>
   </div>
 
-  <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-
-  <!-- Crisis modal -->
   <dialog id="crisis-dialog" class="dialog">
     <h2>Reading looks very high</h2>
     <p>If you feel chest pain, shortness of breath, weakness, or confusion, seek emergency care now. Otherwise rest, recheck with a cuff, and contact a clinician promptly.</p>
@@ -235,8 +254,13 @@
   </dialog>
 
   <script src="js/bp.js"></script>
-  <script src="js/storage.js"></script>
-  <script src="js/scan.js"></script>
+  <script src="js/database.js"></script>
+  <script src="js/pulse-engine.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/reminders.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

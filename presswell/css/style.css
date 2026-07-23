@@ -358,13 +358,142 @@ body.reduce-motion *::after {
   line-height: 1.4;
 }
 
-/* Scan */
-.scan-stage {
-  margin-top: 1rem;
+/* Camera PPG stage */
+.camera-stage {
+  margin-top: 0.85rem;
   display: grid;
-  justify-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
+  justify-items: stretch;
 }
+.camera-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #062e32;
+  box-shadow: var(--shadow);
+}
+.camera-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(1);
+}
+.camera-guide {
+  position: absolute;
+  inset: 18%;
+  border: 2px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.18);
+}
+.camera-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.7rem;
+  margin: 0;
+  text-align: center;
+  color: #f4fffe;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  font-size: 0.98rem;
+  padding: 0 0.75rem;
+}
+#ppg-wave {
+  width: 100%;
+  height: 78px;
+  border-radius: 14px;
+  background: rgba(10, 92, 99, 0.06);
+}
+.hr-live {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+}
+.hr-num {
+  font-family: var(--display);
+  font-size: clamp(2.8rem, 12vw, 3.6rem);
+  letter-spacing: -0.03em;
+  color: var(--brand-deep);
+  line-height: 1;
+}
+.hr-unit {
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.btn-row.compact {
+  grid-template-columns: 1fr;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin: 1rem 0 0.35rem;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.85rem 0.9rem;
+  display: grid;
+  gap: 0.15rem;
+}
+.stat-label {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.stat-card strong {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+}
+.stat-card small { color: var(--ink-soft); }
+
+.insight-block {
+  margin-top: 1.1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 18px;
+  background: rgba(10, 92, 99, 0.07);
+  border: 1px solid var(--line);
+}
+.insight-block h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+.insight-text { margin: 0; color: var(--ink-soft); line-height: 1.45; }
+
+.chart-block {
+  margin: 0.9rem 0 1.1rem;
+}
+.chart-block h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+}
+.chart-block canvas {
+  width: 100%;
+  height: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.unit-inline {
+  font-size: 1rem;
+  font-family: var(--font);
+  color: var(--ink-soft);
+}
+
+.toggle-row.flat {
+  background: transparent;
+  border: none;
+  padding: 0.55rem 0;
+  margin: 0;
+}
+
+/* Legacy pad styles kept unused but harmless if referenced */
 .finger-pad {
   width: min(78vw, 270px);
   aspect-ratio: 1;
@@ -427,7 +556,7 @@ body.reduce-motion *::after {
   z-index: 1;
 }
 .scan-meter {
-  width: min(78vw, 270px);
+  width: 100%;
   height: 10px;
   background: rgba(10, 92, 99, 0.12);
   border-radius: 999px;
@@ -645,9 +774,9 @@ legend {
   bottom: 0;
   width: min(480px, 100%);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.25rem;
-  padding: 0.45rem 0.55rem calc(0.55rem + var(--safe-bottom));
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.15rem;
+  padding: 0.45rem 0.35rem calc(0.55rem + var(--safe-bottom));
   background: rgba(247, 251, 250, 0.92);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);
@@ -657,9 +786,10 @@ legend {
   border: none;
   background: transparent;
   min-height: 48px;
-  border-radius: 14px;
+  border-radius: 12px;
   font: inherit;
   font-weight: 700;
+  font-size: 0.88rem;
   color: var(--ink-soft);
   cursor: pointer;
 }

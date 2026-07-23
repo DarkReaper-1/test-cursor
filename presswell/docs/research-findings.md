@@ -26,6 +26,13 @@ Research summary used to design PressWell (sources: Harvard Health, JAMA Interna
 | Can’t share with doctor | Features gated behind paywall | One-tap printable history report |
 | Cluttered dashboards | Stats, promos, schedules fighting for attention | One job per screen; home has two clear actions |
 
-## Important scientific note
+## Design decision for PressWell (aligned with honest App Store apps)
 
-As of late 2024–2026, **no smartphone-only fingerprint or camera app is FDA-cleared** to measure blood pressure. Cuffless estimates from consumer phones are not accurate enough for diagnosis or medication decisions. PressWell treats finger checks as **wellness estimates** and encourages validated cuff monitors for care.
+PressWell follows the architecture used by reputable BP companions:
+
+1. **Camera / flashlight PPG → heart rate only** (signal processing: filter → peaks → BPM)
+2. **Manual cuff input → blood pressure**
+3. Local database → analytics → charts → export / reminders
+
+It does **not** invent blood pressure from a fingerprint. That deficiency (misleading medical claims) is the #1 reason regulators and reviewers reject similar apps.
+

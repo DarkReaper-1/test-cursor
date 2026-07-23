@@ -1,76 +1,60 @@
 # PressWell
 
-Simple, elegant blood-pressure companion for **Google Play** and **iPhone**.
+Blood pressure companion for **Google Play** and **iPhone**.
 
-Finger wellness checks + real cuff logging. No ads. No account. Large type for every age.
+- **Camera PPG** → heart rate (and simple HRV / stress cue)
+- **Manual cuff entry** → blood pressure
+- Analytics, charts, reminders, CSV/PDF export
+- No ads, no account, senior-friendly UI
 
-## Research-backed design
+> The phone does **not** measure blood pressure. Camera estimates pulse only.
 
-Before building, we reviewed why people like and dislike fingerprint BP apps (Harvard Health, ASA rulings, App Store / Play reviews, MedM, JAMA/PMC). Summary: [docs/research-findings.md](docs/research-findings.md).
+## Architecture
 
-**We deliberately avoid the common traps:** misleading “medical fingerprint BP” claims, ad spam, paywalls, tiny text, broken camera flows, and missing cuff logging.
+See [docs/architecture.md](docs/architecture.md) for the full system diagram and module map.
 
-> **Important:** No phone can medically measure blood pressure with a fingerprint today. PressWell’s finger check is a **wellness estimate**. Use a validated cuff for care decisions.
+```
+Camera (PPG) ──┐
+               ├──► Signal Processing ──► Database ──► Charts / Analytics / Export
+Cuff (manual) ─┘
+```
 
-## Features
+## Modules
 
-- Honest onboarding gate (must accept disclaimer)
-- Finger-pad wellness scan with live pulse wave
-- Large-stepper cuff logging (recommended path)
-- AHA-style categories + crisis alert
-- History + trend chart + print/export
-- Extra-large text, high contrast, reduce motion
-- Local-only storage (privacy)
-- Offline-capable PWA + Capacitor wrappers for stores
-- Lightweight: plain HTML/CSS/JS, no heavy UI framework
+| Component | Path |
+|---|---|
+| UI | `index.html`, `css/style.css`, `js/app.js` |
+| Camera sensor | `js/camera.js` |
+| Pulse engine | `js/pulse-engine.js` |
+| Health DB | `js/database.js` |
+| Analytics + insights | `js/analytics.js` |
+| Charts | `js/charts.js` |
+| Reminders | `js/reminders.js` |
+| Export CSV/PDF | `js/export.js` |
 
-## Run locally
+## Run
 
 ```bash
 cd presswell
 npm install
 npm start
-# open http://127.0.0.1:8787/presswell/
+# http://127.0.0.1:8787/presswell/
+# Demo tour: http://127.0.0.1:8787/presswell/?demo=1
 ```
 
-Demo mode (auto tour): `http://127.0.0.1:8787/presswell/?demo=1`
-
-## Record demo video
+## Demo video
 
 ```bash
-cd presswell
-npm install
-npm start   # in one terminal
-npm run demo
-# writes /opt/cursor/artifacts/presswell-demo.mp4
+npm start    # terminal 1
+npm run demo # terminal 2 → /opt/cursor/artifacts/presswell-demo.mp4
 ```
 
-## Ship to Google Play & iPhone
-
-PressWell is a Progressive Web App that installs standalone, and can be wrapped with Capacitor:
+## Store packaging
 
 ```bash
-cd presswell
-npm install
 npx cap add android
 npx cap add ios
 npx cap sync
-npx cap open android   # Android Studio → AAB for Play Console
-npx cap open ios       # Xcode → Archive for App Store Connect
 ```
 
-Store listing must state clearly that finger checks are wellness estimates and that the app is not a medical device.
-
-## Project layout
-
-```
-presswell/
-  index.html          # App shell
-  css/style.css       # Senior-friendly visual system
-  js/                 # BP helpers, storage, scan, app
-  docs/research-findings.md
-  capacitor.config.json
-  manifest.webmanifest
-  sw.js               # Offline cache
-  demo/record-demo.js
-```
+Native hooks prepared for HealthKit / Health Connect and UserNotifications in Capacitor builds.

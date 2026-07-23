@@ -1,11 +1,16 @@
-const CACHE = "presswell-v1";
+const CACHE = "presswell-v2";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/style.css",
   "./js/bp.js",
-  "./js/storage.js",
-  "./js/scan.js",
+  "./js/database.js",
+  "./js/pulse-engine.js",
+  "./js/camera.js",
+  "./js/analytics.js",
+  "./js/charts.js",
+  "./js/export.js",
+  "./js/reminders.js",
   "./js/app.js",
   "./manifest.webmanifest",
   "./public/icon.svg",
@@ -29,10 +34,15 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   event.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-      const copy = res.clone();
-      caches.open(CACHE).then((c) => c.put(req, copy));
-      return res;
-    }).catch(() => cached))
+    caches.match(req).then((cached) =>
+      cached ||
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+          return res;
+        })
+        .catch(() => cached)
+    )
   );
 });

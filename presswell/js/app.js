@@ -2,22 +2,25 @@
   const params = new URLSearchParams(location.search);
   const DEMO = params.get("demo") === "1";
 
-  const state = Store.load();
-  let scanner = null;
-  let pendingEstimate = null;
+  const state = DB.load();
   let viewStack = ["home"];
+  let engine = null;
+  let cameraSession = null;
+  let measureRaf = 0;
+  let measuring = false;
+  let measureStarted = 0;
+  let pendingPulse = null;
+  const MEASURE_MS = DEMO ? 7000 : 15000;
 
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => [...document.querySelectorAll(sel)];
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
 
   function toast(msg) {
     const el = $("#toast");
     el.textContent = msg;
     el.hidden = false;
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => {
-      el.hidden = true;
-    }, 2200);
+    toast._t = setTimeout(() => (el.hidden = true), 2200);
   }
 
   function applySettings() {
@@ -27,134 +30,124 @@
     $("#toggle-xl").checked = !!state.settings.xl;
     $("#toggle-contrast").checked = !!state.settings.contrast;
     $("#toggle-motion").checked = !!state.settings.reduceMotion;
+    $("#toggle-remind-am").checked = !!state.settings.remindAm;
+    $("#toggle-remind-pm").checked = !!state.settings.remindPm;
   }
 
   function setGreeting() {
     const h = new Date().getHours();
-    const part = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
-    $("#greeting").textContent = part;
+    $("#greeting").textContent = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
   }
 
   function paintCategory(el, sys, dia) {
     const c = BP.classify(sys, dia);
-    const keepPreview = el.classList.contains("preview");
+    const keep = el.classList.contains("preview");
     el.textContent = c.label;
     el.className = "category-chip" + (c.key === "normal" ? "" : " " + c.key);
-    if (keepPreview) el.classList.add("preview");
+    if (keep) el.classList.add("preview");
     return c;
   }
 
-  function renderLatest() {
+  function fmt(n, digits = 0) {
+    if (!Number.isFinite(n)) return "—";
+    return Math.round(n * 10 ** digits) / 10 ** digits;
+  }
+
+  function renderDash() {
+    const s = Analytics.summarize(state.readings);
+    $("#dash-stats").innerHTML = `
+      <div class="stat-card"><span class="stat-label">Avg HR</span><strong>${fmt(s.avgHr)}</strong><small>bpm</small></div>
+      <div class="stat-card"><span class="stat-label">Avg BP</span><strong>${s.avgSys != null ? `${fmt(s.avgSys)}/${fmt(s.avgDia)}` : "—"}</strong><small>mmHg</small></div>
+      <div class="stat-card"><span class="stat-label">This week</span><strong>${s.weekCount}</strong><small>readings</small></div>
+      <div class="stat-card"><span class="stat-label">HR range</span><strong>${s.minHr != null ? `${fmt(s.minHr)}–${fmt(s.maxHr)}` : "—"}</strong><small>bpm</small></div>
+    `;
+    $("#insight-text").textContent = Analytics.insights(state.readings);
+
     const card = $("#latest-card");
     const r = state.readings[0];
     if (!r) {
       card.className = "latest-card empty";
-      card.innerHTML = "<p>No readings yet. Start with a cuff log or a finger check.</p>";
+      card.innerHTML = "<p>No readings yet. Measure heart rate or log a cuff reading.</p>";
       return;
     }
-    const c = BP.classify(r.sys, r.dia);
+    const bits = [];
+    if (r.systolic != null) {
+      const c = BP.classify(r.systolic, r.diastolic);
+      bits.push(`<p class="latest-bp">${r.systolic}/${r.diastolic} <span class="unit-inline">mmHg</span></p>`);
+      bits.push(`<span class="category-chip ${c.key === "normal" ? "" : c.key}">${c.label}</span>`);
+    }
+    if (r.heartRate != null) bits.push(`<span>Pulse ${r.heartRate} bpm</span>`);
     card.className = "latest-card";
     card.innerHTML = `
-      <div class="meta-row">
-        <span>${r.source === "cuff" ? "Cuff reading" : "Finger estimate"}</span>
-        <span>${BP.formatWhen(r.at)}</span>
-      </div>
-      <p class="latest-bp">${r.sys}/${r.dia} <span style="font-size:1rem;font-family:var(--font);color:var(--ink-soft)">mmHg</span></p>
-      <div class="meta-row">
-        <span class="category-chip ${c.key === "normal" ? "" : c.key}">${c.label}</span>
-        ${r.pulse ? `<span>Pulse ${r.pulse} bpm</span>` : ""}
-      </div>
+      <div class="meta-row"><span>${labelType(r)}</span><span>${BP.formatWhen(r.at)}</span></div>
+      ${bits.join("")}
+      <div class="meta-row">${r.note ? `<span>${escapeHtml(r.note)}</span>` : ""}</div>
     `;
+  }
+
+  function labelType(r) {
+    if (r.systolic != null && r.heartRate != null) return "BP + pulse";
+    if (r.systolic != null) return "Cuff blood pressure";
+    return "Camera heart rate";
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
   function renderHistory() {
     const list = $("#history-list");
     if (!state.readings.length) {
       list.innerHTML = `<li><p class="hist-meta">No saved readings yet.</p></li>`;
-      drawChart([]);
       return;
     }
     list.innerHTML = state.readings
-      .slice(0, 40)
+      .slice(0, 50)
       .map((r) => {
-        const c = BP.classify(r.sys, r.dia);
+        const bp = r.systolic != null ? `${r.systolic}/${r.diastolic}` : null;
+        const c = bp ? BP.classify(r.systolic, r.diastolic) : null;
         return `<li>
           <div class="hist-top">
-            <span class="hist-bp">${r.sys}/${r.dia}</span>
-            <span class="category-chip ${c.key === "normal" ? "" : c.key}">${c.label}</span>
+            <span class="hist-bp">${bp || (r.heartRate != null ? r.heartRate + " bpm" : "—")}</span>
+            ${c ? `<span class="category-chip ${c.key === "normal" ? "" : c.key}">${c.label}</span>` : r.stress ? `<span class="category-chip">${r.stress} stress cue</span>` : ""}
           </div>
-          <div class="hist-meta">${BP.formatWhen(r.at)} · ${r.source === "cuff" ? "Cuff" : "Finger estimate"}${r.pulse ? ` · ${r.pulse} bpm` : ""}${r.note ? ` · ${escapeHtml(r.note)}` : ""}</div>
+          <div class="hist-meta">${BP.formatWhen(r.at)} · ${labelType(r)}${r.heartRate != null && bp ? ` · ${r.heartRate} bpm` : ""}${r.note ? ` · ${escapeHtml(r.note)}` : ""}</div>
         </li>`;
       })
       .join("");
-    drawChart(state.readings.slice(0, 14).reverse());
   }
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  function renderCharts() {
+    const bpPts = state.readings.filter((r) => r.systolic != null).slice(0, 20).reverse();
+    const hrPts = state.readings.filter((r) => r.heartRate != null).slice(0, 20).reverse();
 
-  function drawChart(rows) {
-    const canvas = $("#trend-chart");
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(10,92,99,0.04)";
-    ctx.fillRect(0, 0, w, h);
+    Charts.drawLineChart(
+      $("#chart-bp"),
+      [
+        { label: "Systolic", color: "#0a5c63", points: bpPts.map((r) => ({ y: r.systolic })) },
+        { label: "Diastolic", color: "#c9851a", points: bpPts.map((r) => ({ y: r.diastolic })) },
+      ],
+      { guides: [80, 120, 140], minY: 50, maxY: 180, legend: true, emptyText: "Log cuff readings to see BP trends" }
+    );
 
-    if (rows.length < 1) {
-      ctx.fillStyle = "#3d5c63";
-      ctx.font = "28px Atkinson Hyperlegible, sans-serif";
-      ctx.fillText("Trends appear after you save readings", 36, h / 2);
-      return;
-    }
+    Charts.drawLineChart(
+      $("#chart-hr"),
+      [{ label: "Heart rate", color: "#0a5c63", points: hrPts.map((r) => ({ y: r.heartRate })) }],
+      { guides: [60, 80, 100], minY: 40, maxY: 140, legend: true, emptyText: "Measure pulse to see heart-rate trends" }
+    );
 
-    const pad = 36;
-    const minY = 50;
-    const maxY = 180;
-    const xAt = (i) => pad + (i * (w - pad * 2)) / Math.max(1, rows.length - 1);
-    const yAt = (v) => pad + ((maxY - v) / (maxY - minY)) * (h - pad * 2);
-
-    // guide lines
-    [80, 120, 140].forEach((v) => {
-      ctx.strokeStyle = "rgba(10,92,99,0.12)";
-      ctx.beginPath();
-      ctx.moveTo(pad, yAt(v));
-      ctx.lineTo(w - pad, yAt(v));
-      ctx.stroke();
-      ctx.fillStyle = "#3d5c63";
-      ctx.font = "18px Atkinson Hyperlegible, sans-serif";
-      ctx.fillText(String(v), 8, yAt(v) + 6);
-    });
-
-    function line(key, color) {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      rows.forEach((r, i) => {
-        const x = xAt(i);
-        const y = yAt(r[key]);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-      rows.forEach((r, i) => {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(xAt(i), yAt(r[key]), 4.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    }
-    line("sys", "#0a5c63");
-    line("dia", "#c9851a");
+    const s = Analytics.summarize(state.readings);
+    $("#trend-stats").innerHTML = `
+      <div class="stat-card"><span class="stat-label">Week avg BP</span><strong>${s.weekAvgSys != null ? `${fmt(s.weekAvgSys)}/${fmt(Analytics.summarize(state.readings.filter(r=>r.at>=Date.now()-7*864e5)).avgDia)}` : "—"}</strong></div>
+      <div class="stat-card"><span class="stat-label">Week avg HR</span><strong>${fmt(s.weekAvgHr)}</strong></div>
+      <div class="stat-card"><span class="stat-label">Month avg BP</span><strong>${s.monthAvgSys != null ? `${fmt(s.monthAvgSys)}` : "—"}</strong></div>
+      <div class="stat-card"><span class="stat-label">Month avg HR</span><strong>${fmt(s.monthAvgHr)}</strong></div>
+    `;
   }
 
   function showView(name, { push = true } = {}) {
+    if (name !== "pulse") stopMeasurement(true);
+
     $$(".view").forEach((v) => {
       v.hidden = true;
       v.classList.remove("active");
@@ -165,102 +158,253 @@
     el.classList.add("active");
 
     $$(".tab").forEach((t) => {
-      const on = t.dataset.go === name || (name === "settings" && false);
-      t.classList.toggle("active", t.dataset.go === name);
-      if (t.dataset.go === name) t.setAttribute("aria-current", "page");
+      const on = t.dataset.go === name;
+      t.classList.toggle("active", on);
+      if (on) t.setAttribute("aria-current", "page");
       else t.removeAttribute("aria-current");
     });
 
-    if (push) {
-      if (viewStack[viewStack.length - 1] !== name) viewStack.push(name);
-    }
+    if (push && viewStack[viewStack.length - 1] !== name) viewStack.push(name);
 
-    if (name === "home") renderLatest();
+    if (name === "home") renderDash();
     if (name === "history") renderHistory();
-    if (name === "scan") setupScanner();
-    if (name === "log") updateLiveCategory();
+    if (name === "charts") renderCharts();
+    if (name === "log") paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value));
+    if (name === "pulse") preparePulseView();
   }
 
   function goBack() {
     if (viewStack.length > 1) viewStack.pop();
-    const prev = viewStack[viewStack.length - 1] || "home";
-    showView(prev, { push: false });
+    showView(viewStack[viewStack.length - 1] || "home", { push: false });
   }
 
-  function maybeCrisis(sys, dia) {
-    const c = BP.classify(sys, dia);
-    if (c.key === "crisis") {
-      const d = $("#crisis-dialog");
-      if (typeof d.showModal === "function") d.showModal();
+  function preparePulseView() {
+    $("#pulse-result").hidden = true;
+    pendingPulse = null;
+    $("#live-bpm").textContent = "--";
+    $("#pulse-progress").style.width = "0%";
+    $("#btn-start-pulse").hidden = false;
+    $("#btn-stop-pulse").hidden = true;
+    $("#pulse-status").textContent = DEMO
+      ? "Demo mode — synthetic PPG signal ready"
+      : "Ready. Cover the camera, then start.";
+    $("#camera-hint").textContent = DEMO ? "Demo waveform (no camera)" : "Allow camera access to begin";
+    Charts.drawWave($("#ppg-wave"), []);
+  }
+
+  async function startMeasurement() {
+    if (measuring) return;
+    engine = PulseEngine.create({ demo: DEMO });
+    measuring = true;
+    measureStarted = performance.now();
+    pendingPulse = null;
+    $("#pulse-result").hidden = true;
+    $("#btn-start-pulse").hidden = true;
+    $("#btn-stop-pulse").hidden = false;
+    $("#pulse-status").textContent = "Hold steady… collecting pulse signal";
+
+    if (!DEMO) {
+      try {
+        cameraSession = await Camera.openCamera({ preferTorch: true });
+        await Camera.attach($("#camera-video"), cameraSession.stream);
+        $("#camera-hint").textContent = cameraSession.torchOn
+          ? "Torch on — keep fingertip covering the lens"
+          : "Cover the lens fully with your fingertip";
+      } catch (e) {
+        measuring = false;
+        $("#btn-start-pulse").hidden = false;
+        $("#btn-stop-pulse").hidden = true;
+        $("#pulse-status").textContent = "Camera blocked. Allow camera permission, or use demo mode (?demo=1).";
+        toast("Camera unavailable");
+        return;
+      }
+    } else {
+      $("#camera-hint").textContent = "Synthetic PPG running";
+    }
+
+    const tick = (now) => {
+      if (!measuring) return;
+      if (DEMO) {
+        engine.pushSynthetic(now, 72);
+      } else if (cameraSession) {
+        const red = Camera.sampleRed($("#camera-video"), $("#sample-canvas"));
+        engine.push(red, now);
+      }
+
+      const analysis = engine.analyze();
+      Charts.drawWave($("#ppg-wave"), analysis.waveform || []);
+      if (analysis.bpm) $("#live-bpm").textContent = analysis.bpm;
+
+      const elapsed = now - measureStarted;
+      $("#pulse-progress").style.width = Math.min(100, (elapsed / MEASURE_MS) * 100) + "%";
+
+      if (elapsed < MEASURE_MS * 0.3) $("#pulse-status").textContent = "Detecting pulse peaks…";
+      else if (elapsed < MEASURE_MS * 0.75) $("#pulse-status").textContent = "Good signal — stay still";
+      else $("#pulse-status").textContent = "Finishing…";
+
+      if (elapsed >= MEASURE_MS) {
+        finishMeasurement();
+        return;
+      }
+      measureRaf = requestAnimationFrame(tick);
+    };
+    measureRaf = requestAnimationFrame(tick);
+  }
+
+  function finishMeasurement() {
+    measuring = false;
+    cancelAnimationFrame(measureRaf);
+    const analysis = engine?.analyze() || {};
+    stopCameraOnly();
+
+    let bpm = analysis.bpm;
+    let hrv = analysis.hrvMs;
+    if (!bpm && DEMO) {
+      bpm = 72;
+      hrv = 38;
+    }
+    if (!bpm) {
+      $("#pulse-status").textContent = "Couldn’t lock onto a steady pulse. Try again with fuller lens coverage.";
+      $("#btn-start-pulse").hidden = false;
+      $("#btn-stop-pulse").hidden = true;
+      return;
+    }
+
+    const stress = BP.stressFromHrHrv(bpm, hrv);
+    pendingPulse = { bpm, hrvMs: hrv, stress };
+    $("#result-bpm").textContent = bpm;
+    $("#result-hrv").textContent = hrv != null ? hrv : "—";
+    $("#result-stress").textContent = stress;
+    $("#live-bpm").textContent = bpm;
+    $("#pulse-result").hidden = false;
+    $("#pulse-status").textContent = "Measurement complete";
+    $("#btn-start-pulse").hidden = false;
+    $("#btn-stop-pulse").hidden = true;
+    $("#pulse-progress").style.width = "100%";
+  }
+
+  function stopCameraOnly() {
+    if (cameraSession) {
+      Camera.stop(cameraSession.stream);
+      cameraSession = null;
+      $("#camera-video").srcObject = null;
+    }
+  }
+
+  function stopMeasurement(silent) {
+    measuring = false;
+    cancelAnimationFrame(measureRaf);
+    stopCameraOnly();
+    if (!silent) {
+      $("#btn-start-pulse").hidden = false;
+      $("#btn-stop-pulse").hidden = true;
+      $("#pulse-status").textContent = "Stopped";
     }
   }
 
   function saveReading(reading) {
-    Store.addReading(state, reading);
-    maybeCrisis(reading.sys, reading.dia);
-    renderLatest();
+    DB.add(state, reading);
+    if (reading.systolic != null) {
+      const c = BP.classify(reading.systolic, reading.diastolic);
+      if (c.key === "crisis") {
+        const d = $("#crisis-dialog");
+        if (d.showModal) d.showModal();
+      }
+    }
     toast("Saved on this device");
     showView("home");
   }
 
-  function setupScanner() {
-    $("#scan-result").hidden = true;
-    pendingEstimate = null;
-    if (scanner) scanner.destroy();
-    scanner = FingerScan.createScanner({
-      pad: $("#finger-pad"),
-      progress: $("#scan-progress"),
-      status: $("#scan-status"),
-      wave: $("#pulse-wave"),
-      demo: DEMO,
-      getCalibration: () => Store.cuffAverage(state),
-      onComplete: (result) => {
-        pendingEstimate = result;
-        $("#est-sys").textContent = result.sys;
-        $("#est-dia").textContent = result.dia;
-        $("#est-pulse").textContent = result.pulse;
-        paintCategory($("#est-category"), result.sys, result.dia);
-        $("#scan-result").hidden = false;
-      },
+  function seedDemo() {
+    if (state.readings.length) return;
+    const now = Date.now();
+    const rows = [
+      { days: 6, sys: 118, dia: 76, hr: 70 },
+      { days: 4, sys: 122, dia: 78, hr: 74 },
+      { days: 2, sys: null, dia: null, hr: 68 },
+      { days: 1, sys: 124, dia: 80, hr: 76 },
+      { days: 0.2, sys: 119, dia: 77, hr: 72 },
+    ];
+    rows.forEach((row, i) => {
+      state.readings.push({
+        id: "demo-" + i,
+        at: now - row.days * 86400000,
+        type: row.sys != null ? "bloodPressure" : "heartRate",
+        heartRate: row.hr,
+        hrvMs: 40 - i,
+        systolic: row.sys,
+        diastolic: row.dia,
+        stress: BP.stressFromHrHrv(row.hr, 40 - i),
+        note: row.sys != null ? "Cuff" : "Camera",
+        source: { hr: row.sys != null ? "cuff" : "camera", bp: row.sys != null ? "cuff" : null },
+      });
     });
+    DB.save(state);
   }
 
-  function updateLiveCategory() {
-    const sys = Number($("#sys-input").value);
-    const dia = Number($("#dia-input").value);
-    paintCategory($("#live-category"), sys, dia);
+  function wait(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  async function runDemoTour() {
+    seedDemo();
+    renderDash();
+    await wait(1100);
+    showView("pulse");
+    await wait(500);
+    await startMeasurement();
+    await wait(MEASURE_MS + 1600);
+    $("#btn-save-pulse").click();
+    await wait(1200);
+    showView("log");
+    await wait(800);
+    $("#sys-input").value = 128;
+    $("#dia-input").value = 82;
+    $("#pulse-input").value = 76;
+    $("#note-input").value = "After coffee";
+    paintCategory($("#live-category"), 128, 82);
+    await wait(900);
+    $("#cuff-form").requestSubmit();
+    await wait(1200);
+    showView("charts");
+    await wait(2000);
+    showView("history");
+    await wait(1600);
+    showView("settings");
+    await wait(1400);
+    showView("home");
+    await wait(1000);
   }
 
   function wire() {
     const accept = $("#accept-disclaimer");
     const enter = $("#btn-enter");
-    accept.addEventListener("change", () => {
-      enter.disabled = !accept.checked;
-    });
+    accept.addEventListener("change", () => (enter.disabled = !accept.checked));
     enter.addEventListener("click", () => {
       state.accepted = true;
-      Store.save(state);
+      DB.save(state);
       bootApp();
     });
 
-    $$("[data-go]").forEach((btn) => {
-      btn.addEventListener("click", () => showView(btn.dataset.go));
-    });
+    $$("[data-go]").forEach((btn) => btn.addEventListener("click", () => showView(btn.dataset.go)));
     $$("[data-back]").forEach((btn) => btn.addEventListener("click", goBack));
     $("#btn-settings").addEventListener("click", () => showView("settings"));
 
     $$(".step").forEach((btn) => {
       btn.addEventListener("click", () => {
         const field = btn.dataset.field;
-        const delta = Number(btn.dataset.delta);
         const input = $(`#${field}-input`);
-        input.value = BP.clamp(Number(input.value) + delta, Number(input.min), Number(input.max));
-        updateLiveCategory();
+        input.value = BP.clamp(Number(input.value) + Number(btn.dataset.delta), Number(input.min), Number(input.max));
+        if (field === "sys" || field === "dia") {
+          paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value));
+        }
       });
     });
-    ["sys-input", "dia-input"].forEach((id) => {
-      $(`#${id}`).addEventListener("input", updateLiveCategory);
-    });
+    ["sys-input", "dia-input"].forEach((id) =>
+      $(`#${id}`).addEventListener("input", () =>
+        paintCategory($("#live-category"), Number($("#sys-input").value), Number($("#dia-input").value))
+      )
+    );
 
     $("#cuff-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -268,133 +412,85 @@
       const dia = Number($("#dia-input").value);
       const pulse = Number($("#pulse-input").value);
       const note = $("#note-input").value.trim();
-      if (!Number.isFinite(sys) || !Number.isFinite(dia)) {
-        toast("Please enter valid numbers");
-        return;
-      }
       saveReading({
-        id: crypto.randomUUID?.() || String(Date.now()),
+        id: BP.uid(),
         at: Date.now(),
-        source: "cuff",
-        sys,
-        dia,
-        pulse: Number.isFinite(pulse) ? pulse : null,
+        type: "bloodPressure",
+        heartRate: Number.isFinite(pulse) ? pulse : null,
+        hrvMs: null,
+        systolic: sys,
+        diastolic: dia,
+        stress: null,
         note,
+        source: { hr: Number.isFinite(pulse) ? "cuff" : null, bp: "cuff" },
       });
       $("#note-input").value = "";
     });
 
-    $("#btn-save-estimate").addEventListener("click", () => {
-      if (!pendingEstimate) return;
+    $("#btn-start-pulse").addEventListener("click", () => startMeasurement());
+    $("#btn-stop-pulse").addEventListener("click", () => stopMeasurement(false));
+    $("#btn-save-pulse").addEventListener("click", () => {
+      if (!pendingPulse) return;
       saveReading({
-        id: crypto.randomUUID?.() || String(Date.now()),
+        id: BP.uid(),
         at: Date.now(),
-        source: "finger",
-        sys: pendingEstimate.sys,
-        dia: pendingEstimate.dia,
-        pulse: pendingEstimate.pulse,
-        note: "Wellness estimate",
+        type: "heartRate",
+        heartRate: pendingPulse.bpm,
+        hrvMs: pendingPulse.hrvMs,
+        systolic: null,
+        diastolic: null,
+        stress: pendingPulse.stress,
+        note: "Camera PPG",
+        source: { hr: "camera", bp: null },
       });
     });
-    $("#btn-rescan").addEventListener("click", () => {
-      $("#scan-result").hidden = true;
-      pendingEstimate = null;
-      scanner?.reset();
-      if (DEMO) setTimeout(() => scanner?.startDemo(), 400);
+    $("#btn-retry-pulse").addEventListener("click", () => {
+      preparePulseView();
+      startMeasurement();
     });
 
-    $("#toggle-xl").addEventListener("change", (e) => {
-      state.settings.xl = e.target.checked;
-      Store.save(state);
-      applySettings();
+    const persistToggle = (id, key) => {
+      $(id).addEventListener("change", (e) => {
+        state.settings[key] = e.target.checked;
+        DB.save(state);
+        applySettings();
+      });
+    };
+    persistToggle("#toggle-xl", "xl");
+    persistToggle("#toggle-contrast", "contrast");
+    persistToggle("#toggle-motion", "reduceMotion");
+    persistToggle("#toggle-remind-am", "remindAm");
+    persistToggle("#toggle-remind-pm", "remindPm");
+
+    $("#btn-enable-notes").addEventListener("click", async () => {
+      const perm = await Reminders.ensurePermission();
+      toast(perm === "granted" ? "Notifications enabled" : "Notifications not available");
     });
-    $("#toggle-contrast").addEventListener("change", (e) => {
-      state.settings.contrast = e.target.checked;
-      Store.save(state);
-      applySettings();
+
+    $("#btn-export-csv").addEventListener("click", () => {
+      Export.downloadCsv(state.readings);
+      toast("CSV downloaded");
     });
-    $("#toggle-motion").addEventListener("change", (e) => {
-      state.settings.reduceMotion = e.target.checked;
-      Store.save(state);
-      applySettings();
+    $("#btn-export-pdf").addEventListener("click", () => {
+      Export.printReport(state.readings, Analytics.summarize(state.readings));
     });
+    $("#btn-export-menu").addEventListener("click", () => showView("settings"));
 
     $("#btn-clear").addEventListener("click", () => {
-      if (confirm("Clear all readings saved on this device?")) {
-        Store.clearReadings(state);
-        renderLatest();
+      if (confirm("Clear all readings on this device?")) {
+        DB.clear(state);
+        renderDash();
         renderHistory();
         toast("Readings cleared");
       }
     });
-
-    $("#btn-export").addEventListener("click", () => {
-      showView("history");
-      setTimeout(() => window.print(), 200);
-    });
-
-    $("#btn-crisis-ok").addEventListener("click", () => {
-      $("#crisis-dialog").close();
-    });
+    $("#btn-crisis-ok").addEventListener("click", () => $("#crisis-dialog").close());
 
     if ("serviceWorker" in navigator && !DEMO) {
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
-  }
 
-  function seedDemoData() {
-    if (state.readings.length) return;
-    const now = Date.now();
-    const sample = [
-      { sys: 118, dia: 76, pulse: 70, source: "cuff", days: 5 },
-      { sys: 122, dia: 78, pulse: 72, source: "cuff", days: 3 },
-      { sys: 124, dia: 80, pulse: 74, source: "finger", days: 2 },
-      { sys: 119, dia: 77, pulse: 68, source: "cuff", days: 1 },
-    ];
-    sample.forEach((s, i) => {
-      state.readings.push({
-        id: "demo-" + i,
-        at: now - s.days * 86400000,
-        source: s.source,
-        sys: s.sys,
-        dia: s.dia,
-        pulse: s.pulse,
-        note: s.source === "finger" ? "Wellness estimate" : "Morning",
-      });
-    });
-    Store.save(state);
-  }
-
-  async function runDemoTour() {
-    seedDemoData();
-    renderLatest();
-    await wait(1200);
-    showView("scan");
-    await wait(600);
-    scanner?.startDemo();
-    await wait(FingerScan.DEMO_SCAN_MS + 1800);
-    $("#btn-save-estimate").click();
-    await wait(1400);
-    showView("log");
-    await wait(900);
-    $("#sys-input").value = 128;
-    $("#dia-input").value = 82;
-    $("#pulse-input").value = 76;
-    $("#note-input").value = "After coffee";
-    updateLiveCategory();
-    await wait(1000);
-    $("#cuff-form").requestSubmit();
-    await wait(1400);
-    showView("history");
-    await wait(2200);
-    showView("settings");
-    await wait(1600);
-    showView("home");
-    await wait(1200);
-  }
-
-  function wait(ms) {
-    return new Promise((r) => setTimeout(r, ms));
+    Reminders.startWatcher(() => state.settings);
   }
 
   function bootApp() {
@@ -411,13 +507,12 @@
     if (DEMO) runDemoTour();
   }
 
-  // init
   applySettings();
   wire();
   if (state.accepted || DEMO) {
     if (DEMO) {
       state.accepted = true;
-      Store.save(state);
+      DB.save(state);
     }
     bootApp();
   }
