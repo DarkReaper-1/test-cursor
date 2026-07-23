@@ -12,97 +12,120 @@
   <link rel="apple-touch-icon" href="public/icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <title>PressWell</title>
 </head>
 <body>
   <a class="skip-link" href="#app">Skip to app</a>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="atm-orb atm-a"></div>
+    <div class="atm-orb atm-b"></div>
+    <div class="atm-wave"></div>
+  </div>
 
   <section id="onboarding" class="screen onboarding" aria-labelledby="ob-title">
-    <div class="ob-bg" aria-hidden="true"></div>
+    <div class="ob-visual" aria-hidden="true">
+      <div class="ob-pulse"></div>
+      <svg class="ob-mark" viewBox="0 0 120 48" fill="none" aria-hidden="true">
+        <path d="M4 28c14-22 28-22 42 0s28 22 42 0 28-22 42 0" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="ob-inner">
       <p class="brand-mark">PressWell</p>
       <h1 id="ob-title">Heart rate by camera.<br />Blood pressure by cuff.</h1>
-      <p class="lead">A calm companion for every age — PPG pulse from your fingertip camera, and honest cuff logging for blood pressure.</p>
+      <p class="lead">Calm check-ins for every age — fingertip pulse, honest cuff logging, clear trends.</p>
       <ul class="promise-list">
-        <li>Camera estimates <strong>heart rate</strong> only (PPG).</li>
-        <li>Blood pressure is entered from a <strong>real cuff monitor</strong>.</li>
-        <li>No ads. No account. Data stays on your device.</li>
-        <li>Large type, charts, reminders, and doctor-ready export.</li>
+        <li>Camera estimates <strong>heart rate</strong> only</li>
+        <li>Blood pressure from a <strong>real cuff</strong></li>
+        <li>No ads · No account · Stays on device</li>
       </ul>
       <label class="accept-row">
         <input type="checkbox" id="accept-disclaimer" />
-        <span>I understand PressWell is not a medical device. Camera readings are wellness estimates; cuff numbers are for personal logging only.</span>
+        <span>I understand this is not a medical device. Camera readings are wellness estimates.</span>
       </label>
-      <button type="button" id="btn-enter" class="btn btn-primary btn-xl" disabled>Continue</button>
+      <button type="button" id="btn-enter" class="btn btn-primary btn-xl" disabled>Enter PressWell</button>
     </div>
   </section>
 
   <div id="app" class="app" hidden>
     <header class="topbar">
-      <div>
-        <p class="brand-mark sm">PressWell</p>
-        <p class="topbar-sub" id="greeting">Welcome</p>
-      </div>
-      <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">⚙</button>
+      <button type="button" class="brand-home" data-go="home" aria-label="PressWell home">
+        <span class="brand-mark sm">PressWell</span>
+        <span class="topbar-sub" id="greeting">Welcome</span>
+      </button>
+      <button type="button" class="icon-btn" id="btn-settings" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.5.42l-.36 2.54c-.6.24-1.14.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.7 8.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94L2.82 14.58a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.43.34.68.22l2.39-.96c.49.39 1.03.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.8c.24 0 .45-.18.5-.42l.36-2.54c.6-.24 1.14-.55 1.63-.94l2.39.96c.25.1.54 0 .68-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58ZM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"/>
+        </svg>
+      </button>
     </header>
 
     <main class="main">
-      <!-- Dashboard -->
-      <section id="view-home" class="view active" aria-label="Dashboard">
-        <div class="hero-panel">
-          <h2 class="hero-title">Dashboard</h2>
+      <section id="view-home" class="view active" aria-label="Home">
+        <div class="home-hero">
+          <p class="brand-mark hero-brand">PressWell</p>
+          <h2 class="hero-title">Check in calmly</h2>
           <p class="hero-copy">Camera for pulse. Cuff for blood pressure.</p>
         </div>
+
         <div class="action-stack">
           <button type="button" class="action-tile primary" data-go="pulse">
-            <span class="tile-kicker">Camera · PPG</span>
-            <span class="tile-title">Measure heart rate</span>
-            <span class="tile-desc">Cover the camera with your fingertip. Flash helps when available.</span>
+            <span class="tile-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 2a3 3 0 0 1 3 3v1.1A7 7 0 0 1 19 13v1l2 3H3l2-3v-1a7 7 0 0 1 4-6.1V5a3 3 0 0 1 3-3Zm-1 14h2v4h-2v-4Z"/></svg>
+            </span>
+            <span class="tile-copy">
+              <span class="tile-kicker">Camera · PPG</span>
+              <span class="tile-title">Measure heart rate</span>
+              <span class="tile-desc">Cover the lens with your fingertip</span>
+            </span>
+            <span class="tile-arrow" aria-hidden="true">→</span>
           </button>
           <button type="button" class="action-tile" data-go="log">
-            <span class="tile-kicker">Manual input</span>
-            <span class="tile-title">Log blood pressure</span>
-            <span class="tile-desc">Enter systolic / diastolic from your home monitor.</span>
+            <span class="tile-icon muted" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M7 3h10v2H7V3Zm-2 4h14l1 14H4L5 7Zm4 3v8h2v-8H9Zm4 0v8h2v-8h-2Z"/></svg>
+            </span>
+            <span class="tile-copy">
+              <span class="tile-kicker">From your cuff</span>
+              <span class="tile-title">Log blood pressure</span>
+              <span class="tile-desc">Enter the numbers on your monitor</span>
+            </span>
+            <span class="tile-arrow" aria-hidden="true">→</span>
           </button>
         </div>
 
-        <div class="stat-grid" id="dash-stats" aria-label="Quick stats"></div>
-
-        <section class="latest-block">
+        <section class="latest-block" aria-labelledby="latest-heading">
           <div class="section-head">
-            <h3>Latest</h3>
+            <h3 id="latest-heading">Latest reading</h3>
             <button type="button" class="text-btn" data-go="history">History</button>
           </div>
-          <div id="latest-card" class="latest-card empty"><p>No readings yet.</p></div>
+          <div id="latest-card" class="latest-card empty"><p>No readings yet — start with pulse or a cuff log.</p></div>
         </section>
 
-        <section class="insight-block" aria-labelledby="insight-heading">
-          <h3 id="insight-heading">Wellness insight</h3>
-          <p id="insight-text" class="insight-text">Log a few readings to see calm, non-diagnostic pattern notes.</p>
-        </section>
+        <p id="insight-text" class="insight-inline">Log a few readings to unlock gentle wellness notes.</p>
       </section>
 
-      <!-- Heart rate / camera PPG -->
       <section id="view-pulse" class="view" hidden aria-label="Heart rate">
         <button type="button" class="back-btn" data-back>← Back</button>
         <h2 class="view-title">Heart rate</h2>
-        <p class="view-lead">Cover the rear camera with one fingertip. Stay still. This estimates <strong>pulse only</strong> — not blood pressure.</p>
+        <p class="view-lead">Cover the rear camera. Stay still. This estimates <strong>pulse only</strong> — not blood pressure.</p>
 
         <div class="camera-stage">
           <div class="camera-frame">
             <video id="camera-video" playsinline muted autoplay></video>
             <canvas id="sample-canvas" width="64" height="64" hidden></canvas>
-            <div class="camera-guide" aria-hidden="true"></div>
+            <div class="camera-guide" aria-hidden="true">
+              <span class="guide-ring"></span>
+              <span class="guide-ring delay"></span>
+            </div>
+            <div class="camera-live">
+              <span class="hr-num" id="live-bpm">--</span>
+              <span class="hr-unit">BPM</span>
+            </div>
             <p id="camera-hint" class="camera-hint">Allow camera access to begin</p>
           </div>
           <canvas id="ppg-wave" width="640" height="140" aria-label="Pulse waveform"></canvas>
-          <div class="hr-live">
-            <span class="hr-num" id="live-bpm">--</span>
-            <span class="hr-unit">BPM</span>
-          </div>
-          <p id="pulse-status" class="scan-status" aria-live="polite">Starting camera…</p>
+          <p id="pulse-status" class="scan-status" aria-live="polite">Ready when you are.</p>
           <div class="scan-meter"><div id="pulse-progress" class="scan-progress"></div></div>
           <div class="btn-row compact">
             <button type="button" id="btn-start-pulse" class="btn btn-primary">Start measurement</button>
@@ -113,7 +136,10 @@
         <div id="pulse-result" class="scan-result" hidden>
           <p class="estimate-badge">Camera PPG · wellness estimate</p>
           <div class="bp-big"><span id="result-bpm">--</span><span class="unit">beats per minute</span></div>
-          <p class="pulse-line">HRV (approx) <strong id="result-hrv">--</strong> ms · Stress cue: <strong id="result-stress">—</strong></p>
+          <div class="result-meta">
+            <div><span class="meta-label">HRV</span><strong id="result-hrv">--</strong> ms</div>
+            <div><span class="meta-label">Stress cue</span><strong id="result-stress">—</strong></div>
+          </div>
           <div class="btn-row">
             <button type="button" id="btn-save-pulse" class="btn btn-primary">Save heart rate</button>
             <button type="button" id="btn-retry-pulse" class="btn btn-ghost">Measure again</button>
@@ -121,11 +147,10 @@
         </div>
       </section>
 
-      <!-- Blood pressure log -->
       <section id="view-log" class="view" hidden aria-label="Blood pressure log">
         <button type="button" class="back-btn" data-back>← Back</button>
         <h2 class="view-title">Blood pressure</h2>
-        <p class="view-lead">Type the numbers from your cuff monitor. The phone does <strong>not</strong> measure blood pressure.</p>
+        <p class="view-lead">Type the numbers from your cuff. The phone does <strong>not</strong> measure blood pressure.</p>
         <form id="cuff-form" class="cuff-form">
           <div class="stepper-grid">
             <fieldset>
@@ -162,50 +187,55 @@
         </form>
       </section>
 
-      <!-- Charts / trends -->
       <section id="view-charts" class="view" hidden aria-label="Charts">
         <button type="button" class="back-btn" data-back>← Back</button>
-        <h2 class="view-title">Charts &amp; trends</h2>
-        <p class="view-lead">Visualize heart rate and blood pressure over time.</p>
+        <h2 class="view-title">Trends</h2>
+        <p class="view-lead">See how pulse and cuff readings move over time.</p>
         <div class="chart-block">
-          <h3>Blood pressure</h3>
+          <div class="chart-head">
+            <h3>Blood pressure</h3>
+            <span class="chart-legend"><i class="lg sys"></i>Systolic <i class="lg dia"></i>Diastolic</span>
+          </div>
           <canvas id="chart-bp" width="720" height="240" aria-label="Blood pressure chart"></canvas>
         </div>
         <div class="chart-block">
-          <h3>Heart rate</h3>
+          <div class="chart-head">
+            <h3>Heart rate</h3>
+            <span class="chart-legend"><i class="lg sys"></i>BPM</span>
+          </div>
           <canvas id="chart-hr" width="720" height="220" aria-label="Heart rate chart"></canvas>
         </div>
-        <div class="stat-grid" id="trend-stats"></div>
+        <div class="stat-rail" id="trend-stats"></div>
       </section>
 
-      <!-- History -->
       <section id="view-history" class="view" hidden aria-label="History">
         <button type="button" class="back-btn" data-back>← Back</button>
         <div class="section-head tight">
           <h2 class="view-title">History</h2>
           <button type="button" id="btn-export-menu" class="text-btn">Export</button>
         </div>
-        <p class="view-lead">All saved camera and cuff records on this device.</p>
+        <p class="view-lead">Everything saved on this device.</p>
         <ul id="history-list" class="history-list"></ul>
       </section>
 
-      <!-- Settings -->
       <section id="view-settings" class="view" hidden aria-label="Settings">
         <button type="button" class="back-btn" data-back>← Back</button>
         <h2 class="view-title">Settings</h2>
 
-        <label class="toggle-row">
-          <span><strong>Extra-large text</strong><small>Easier reading for every age</small></span>
-          <input type="checkbox" id="toggle-xl" />
-        </label>
-        <label class="toggle-row">
-          <span><strong>High contrast</strong><small>Stronger edges and colors</small></span>
-          <input type="checkbox" id="toggle-contrast" />
-        </label>
-        <label class="toggle-row">
-          <span><strong>Reduce motion</strong><small>Calmer animations</small></span>
-          <input type="checkbox" id="toggle-motion" />
-        </label>
+        <div class="settings-group">
+          <label class="toggle-row">
+            <span><strong>Extra-large text</strong><small>Easier reading for every age</small></span>
+            <input type="checkbox" id="toggle-xl" />
+          </label>
+          <label class="toggle-row">
+            <span><strong>High contrast</strong><small>Stronger edges and colors</small></span>
+            <input type="checkbox" id="toggle-contrast" />
+          </label>
+          <label class="toggle-row">
+            <span><strong>Reduce motion</strong><small>Calmer animations</small></span>
+            <input type="checkbox" id="toggle-motion" />
+          </label>
+        </div>
 
         <div class="settings-block">
           <h3>Reminders</h3>
@@ -217,7 +247,7 @@
             <span><strong>Evening heart rate</strong><small>Around 20:00</small></span>
             <input type="checkbox" id="toggle-remind-pm" />
           </label>
-          <button type="button" id="btn-enable-notes" class="btn btn-ghost">Enable notification permission</button>
+          <button type="button" id="btn-enable-notes" class="btn btn-ghost">Enable notifications</button>
         </div>
 
         <div class="settings-block">
@@ -230,19 +260,34 @@
 
         <div class="settings-block">
           <h3>How this works</h3>
-          <p>Camera + flashlight detect tiny color changes in your fingertip (PPG) to estimate pulse. Blood pressure must be logged from a cuff. Not for diagnosis or medication changes.</p>
+          <p>Camera light changes in your fingertip (PPG) estimate pulse. Blood pressure is logged from a cuff. Not for diagnosis.</p>
         </div>
 
-        <button type="button" id="btn-clear" class="btn btn-danger-ghost">Clear all readings on this device</button>
+        <button type="button" id="btn-clear" class="btn btn-danger-ghost">Clear all readings</button>
       </section>
     </main>
 
     <nav class="tabbar" aria-label="Main">
-      <button type="button" class="tab active" data-go="home" aria-current="page">Home</button>
-      <button type="button" class="tab" data-go="pulse">Pulse</button>
-      <button type="button" class="tab" data-go="log">BP</button>
-      <button type="button" class="tab" data-go="charts">Charts</button>
-      <button type="button" class="tab" data-go="history">History</button>
+      <button type="button" class="tab active" data-go="home" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3.2 4 9.5V21h6v-6h4v6h6V9.5L12 3.2Z"/></svg>
+        <span>Home</span>
+      </button>
+      <button type="button" class="tab" data-go="pulse">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 13h3l2-5 3 10 2-6h3l2 4h3v-2h-2l-2-4h-4l-2 6-3-10-3 7H3v2Z"/></svg>
+        <span>Pulse</span>
+      </button>
+      <button type="button" class="tab" data-go="log">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2H7Zm-2 4h14l1 14H4Zm5 3h2v8H10Zm4 0h2v8h-2Z"/></svg>
+        <span>BP</span>
+      </button>
+      <button type="button" class="tab" data-go="charts">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 19h16v2H4v-2Zm2-2V9h2v8H6Zm5 0V5h2v12h-2Zm5 0v-6h2v6h-2Z"/></svg>
+        <span>Trends</span>
+      </button>
+      <button type="button" class="tab" data-go="history">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4a8 8 0 1 1-7.5 10.7L3 16l1.2-3.5A8 8 0 0 1 12 4Zm1 3v5l3.5 2-.8 1.3L11 12.2V7h2Z"/></svg>
+        <span>History</span>
+      </button>
     </nav>
   </div>
 

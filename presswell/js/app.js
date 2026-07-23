@@ -54,20 +54,13 @@
   }
 
   function renderDash() {
-    const s = Analytics.summarize(state.readings);
-    $("#dash-stats").innerHTML = `
-      <div class="stat-card"><span class="stat-label">Avg HR</span><strong>${fmt(s.avgHr)}</strong><small>bpm</small></div>
-      <div class="stat-card"><span class="stat-label">Avg BP</span><strong>${s.avgSys != null ? `${fmt(s.avgSys)}/${fmt(s.avgDia)}` : "—"}</strong><small>mmHg</small></div>
-      <div class="stat-card"><span class="stat-label">This week</span><strong>${s.weekCount}</strong><small>readings</small></div>
-      <div class="stat-card"><span class="stat-label">HR range</span><strong>${s.minHr != null ? `${fmt(s.minHr)}–${fmt(s.maxHr)}` : "—"}</strong><small>bpm</small></div>
-    `;
     $("#insight-text").textContent = Analytics.insights(state.readings);
 
     const card = $("#latest-card");
     const r = state.readings[0];
     if (!r) {
       card.className = "latest-card empty";
-      card.innerHTML = "<p>No readings yet. Measure heart rate or log a cuff reading.</p>";
+      card.innerHTML = "<p>No readings yet — start with pulse or a cuff log.</p>";
       return;
     }
     const bits = [];
@@ -75,13 +68,15 @@
       const c = BP.classify(r.systolic, r.diastolic);
       bits.push(`<p class="latest-bp">${r.systolic}/${r.diastolic} <span class="unit-inline">mmHg</span></p>`);
       bits.push(`<span class="category-chip ${c.key === "normal" ? "" : c.key}">${c.label}</span>`);
+    } else if (r.heartRate != null) {
+      bits.push(`<p class="latest-bp">${r.heartRate} <span class="unit-inline">bpm</span></p>`);
+      if (r.stress) bits.push(`<span class="category-chip">${r.stress} stress cue</span>`);
     }
-    if (r.heartRate != null) bits.push(`<span>Pulse ${r.heartRate} bpm</span>`);
     card.className = "latest-card";
     card.innerHTML = `
       <div class="meta-row"><span>${labelType(r)}</span><span>${BP.formatWhen(r.at)}</span></div>
       ${bits.join("")}
-      <div class="meta-row">${r.note ? `<span>${escapeHtml(r.note)}</span>` : ""}</div>
+      <div class="meta-row">${r.note ? `<span>${escapeHtml(r.note)}</span>` : ""}${r.heartRate != null && r.systolic != null ? `<span>Pulse ${r.heartRate} bpm</span>` : ""}</div>
     `;
   }
 
@@ -124,23 +119,27 @@
     Charts.drawLineChart(
       $("#chart-bp"),
       [
-        { label: "Systolic", color: "#0a5c63", points: bpPts.map((r) => ({ y: r.systolic })) },
-        { label: "Diastolic", color: "#c9851a", points: bpPts.map((r) => ({ y: r.diastolic })) },
+        { label: "Systolic", color: "#0b5f66", points: bpPts.map((r) => ({ y: r.systolic })) },
+        { label: "Diastolic", color: "#b86f12", points: bpPts.map((r) => ({ y: r.diastolic })) },
       ],
-      { guides: [80, 120, 140], minY: 50, maxY: 180, legend: true, emptyText: "Log cuff readings to see BP trends" }
+      { guides: [80, 120, 140], minY: 50, maxY: 180, legend: false, emptyText: "Log cuff readings to see BP trends" }
     );
 
     Charts.drawLineChart(
       $("#chart-hr"),
-      [{ label: "Heart rate", color: "#0a5c63", points: hrPts.map((r) => ({ y: r.heartRate })) }],
-      { guides: [60, 80, 100], minY: 40, maxY: 140, legend: true, emptyText: "Measure pulse to see heart-rate trends" }
+      [{ label: "Heart rate", color: "#0b5f66", points: hrPts.map((r) => ({ y: r.heartRate })) }],
+      { guides: [60, 80, 100], minY: 40, maxY: 140, legend: false, emptyText: "Measure pulse to see heart-rate trends" }
     );
 
     const s = Analytics.summarize(state.readings);
+    const week = state.readings.filter((r) => r.at >= Date.now() - 7 * 864e5);
+    const weekDia = Analytics.summarize(week).avgDia;
+    const month = state.readings.filter((r) => r.at >= Date.now() - 30 * 864e5);
+    const monthDia = Analytics.summarize(month).avgDia;
     $("#trend-stats").innerHTML = `
-      <div class="stat-card"><span class="stat-label">Week avg BP</span><strong>${s.weekAvgSys != null ? `${fmt(s.weekAvgSys)}/${fmt(Analytics.summarize(state.readings.filter(r=>r.at>=Date.now()-7*864e5)).avgDia)}` : "—"}</strong></div>
+      <div class="stat-card"><span class="stat-label">Week avg BP</span><strong>${s.weekAvgSys != null ? `${fmt(s.weekAvgSys)}/${fmt(weekDia)}` : "—"}</strong></div>
       <div class="stat-card"><span class="stat-label">Week avg HR</span><strong>${fmt(s.weekAvgHr)}</strong></div>
-      <div class="stat-card"><span class="stat-label">Month avg BP</span><strong>${s.monthAvgSys != null ? `${fmt(s.monthAvgSys)}` : "—"}</strong></div>
+      <div class="stat-card"><span class="stat-label">Month avg BP</span><strong>${s.monthAvgSys != null ? `${fmt(s.monthAvgSys)}/${fmt(monthDia)}` : "—"}</strong></div>
       <div class="stat-card"><span class="stat-label">Month avg HR</span><strong>${fmt(s.monthAvgHr)}</strong></div>
     `;
   }
@@ -186,9 +185,9 @@
     $("#btn-start-pulse").hidden = false;
     $("#btn-stop-pulse").hidden = true;
     $("#pulse-status").textContent = DEMO
-      ? "Demo mode — synthetic PPG signal ready"
+      ? "Demo mode — synthetic PPG ready"
       : "Ready. Cover the camera, then start.";
-    $("#camera-hint").textContent = DEMO ? "Demo waveform (no camera)" : "Allow camera access to begin";
+    $("#camera-hint").textContent = DEMO ? "Demo waveform" : "Allow camera access to begin";
     Charts.drawWave($("#ppg-wave"), []);
   }
 
