@@ -398,8 +398,12 @@
   }
 
   function bootApp() {
-    $("#onboarding").hidden = true;
+    const ob = $("#onboarding");
+    ob.hidden = true;
+    ob.setAttribute("hidden", "");
+    ob.style.display = "none";
     $("#app").hidden = false;
+    $("#app").removeAttribute("hidden");
     applySettings();
     setGreeting();
     showView("home", { push: false });

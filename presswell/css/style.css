@@ -83,6 +83,11 @@ body.reduce-motion *::after {
   margin: 0 auto;
   position: relative;
 }
+#onboarding[hidden],
+#app[hidden],
+.view[hidden] {
+  display: none !important;
+}
 
 /* Onboarding */
 .onboarding {
