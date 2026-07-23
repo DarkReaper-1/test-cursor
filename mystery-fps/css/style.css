@@ -51,6 +51,23 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
 }
 
+#film-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgba(0, 0, 0, 0.03) 2px 3px
+  );
+  opacity: 0.5;
+  animation: scanDrift 8s linear infinite;
+}
+@keyframes scanDrift {
+  from { transform: translateY(0); }
+  to { transform: translateY(12px); }
+}
+
 .letterbox {
   position: absolute;
   inset: 0;
@@ -661,7 +678,7 @@ kbd {
 .hud-journal-btn {
   position: absolute;
   right: 1.2rem;
-  bottom: 5.4rem;
+  bottom: calc(5.5rem + 148px);
   z-index: 5;
   font-family: var(--font-mono);
   font-size: 0.7rem;

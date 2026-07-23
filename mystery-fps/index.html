@@ -14,8 +14,9 @@
   <div id="vignette" aria-hidden="true"></div>
 
   <div id="app">
+    <!-- TITLE -->
     <section id="screen-title" class="screen active">
-      <div class="title-bg"></div>
+      <div class="title-bg" aria-hidden="true"></div>
       <div class="letterbox title-letterbox" aria-hidden="true"><span></span><span></span></div>
       <div class="title-content">
         <p class="eyebrow">A Blackwood Investigation</p>
@@ -33,9 +34,10 @@
       </div>
     </section>
 
+    <!-- BRIEF / VOICEOVER -->
     <section id="screen-brief" class="screen">
       <div class="letterbox" aria-hidden="true"><span></span><span></span></div>
-      <div class="brief-card voiceover-card">
+      <div class="brief-card">
         <p class="eyebrow">Opening Crawl — 23:47</p>
         <h2>Blackwood Manor</h2>
         <p class="vo-label">VOICEOVER</p>
@@ -44,6 +46,7 @@
       </div>
     </section>
 
+    <!-- GAME -->
     <section id="screen-game" class="screen">
       <canvas id="game-canvas"></canvas>
       <div class="letterbox game-letterbox" aria-hidden="true"><span></span><span></span></div>
@@ -81,10 +84,9 @@
         </div>
 
         <div id="radio-log" class="radio-log"></div>
-
         <canvas id="minimap" width="140" height="140"></canvas>
 
-        <div class="hud-bottom detective-bottom">
+        <div class="hud-bottom">
           <div class="case-block">
             <span class="stat-label">Investigation</span>
             <span id="case-progress">0 / 5 to accuse</span>
@@ -106,9 +108,10 @@
       <div id="pause-hint" class="hidden">Click to capture the scene</div>
     </section>
 
+    <!-- RESULT / CREDITS -->
     <section id="screen-result" class="screen">
       <div class="letterbox" aria-hidden="true"><span></span><span></span></div>
-      <div class="result-card finale-card">
+      <div class="result-card">
         <p class="eyebrow" id="result-eyebrow">Finale</p>
         <p id="result-grade" class="result-grade"></p>
         <h2 id="result-title"></h2>
@@ -120,14 +123,15 @@
     </section>
   </div>
 
+  <!-- CINEMA OVERLAYS -->
   <div id="title-card" class="title-card hidden" aria-live="polite">
     <p class="tc-act" id="tc-act"></p>
     <h2 id="tc-title"></h2>
     <p class="tc-sub" id="tc-sub"></p>
   </div>
-
   <div id="cinema-fade" class="cinema-fade" aria-hidden="true"></div>
 
+  <!-- EVIDENCE CLOSE-UP -->
   <div id="evidence-modal" class="modal hidden">
     <div class="modal-card closeup-card">
       <p class="exhibit">CLOSE-UP</p>
@@ -144,6 +148,7 @@
     </div>
   </div>
 
+  <!-- ACCUSATION DOSSIER -->
   <div id="accuse-modal" class="modal hidden">
     <div class="modal-card dossier-card">
       <p class="exhibit">FINAL ACT</p>
@@ -158,6 +163,7 @@
     </div>
   </div>
 
+  <!-- CASE JOURNAL -->
   <div id="journal" class="drawer hidden">
     <div class="drawer-head">
       <h3>Case Journal</h3>

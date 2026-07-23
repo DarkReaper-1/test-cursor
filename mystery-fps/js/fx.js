@@ -1,5 +1,6 @@
 import * as THREE from "three";
 
+/** Floating dust motes for manor atmosphere */
 export function createDust(count = 400) {
   const positions = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
@@ -34,130 +35,38 @@ export function updateDust(dust, dt, cam) {
   dust.geometry.attributes.position.needsUpdate = true;
 }
 
-export function spawnBlood(scene, point) {
-  const group = new THREE.Group();
-  for (let i = 0; i < 10; i++) {
-    const p = new THREE.Mesh(
-      new THREE.SphereGeometry(0.035 + Math.random() * 0.03, 4, 4),
-      new THREE.MeshBasicMaterial({ color: 0x8b1528, transparent: true, opacity: 0.9 })
-    );
-    p.position.copy(point);
-    p.userData.vel = new THREE.Vector3(
-      (Math.random() - 0.5) * 4,
-      Math.random() * 2.5,
-      (Math.random() - 0.5) * 4
-    );
-    p.userData.life = 0.45 + Math.random() * 0.2;
-    group.add(p);
+/** Storm rain particle system */
+export function createRain(count = 1400) {
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * 40;
+    positions[i * 3 + 1] = Math.random() * 20;
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
   }
-  scene.add(group);
-  return group;
-}
-
-export function createProjectile(origin, direction) {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.08, 6, 6),
-    new THREE.MeshBasicMaterial({ color: 0xff6644 })
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  return new THREE.Points(
+    geo,
+    new THREE.PointsMaterial({
+      color: 0x88aacc,
+      size: 0.045,
+      transparent: true,
+      opacity: 0.4,
+    })
   );
-  mesh.position.copy(origin);
-  mesh.userData = {
-    vel: direction.clone().normalize().multiplyScalar(14),
-    life: 2.2,
-    damage: 10,
-  };
-  const trail = new THREE.PointLight(0xff4422, 0.8, 2);
-  mesh.add(trail);
-  return mesh;
 }
 
-export function spawnDamageNumber(scene, point, text, color = "#ffcc66") {
-  // Use a sprite via canvas texture
-  const c = document.createElement("canvas");
-  c.width = 128;
-  c.height = 64;
-  const ctx = c.getContext("2d");
-  ctx.font = "bold 36px sans-serif";
-  ctx.fillStyle = color;
-  ctx.textAlign = "center";
-  ctx.fillText(text, 64, 40);
-  const tex = new THREE.CanvasTexture(c);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
-  const sprite = new THREE.Sprite(mat);
-  sprite.position.copy(point);
-  sprite.position.y += 0.4;
-  sprite.scale.set(0.8, 0.4, 1);
-  sprite.userData = { life: 0.7, vy: 1.4 };
-  scene.add(sprite);
-  return sprite;
-}
-
-export function updateFloating(list, dt, scene) {
-  for (let i = list.length - 1; i >= 0; i--) {
-    const s = list[i];
-    s.userData.life -= dt;
-    s.position.y += (s.userData.vy || 1) * dt;
-    if (s.material) s.material.opacity = Math.max(0, s.userData.life / 0.7);
-    if (s.userData.life <= 0) {
-      scene.remove(s);
-      list.splice(i, 1);
+export function updateRain(rain, dt, cam) {
+  if (!rain) return;
+  const pos = rain.geometry.attributes.position.array;
+  for (let i = 0; i < pos.length; i += 3) {
+    pos[i + 1] -= (8 + (i % 5)) * dt;
+    pos[i] -= 1.5 * dt;
+    if (pos[i + 1] < 0) {
+      pos[i + 1] = 18 + Math.random() * 4;
+      pos[i] = cam.position.x + (Math.random() - 0.5) * 40;
+      pos[i + 2] = cam.position.z + (Math.random() - 0.5) * 40;
     }
   }
-}
-
-export function spawnBulletHole(scene, point, normal) {
-  const hole = new THREE.Mesh(
-    new THREE.CircleGeometry(0.05, 8),
-    new THREE.MeshBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.85, depthWrite: false })
-  );
-  hole.position.copy(point);
-  // Offset slightly along normal to avoid z-fight
-  if (normal) hole.position.addScaledVector(normal, 0.02);
-  hole.lookAt(hole.position.clone().add(normal || new THREE.Vector3(0, 0, 1)));
-  hole.userData = { life: 12 };
-  scene.add(hole);
-  return hole;
-}
-
-export function spawnShell(scene, origin, right) {
-  const shell = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.02, 0.02, 0.06, 6),
-    new THREE.MeshStandardMaterial({ color: 0xc9a14a, metalness: 0.7, roughness: 0.35 })
-  );
-  shell.position.copy(origin);
-  shell.rotation.z = Math.PI / 2;
-  shell.userData = {
-    life: 1.2,
-    vel: new THREE.Vector3(
-      right.x * (2 + Math.random()) + (Math.random() - 0.5),
-      2 + Math.random() * 1.5,
-      right.z * (2 + Math.random()) + (Math.random() - 0.5)
-    ),
-  };
-  scene.add(shell);
-  return shell;
-}
-
-export function updatePhysicsBits(list, dt, scene) {
-  for (let i = list.length - 1; i >= 0; i--) {
-    const p = list[i];
-    p.userData.life -= dt;
-    if (p.userData.vel) {
-      p.position.addScaledVector(p.userData.vel, dt);
-      p.userData.vel.y -= 9 * dt;
-      p.rotation.x += dt * 8;
-      p.rotation.y += dt * 6;
-      if (p.position.y < 0.05) {
-        p.position.y = 0.05;
-        p.userData.vel.set(0, 0, 0);
-      }
-    }
-    if (p.material?.opacity != null && p.userData.life < 0.4) {
-      p.material.transparent = true;
-      p.material.opacity = Math.max(0, p.userData.life / 0.4);
-    }
-    if (p.userData.life <= 0) {
-      scene.remove(p);
-      list.splice(i, 1);
-    }
-  }
+  rain.geometry.attributes.position.needsUpdate = true;
 }

@@ -1,216 +1,26 @@
 import * as THREE from "three";
-import {
-  BRIEF, CLUES, SOLUTION, ROOM_BOUNDS, ROOM_CARDS, SUSPECTS, STUDY_LOCK, RADIO, KIND_LABELS,
-} from "./data.js";
+import { BRIEF, STUDY_LOCK, RADIO } from "./data.js";
 import { AudioBus } from "./audio.js";
-import { buildWorld, playerCollides, resetInvestigation } from "./world.js";
-import { createDust, updateDust } from "./fx.js";
+import { buildWorld, resetInvestigation } from "./world.js";
+import { createDust, updateDust, createRain, updateRain } from "./fx.js";
+import { $, $$, DEMO, waitMs, showScreen } from "./util.js";
+import { createState, resetCaseState } from "./state.js";
+import { createCinema } from "./cinema.js";
+import { createUI } from "./ui.js";
+import { createPlayer } from "./player.js";
+import { createInvestigation } from "./investigation.js";
+import { runDemo } from "./demo.js";
 
-const $ = (s) => document.querySelector(s);
-const DEMO = new URLSearchParams(location.search).has("demo");
-
-function emptyPins() {
-  return Object.fromEntries(Object.keys(CLUES).map((id) => [id, new Set()]));
-}
-
-const state = {
-  playing: false,
-  locked: false,
-  clues: new Set(),
-  notes: 0,
-  fieldNotes: [],
-  pins: emptyPins(),
-  unreadEvidence: 0,
-  activeClueId: null,
-  startTime: 0,
-  yaw: 0,
-  pitch: 0,
-  room: "entrance",
-  modalOpen: false,
-  journalOpen: false,
-  journalTab: "evidence",
-  flashlightOn: true,
-  battery: 100,
-  crouching: false,
-  footTimer: 0,
-  fov: 72,
-  studyUnlocked: false,
-  studyDoorT: 0,
-  radioFired: new Set(),
-  thunderT: 8,
-  lookSwayX: 0,
-  lookSwayY: 0,
-  standY: 1.65,
-  timeScale: 1,
-  slowMoT: 0,
-  studyToastCd: 0,
-  exposureBoost: 0,
-  accuseReadyAnnounced: false,
-  onboardFirstClue: false,
-  onboardPinHint: false,
-  cinemaBusy: false,
-  openingCam: 0,
-  openingCamDur: 2.8,
-  vx: 0,
-  vz: 0,
-};
-
+const state = createState();
 const keys = {};
 const audio = new AudioBus();
 
-let renderer, scene, camera, clock, world, rain, dust;
-let bob = 0;
-let toastTimer;
-let bannerTimer;
-let minimapCtx;
+let renderer, scene, camera, clock, world, rain, dust, minimapCtx;
+let cinema, ui, player, investigation;
 
-function showScreen(id) {
-  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
-  $(id).classList.add("active");
-}
-
-function toast(msg) {
-  const el = $("#toast");
-  el.textContent = msg;
-  el.classList.remove("hidden");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.add("hidden"), 2400);
-}
-
-function setObjective(text) {
-  $("#objective-text").textContent = text;
-}
-
-function showRoomBanner(name) {
-  const el = $("#room-banner");
-  el.textContent = name;
-  el.classList.remove("hidden");
-  el.classList.add("show");
-  clearTimeout(bannerTimer);
-  bannerTimer = setTimeout(() => {
-    el.classList.remove("show");
-    setTimeout(() => el.classList.add("hidden"), 400);
-  }, 1800);
-}
-
-function waitMs(ms) {
-  return new Promise((r) => setTimeout(r, DEMO ? Math.min(ms, 220) : ms));
-}
-
-async function cinemaFade(on, ms = 700) {
-  const el = $("#cinema-fade");
-  if (!el) return;
-  if (on) {
-    el.classList.add("on");
-    await waitMs(ms);
-  } else {
-    el.classList.remove("on");
-    await waitMs(ms * 0.6);
-  }
-}
-
-async function showTitleCard({ act = "", title = "", sub = "", hold = 2200 } = {}) {
-  const card = $("#title-card");
-  if (!card) return;
-  $("#tc-act").textContent = act;
-  $("#tc-title").textContent = title;
-  $("#tc-sub").textContent = sub;
-  card.classList.remove("hidden");
-  audio.noirHit();
-  await waitMs(hold);
-  card.classList.add("hidden");
-  await waitMs(280);
-}
-
-function roomChapter(roomId) {
-  const card = ROOM_CARDS[roomId];
-  const name = ROOM_BOUNDS[roomId]?.name || roomId;
-  if (!card) return name;
-  return `${card.act}\n${card.line}`;
-}
-
-function totalPins() {
-  return Object.values(state.pins).reduce((n, set) => n + set.size, 0);
-}
-
-function pinsForSuspect(suspectId) {
-  return [...state.clues]
-    .map((id) => CLUES[id])
-    .filter((c) => state.pins[c.id]?.has(suspectId));
-}
-
-function syncJournalBadge() {
-  const badge = $("#journal-badge");
-  if (!badge) return;
-  const n = state.unreadEvidence;
-  badge.textContent = String(n);
-  badge.classList.toggle("hidden", n <= 0);
-}
-
-function syncAccuseButton() {
-  const ready = state.clues.size >= 5;
-  const choice = $("#accuse-select").value;
-  $("#btn-accuse").disabled = !ready || !choice;
-  const hint = $("#accuse-hint");
-  if (!hint) return;
-  hint.classList.toggle("ready", ready);
-  if (!ready) {
-    hint.textContent = `Collect ${Math.max(0, 5 - state.clues.size)} more exhibit${state.clues.size === 4 ? "" : "s"} to unlock accusation (${state.clues.size}/5).`;
-  } else if (!choice) {
-    hint.textContent = "Case ready — pin theories, select a suspect, then open the dossier.";
-  } else {
-    const name = $("#accuse-select").selectedOptions[0]?.textContent || "suspect";
-    const pinned = pinsForSuspect(choice).length;
-    hint.textContent = pinned
-      ? `Ready to accuse ${name} (${pinned} pin${pinned === 1 ? "" : "s"}). Review the dossier first.`
-      : `Selected ${name} — pin exhibits to them before filing if you can.`;
-  }
-}
-
-function nextObjective() {
-  if (state.clues.size >= 8) return "Full dossier. Tab → pin theories → accuse when certain.";
-  if (state.clues.size >= 5) {
-    if (totalPins() < 2) return "Accusation unlocked. Pin exhibits to a suspect, then accuse.";
-    return "Accusation unlocked. Tab → review suspects → Make Accusation.";
-  }
-  if (!state.studyUnlocked) return "Library: examine Ashworth's body (gold marker) — press E.";
-
-  const priority = ["library", "kitchen", "study", "garden", "ballroom", "entrance"];
-  for (const room of priority) {
-    const missing = Object.values(CLUES).filter((c) => c.room === room && !state.clues.has(c.id));
-    if (!missing.length) continue;
-    const titles = missing.slice(0, 2).map((c) => c.title).join(" & ");
-    return `${ROOM_BOUNDS[room].name}: examine ${titles} (E).`;
-  }
-  return "All evidence secured. Tab to accuse.";
-}
-
-function caseStatus() {
-  if (state.clues.size >= 8) return "Dossier complete";
-  if (state.clues.size >= 5) return "Ready to accuse";
-  if (state.clues.size >= 3) return "Motive forming";
-  if (state.clues.size >= 1) return "Case opened";
-  return "Case building";
-}
-
-function updateHUD() {
-  $("#clue-stat").textContent = `Evidence ${state.clues.size}/8`;
-  $("#case-stat").textContent = caseStatus();
-  $("#pin-stat").textContent = `Pins ${totalPins()}`;
-  $("#room-stat").textContent = ROOM_BOUNDS[state.room]?.name || state.room;
-  $("#case-progress").textContent = state.clues.size >= 5
-    ? "Accusation unlocked"
-    : `${state.clues.size} / 5 to accuse`;
-  syncAccuseButton();
-  syncJournalBadge();
-  const flash = $("#flash-stat");
-  flash.textContent = state.flashlightOn ? "LAMP ON" : "LAMP OFF";
-  flash.className = state.flashlightOn ? "flash-on" : "flash-off";
-  const bat = $("#battery-fill");
-  bat.style.width = `${Math.max(0, state.battery)}%`;
-  bat.classList.toggle("low", state.battery < 25);
-  setObjective(nextObjective());
-}
+function getCamera() { return camera; }
+function getWorld() { return world; }
+function getRenderer() { return renderer; }
 
 function initEngine() {
   const canvas = $("#game-canvas");
@@ -234,19 +44,7 @@ function initEngine() {
   }
   scene.add(camera);
 
-  const count = 1400;
-  const positions = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 40;
-    positions[i * 3 + 1] = Math.random() * 20;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  rain = new THREE.Points(
-    geo,
-    new THREE.PointsMaterial({ color: 0x88aacc, size: 0.045, transparent: true, opacity: 0.4 })
-  );
+  rain = createRain(1400);
   scene.add(rain);
   dust = createDust(350);
   scene.add(dust);
@@ -260,805 +58,189 @@ function initEngine() {
   });
 }
 
-function requestLock() {
-  if (DEMO) return;
-  $("#game-canvas").requestPointerLock();
-}
+function wireSystems() {
+  cinema = createCinema({ audio });
 
-function onLockChange() {
-  state.locked = document.pointerLockElement === $("#game-canvas");
-  // pointer released
-  $("#pause-hint").classList.toggle("hidden", state.locked || !state.playing || state.modalOpen || state.journalOpen);
-}
+  ui = createUI({
+    state,
+    audio,
+    cinema,
+    getWorld,
+    requestLock: () => player.requestLock(),
+    DEMO,
+  });
 
-function onMouseMove(e) {
-  if (!state.locked || !state.playing || state.modalOpen || state.journalOpen) return;
-  const sens = 0.0022;
-  state.yaw -= e.movementX * sens;
-  state.pitch -= e.movementY * sens;
-  state.pitch = Math.max(-1.35, Math.min(1.35, state.pitch));
-  state.lookSwayX += e.movementX * 0.00015;
-  state.lookSwayY += e.movementY * 0.00012;
-}
+  player = createPlayer({
+    state,
+    keys,
+    audio,
+    ui,
+    getCamera,
+    getWorld,
+    getRenderer,
+    DEMO,
+  });
+  player.setCinema(cinema);
 
-function onMouseDown(e) {
-  if (!state.playing) return;
-  if (!state.locked && !DEMO) {
-    requestLock();
-  }
-}
-
-function onMouseUp() {}
-
-function hasLineOfSight(from, to) {
-  const dir = to.clone().sub(from);
-  const dist = dir.length();
-  if (dist < 0.4) return true;
-  dir.normalize();
-  const ray = new THREE.Raycaster(from, dir, 0.15, dist - 0.25);
-  return ray.intersectObjects(world.colliders, true).length === 0;
-}
-
-function toggleFlashlight() {
-  if (state.battery <= 0 && !state.flashlightOn) {
-    toast("Lamp dead — wait for charge");
-    return;
-  }
-  state.flashlightOn = !state.flashlightOn;
-  syncFlashlight();
-  audio.click();
-  updateHUD();
-}
-
-function syncFlashlight() {
-  if (!world.flashlight) return;
-  if (!state.flashlightOn || state.battery <= 0) {
-    world.flashlight.intensity = 0;
-    if (state.battery <= 0) state.flashlightOn = false;
-  } else {
-    world.flashlight.intensity = 1.2 + (state.battery / 100) * 1.8;
-  }
-}
-
-function pushRadio(text) {
-  const log = $("#radio-log");
-  const line = document.createElement("div");
-  line.className = "line";
-  line.textContent = text;
-  log.prepend(line);
-  while (log.children.length > 3) log.lastChild.remove();
-  audio.radio();
-}
-
-function maybeRadio() {
-  for (const msg of RADIO) {
-    const key = msg.text;
-    if (state.radioFired.has(key)) continue;
-    const clueOk = msg.atClues == null || state.clues.size >= msg.atClues;
-    if (clueOk) {
-      state.radioFired.add(key);
-      pushRadio(msg.text);
-    }
-  }
-}
-
-function updateCompass() {
-  // yaw 0 looks -Z (north in our map convention)
-  let deg = ((-state.yaw * 180) / Math.PI) % 360;
-  if (deg < 0) deg += 360;
-  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  const idx = Math.round(deg / 45) % 8;
-  $("#compass-dir").textContent = dirs[idx];
-  const offset = (deg / 360) * 240;
-  $("#compass-track").style.transform = `translateX(${-offset}px)`;
-}
-
-function unlockStudy() {
-  if (state.studyUnlocked) return;
-  state.studyUnlocked = true;
-  state.studyDoorT = 1.2;
-  if (world.studyDoor) {
-    const idx = world.colliders.indexOf(world.studyDoor);
-    if (idx >= 0) world.colliders.splice(idx, 1);
-    world.studyDoor.userData.openFrom = world.studyDoor.position.z;
-  }
-  if (world.studySeal) world.studySeal.visible = false;
-  audio.unlock();
-  toast("Study door unsealed");
-  pushRadio("HQ: Study seal broken. Check the will.");
-}
-
-function updateStudyDoor(dt) {
-  if (!state.studyUnlocked || !world.studyDoor || state.studyDoorT <= 0) return;
-  state.studyDoorT -= dt;
-  // Swing open around hinge — slide + rotate
-  world.studyDoor.rotation.y = Math.min(1.4, world.studyDoor.rotation.y + dt * 1.4);
-  world.studyDoor.position.x = 6 + Math.sin(world.studyDoor.rotation.y) * 0.8;
-  world.studyDoor.position.z = 2 + (1 - Math.cos(world.studyDoor.rotation.y)) * 0.6;
-  if (state.studyDoorT <= 0) world.studyDoor.visible = false;
-}
-
-function resolveInteractable(obj) {
-  let cur = obj;
-  while (cur) {
-    if (cur.userData?.kind === "clue" || cur.userData?.kind === "flavor") return cur;
-    cur = cur.parent;
-  }
-  return null;
-}
-
-function getLookTarget() {
-  const ray = new THREE.Raycaster();
-  ray.setFromCamera(new THREE.Vector2(0, 0), camera);
-  const hits = ray.intersectObjects(world.interactables, true);
-  if (!hits.length || hits[0].distance > 3.6) return null;
-  return resolveInteractable(hits[0].object);
-}
-
-function nearestClueMarker(maxDist = 4.5) {
-  let best = null;
-  let bestD = maxDist;
-  for (const m of world.interactables) {
-    if (m.userData.kind !== "clue" || m.userData.secured) continue;
-    const d = camera.position.distanceTo(m.position);
-    if (d < bestD) {
-      bestD = d;
-      best = m;
-    }
-  }
-  return best;
-}
-
-function markClueSecured(marker) {
-  marker.userData.secured = true;
-  if (marker.userData.beacon) marker.userData.beacon.visible = false;
-  if (marker.userData.ring) marker.userData.ring.visible = false;
-  marker.traverse((c) => {
-    if (c.isMesh && c.material?.emissiveIntensity != null) {
-      c.material = c.material.clone();
-      c.material.emissiveIntensity = 0.12;
-      c.material.color?.setHex?.(0x3a3428);
-    }
+  investigation = createInvestigation({
+    state,
+    audio,
+    ui,
+    cinema,
+    player,
+    getWorld,
   });
 }
 
-function tryInteract() {
-  if (state.modalOpen || state.journalOpen || state.cinemaBusy) return;
-  const target = getLookTarget();
-  if (!target) {
-    const near = nearestClueMarker(2.2);
-    if (near) toast("Aim at the gold marker, then press E");
-    return;
-  }
-
-  if (target.userData.kind === "flavor") {
-    openFlavor(target);
-    return;
-  }
-
-  const clue = CLUES[target.userData.clue];
-  if (!clue) return;
-  if (!state.clues.has(clue.id)) collectClue(clue, target);
-  else openEvidence(clue, { revisit: true });
-}
-
-function collectClue(clue, marker) {
-  state.clues.add(clue.id);
-  markClueSecured(marker);
-  state.unreadEvidence++;
-  audio.pickup();
-  if (clue.id === STUDY_LOCK.clueRequired) unlockStudy();
-
-  if (!state.onboardFirstClue) {
-    state.onboardFirstClue = true;
-    setTimeout(() => toast("Tab — the journal. Pin your theories."), 500);
-  }
-
-  if (state.clues.size >= 5 && !state.accuseReadyAnnounced) {
-    state.accuseReadyAnnounced = true;
-    showRoomBanner("ACT III\nAccusation Ready");
-    pushRadio("Voiceover: Enough for the final act. Review your pins, then accuse.");
-  }
-
-  maybeRadio();
-  updateHUD();
-  openEvidence(clue, { fresh: true });
-  renderJournal();
-}
-
-function renderPinChips(clueId) {
-  const wrap = $("#ev-pin-chips");
-  wrap.innerHTML = "";
-  Object.values(SUSPECTS).forEach((s) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "pin-chip" + (state.pins[clueId]?.has(s.id) ? " active" : "");
-    btn.textContent = s.name.split(" ")[0];
-    btn.title = `Pin to ${s.name}`;
-    btn.addEventListener("click", () => {
-      const set = state.pins[clueId];
-      if (set.has(s.id)) set.delete(s.id);
-      else set.add(s.id);
-      btn.classList.toggle("active", set.has(s.id));
-      audio.click();
-      if (!state.onboardPinHint && set.size) {
-        state.onboardPinHint = true;
-        toast("Pinned — suspicion builds from your theory");
-      }
-      updateHUD();
-      if (state.journalOpen) renderJournal();
-    });
-    wrap.appendChild(btn);
-  });
-}
-
-function openFlavor(marker) {
-  state.modalOpen = true;
-  state.activeClueId = null;
-  if (document.pointerLockElement) document.exitPointerLock();
-  marker.userData.examined = true;
-  $("#ev-title").textContent = marker.userData.title;
-  $("#ev-body").textContent = marker.userData.text;
-  const sting = $("#ev-sting");
-  if (sting) {
-    sting.textContent = "A detail the camera almost missed.";
-    sting.classList.remove("hidden");
-  }
-  $("#ev-room").textContent = `Observation — ${ROOM_BOUNDS[state.room]?.name || state.room}`;
-  const cat = $("#ev-category");
-  cat.textContent = KIND_LABELS.flavor;
-  cat.className = "ev-cat flavor";
-  $("#ev-pin-zone").classList.add("hidden");
-  $("#btn-close-ev").textContent = "Continue";
-  $("#evidence-modal").classList.remove("hidden");
-  audio.itemGet();
-}
-
-function openEvidence(clue, opts = {}) {
-  state.modalOpen = true;
-  state.activeClueId = clue.id;
-  if (document.pointerLockElement) document.exitPointerLock();
-  $("#ev-title").textContent = clue.title;
-  $("#ev-body").textContent = clue.text;
-  const sting = $("#ev-sting");
-  if (sting) {
-    sting.textContent = clue.sting || "";
-    sting.classList.toggle("hidden", !clue.sting);
-  }
-  $("#ev-room").textContent = `Scene: ${ROOM_BOUNDS[clue.room]?.name || clue.room}`;
-  const cat = $("#ev-category");
-  cat.textContent = KIND_LABELS[clue.kind] || "Evidence";
-  cat.className = `ev-cat ${clue.kind || ""}`;
-  $("#ev-pin-zone").classList.remove("hidden");
-  renderPinChips(clue.id);
-  $("#btn-close-ev").textContent = opts.revisit ? "Close" : "Hold on Frame";
-  $("#evidence-modal").classList.remove("hidden");
-  if (!opts.revisit) audio.sting();
-  else audio.click();
-}
-
-function closeEvidence() {
-  $("#evidence-modal").classList.add("hidden");
-  state.modalOpen = false;
-  const justLogged = state.activeClueId && state.clues.has(state.activeClueId);
-  if (justLogged && ($("#btn-close-ev").textContent.includes("Hold") || $("#btn-close-ev").textContent.includes("Log"))) {
-    toast(`Exhibit logged: ${CLUES[state.activeClueId].title}`);
-  }
-  state.activeClueId = null;
-  if (state.playing && !state.journalOpen && !DEMO) requestLock();
-}
-
-function suspectHeat(id) {
-  return pinsForSuspect(id).length;
-}
-
-function renderJournal() {
-  const list = $("#journal-list");
-  const notes = $("#notes-list");
-  const suspects = $("#suspect-list");
-  syncAccuseButton();
-
-  list.classList.add("hidden");
-  notes.classList.add("hidden");
-  suspects.classList.add("hidden");
-
-  if (state.journalTab === "evidence") {
-    list.classList.remove("hidden");
-    list.innerHTML = "";
-    if (!state.clues.size) {
-      list.innerHTML = "<li><p>No evidence yet. Search every room — gold markers, press E. Dim props can be re-examined.</p></li>";
-      return;
-    }
-    [...state.clues].forEach((id) => {
-      const c = CLUES[id];
-      const pinned = [...(state.pins[id] || [])].map((sid) => SUSPECTS[sid]?.name.split(" ")[0] || sid);
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${c.title}</strong>
-        <span class="ev-cat ${c.kind}">${KIND_LABELS[c.kind] || "Evidence"}</span>
-        <p>${c.text}</p>
-        <div class="links">${pinned.length ? `Your pins: ${pinned.join(" · ")}` : "No pins yet — open exhibit (E) to theorize"}</div>
-      `;
-      li.addEventListener("click", () => {
-        state.journalOpen = false;
-        $("#journal").classList.add("hidden");
-        openEvidence(c, { revisit: true });
-      });
-      list.appendChild(li);
-    });
-  } else if (state.journalTab === "notes") {
-    notes.classList.remove("hidden");
-    notes.innerHTML = "";
-    if (!state.fieldNotes.length) {
-      notes.innerHTML = "<p class=\"empty-notes\">No field notes yet. Walk near loose papers in the manor.</p>";
-      return;
-    }
-    state.fieldNotes.forEach((text, i) => {
-      const div = document.createElement("div");
-      div.className = "note-card";
-      div.innerHTML = `<span class="note-idx">Note ${i + 1}</span><p>${text}</p>`;
-      notes.appendChild(div);
-    });
-  } else {
-    suspects.classList.remove("hidden");
-    suspects.innerHTML = "";
-    Object.values(SUSPECTS).forEach((s) => {
-      const heat = suspectHeat(s.id);
-      const links = pinsForSuspect(s.id);
-      const div = document.createElement("div");
-      div.className = "suspect-card" + (heat >= 3 ? " hot" : "") + ($("#accuse-select").value === s.id ? " selected" : "");
-      div.innerHTML = `
-        <h4>${s.name}</h4>
-        <div class="role">${s.role}</div>
-        <p>${s.bio}</p>
-        <div class="heat">${heat ? `Your theory: ${"●".repeat(Math.min(heat, 6))}` : "No pins linking them yet"}</div>
-        <div class="links">${links.length ? `Pinned: ${links.map((c) => c.title).join(" · ")}` : "Pin exhibits from the evidence view"}</div>
-        <div class="pick-hint">Click to select for accusation</div>
-      `;
-      div.addEventListener("click", () => {
-        $("#accuse-select").value = s.id;
-        syncAccuseButton();
-        audio.click();
-        toast(`Selected ${s.name}`);
-        renderJournal();
-      });
-      suspects.appendChild(div);
-    });
+async function playBrief() {
+  await cinema.fade(true, DEMO ? 200 : 500);
+  showScreen("#screen-brief");
+  await cinema.fade(false, DEMO ? 200 : 600);
+  audio.noirHit();
+  const box = $("#brief-lines");
+  box.innerHTML = "";
+  for (const line of BRIEF) {
+    const p = document.createElement("p");
+    p.textContent = line;
+    box.appendChild(p);
+    audio.radio();
+    await waitMs(DEMO ? 180 : 720);
   }
 }
 
-function toggleJournal() {
-  if (state.modalOpen) return;
-  state.journalOpen = !state.journalOpen;
-  $("#journal").classList.toggle("hidden", !state.journalOpen);
-  if (state.journalOpen) {
-    if (document.pointerLockElement) document.exitPointerLock();
-    state.unreadEvidence = 0;
-    syncJournalBadge();
-    renderJournal();
-  } else if (state.playing && !DEMO) {
-    requestLock();
-  }
-}
-
-function currentRoom(pos) {
-  for (const [id, b] of Object.entries(ROOM_BOUNDS)) {
-    if (pos.x >= b.min.x && pos.x <= b.max.x && pos.z >= b.min.z && pos.z <= b.max.z) return id;
-  }
-  return state.room;
-}
-
-function updatePickups() {
-  for (const p of world.pickups) {
-    if (p.taken) continue;
-    p.meshes.forEach((m, i) => {
-      m.position.y = (i === 0 ? 0.35 : 0.5) + Math.sin(performance.now() * 0.004 + p.position.x) * 0.06;
-      m.rotation.y += 0.02;
-    });
-    if (camera.position.distanceTo(p.position) < 1.2) {
-      p.taken = true;
-      p.meshes.forEach((m) => { m.visible = false; });
-      state.notes++;
-      const text = p.text || "Case note recovered";
-      state.fieldNotes.push(text);
-      toast("Field note filed to journal");
-      audio.itemGet();
-      pushRadio(`Field note: ${text}`);
-      updateHUD();
-      if (state.journalOpen && state.journalTab === "notes") renderJournal();
-    }
-  }
-}
-
-function updateBattery(dt) {
-  if (state.flashlightOn && state.battery > 0) {
-    state.battery = Math.max(0, state.battery - dt * 4.2);
-    if (state.battery <= 0) {
-      state.flashlightOn = false;
-      toast("Lamp dead — wait for charge");
-    }
-  } else if (!state.flashlightOn && state.battery < 100) {
-    state.battery = Math.min(100, state.battery + dt * 12);
-  }
-  syncFlashlight();
-}
-
-function updatePlayer(dt) {
-  if (!state.playing || state.modalOpen || state.journalOpen || state.cinemaBusy) return;
-  if (state.openingCam > 0.15) {
-    camera.rotation.order = "YXZ";
-    camera.rotation.y = state.yaw;
-    camera.rotation.x = state.pitch;
-    return;
-  }
-
-  state.studyToastCd = Math.max(0, state.studyToastCd - dt);
-  if (!state.studyUnlocked) {
-    const nearDoor = Math.abs(camera.position.x - 6) < 1.2 && Math.abs(camera.position.z - 2) < 1.4;
-    if (nearDoor && (keys["KeyW"] || keys["KeyD"]) && state.studyToastCd <= 0) {
-      toast(STUDY_LOCK.message);
-      state.studyToastCd = 2.4;
-    }
-  }
-
-  camera.rotation.order = "YXZ";
-  camera.rotation.y = state.yaw;
-  camera.rotation.x = state.pitch;
-
-  state.crouching = !!(keys["KeyC"] || keys["ControlLeft"] || keys["ControlRight"]);
-  const sprinting = !state.crouching && (keys["ShiftLeft"] || keys["ShiftRight"]);
-  const maxSpeed = state.crouching ? 1.8 : sprinting ? 5.6 : 3.5;
-  const forward = new THREE.Vector3(-Math.sin(state.yaw), 0, -Math.cos(state.yaw));
-  const right = new THREE.Vector3(Math.cos(state.yaw), 0, -Math.sin(state.yaw));
-  const wish = new THREE.Vector3();
-
-  if (keys["KeyW"] || keys["ArrowUp"]) wish.add(forward);
-  if (keys["KeyS"] || keys["ArrowDown"]) wish.sub(forward);
-  if (keys["KeyD"] || keys["ArrowRight"]) wish.add(right);
-  if (keys["KeyA"] || keys["ArrowLeft"]) wish.sub(right);
-
-  const moving = wish.lengthSq() > 0;
-  if (moving) {
-    wish.normalize();
-    const accel = sprinting ? 20 : 14;
-    state.vx += wish.x * accel * dt;
-    state.vz += wish.z * accel * dt;
-    bob += dt * (sprinting ? 12 : 9);
-  } else {
-    const friction = Math.exp(-14 * dt);
-    state.vx *= friction;
-    state.vz *= friction;
-  }
-  const speed = Math.hypot(state.vx, state.vz);
-  if (speed > maxSpeed) {
-    state.vx = (state.vx / speed) * maxSpeed;
-    state.vz = (state.vz / speed) * maxSpeed;
-  }
-  if (speed > 0.05) {
-    const next = camera.position.clone();
-    next.x += state.vx * dt;
-    if (!playerCollides(next, world.colliders)) camera.position.x = next.x;
-    else state.vx *= 0.2;
-    next.x = camera.position.x;
-    next.z += state.vz * dt;
-    if (!playerCollides(next, world.colliders)) camera.position.z = next.z;
-    else state.vz *= 0.2;
-
-    state.footTimer -= dt;
-    if (moving && state.footTimer <= 0) {
-      audio.footstep();
-      state.footTimer = sprinting ? 0.3 : 0.42;
-    }
-  }
-
-  const targetFov = sprinting && moving ? 78 : 72;
-  state.fov += (targetFov - state.fov) * Math.min(1, dt * 8);
-  camera.fov = state.fov;
-  camera.updateProjectionMatrix();
-
-  const targetStand = state.crouching ? 1.15 : 1.65;
-  state.standY += (targetStand - state.standY) * Math.min(1, dt * 10);
-  camera.position.y = state.standY + Math.sin(bob) * (state.crouching ? 0.01 : 0.025);
-  camera.rotation.z = 0;
-
-  state.lookSwayX *= 0.85;
-  state.lookSwayY *= 0.85;
-
-  updateCompass();
-
-  const room = currentRoom(camera.position);
-  if (room !== state.room) {
-    state.room = room;
-    updateHUD();
-    showRoomBanner(roomChapter(room));
-    audio.noirHit();
-  }
-
-  const target = getLookTarget();
-  const prompt = $("#interact-prompt");
-  const cross = $("#crosshair");
-  if (target) {
-    prompt.classList.remove("hidden", "nearby");
-    cross.classList.add("examine");
-    if (target.userData.kind === "flavor") {
-      $("#interact-label").textContent = target.userData.label;
-    } else if (target.userData.secured || state.clues.has(target.userData.clue)) {
-      $("#interact-label").textContent = "Re-examine evidence";
-    } else {
-      $("#interact-label").textContent = target.userData.label;
-    }
-  } else {
-    cross.classList.remove("examine");
-    const near = nearestClueMarker(4.2);
-    if (near) {
-      prompt.classList.remove("hidden");
-      prompt.classList.add("nearby");
-      $("#interact-label").textContent = "Evidence nearby — look for the gold marker";
-    } else {
-      prompt.classList.add("hidden");
-      prompt.classList.remove("nearby");
-    }
-  }
-
-  updatePickups();
-}
-
-function updateStorm(dt) {
-  state.thunderT -= dt;
-  state.exposureBoost = Math.max(0, state.exposureBoost - dt * 1.8);
-  if (renderer) renderer.toneMappingExposure = 1.15 + state.exposureBoost;
-
-  if (state.thunderT <= 0) {
-    state.thunderT = 7 + Math.random() * 12;
-    const outdoor = state.room === "garden";
-    state.exposureBoost = outdoor ? 1.15 : 0.5;
-    $("#lightning").classList.add("flash");
-    setTimeout(() => $("#lightning").classList.remove("flash"), 90 + Math.random() * 70);
-    setTimeout(() => audio.thunder(), outdoor ? 40 : 140 + Math.random() * 280);
-    // Dim room lights for a beat
-    world.lights.forEach((l) => {
-      if (l === world.flashlight || !l.isPointLight) return;
-      const prev = l.intensity;
-      l.intensity = prev * 0.35;
-      setTimeout(() => { l.intensity = prev; }, 180);
-    });
-  }
-
-  if (rain?.material) {
-    rain.material.opacity = state.room === "garden" ? 0.55 : 0.18;
-  }
-  audio.setAmbience(state.room === "garden");
-}
-
-
-function updateRain(dt) {
-  if (!rain) return;
-  const pos = rain.geometry.attributes.position.array;
-  for (let i = 0; i < pos.length; i += 3) {
-    pos[i + 1] -= (8 + (i % 5)) * dt;
-    pos[i] -= 1.5 * dt;
-    if (pos[i + 1] < 0) {
-      pos[i + 1] = 18 + Math.random() * 4;
-      pos[i] = camera.position.x + (Math.random() - 0.5) * 40;
-      pos[i + 2] = camera.position.z + (Math.random() - 0.5) * 40;
-    }
-  }
-  rain.geometry.attributes.position.needsUpdate = true;
-}
-
-function updateMarkers(dt) {
-  const t = performance.now() * 0.003;
-  world.interactables.forEach((m) => {
-    if (!m.visible) return;
-    if (m.userData.kind === "flavor") {
-      m.position.y = (m.userData.baseY ?? m.position.y) + Math.sin(t + m.position.x) * 0.02;
-      return;
-    }
-    if (m.userData.secured) return;
-    const beacon = m.userData.beacon;
-    if (beacon) {
-      beacon.rotation.y += dt * 2.2;
-      beacon.position.y = 0.55 + Math.sin(t * 2 + m.position.x) * 0.06;
-    } else {
-      m.rotation.y += dt * 1.5;
-    }
-    const baseY = m.userData.baseY ?? m.userData.pos?.[1] ?? 0;
-    if (!beacon) m.position.y = baseY + Math.sin(t * 2 + m.position.x) * 0.08;
-    const dist = camera.position.distanceTo(m.position);
-    const nearBoost = dist < 5 ? (1 - dist / 5) * 0.9 : 0;
-    const mats = [];
-    m.traverse((c) => { if (c.isMesh && c.material?.emissiveIntensity != null) mats.push(c.material); });
-    mats.forEach((mat) => {
-      mat.emissiveIntensity = 0.5 + Math.sin(t + m.position.x) * 0.25 + nearBoost;
-    });
-    if (m.userData.ring) {
-      const s = 1 + Math.sin(t * 2) * 0.15 + nearBoost * 0.35;
-      m.userData.ring.scale.set(s, s, s);
-      if (m.userData.ring.material) {
-        m.userData.ring.material.opacity = 0.45 + nearBoost * 0.4;
-      }
-    }
-  });
-}
-
-function drawMinimap() {
-  const ctx = minimapCtx;
-  const w = 140;
-  const h = 140;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(8,12,18,0.85)";
-  ctx.fillRect(0, 0, w, h);
-
-  const scale = 3.2;
-  const ox = w / 2 - camera.position.x * scale;
-  const oy = h / 2 - camera.position.z * scale;
-
-  // Rooms — filled when all clues in room secured
-  ctx.lineWidth = 1;
-  Object.entries(ROOM_BOUNDS).forEach(([id, r]) => {
-    const roomClues = Object.values(CLUES).filter((c) => c.room === id);
-    const cleared = roomClues.length > 0 && roomClues.every((c) => state.clues.has(c.id));
-    const x = r.min.x * scale + ox;
-    const y = r.min.z * scale + oy;
-    const rw = (r.max.x - r.min.x) * scale;
-    const rh = (r.max.z - r.min.z) * scale;
-    if (cleared) {
-      ctx.fillStyle = "rgba(80, 140, 90, 0.18)";
-      ctx.fillRect(x, y, rw, rh);
-    }
-    ctx.strokeStyle = cleared ? "rgba(120,180,110,0.45)" : "rgba(201,161,74,0.25)";
-    ctx.strokeRect(x, y, rw, rh);
-  });
-
-  // Unsecured clue markers
-  world.interactables.forEach((m) => {
-    if (m.userData.kind !== "clue" || m.userData.secured) return;
-    ctx.fillStyle = "#c9a14a";
-    ctx.beginPath();
-    ctx.arc(m.position.x * scale + ox, m.position.z * scale + oy, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Player
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(-state.yaw);
-  ctx.fillStyle = "#dce4ef";
-  ctx.beginPath();
-  ctx.moveTo(0, -5);
-  ctx.lineTo(4, 5);
-  ctx.lineTo(-4, 5);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(201,161,74,0.5)";
-  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
-}
-
-function caseStrength(suspectId) {
-  const pinned = pinsForSuspect(suspectId);
-  const hits = pinned.filter((c) => c.implicates?.includes(suspectId)).length;
-  if (pinned.length >= 4 && hits >= 3) return { label: "Strong case", rank: 3 };
-  if (pinned.length >= 2 && hits >= 1) return { label: "Moderate case", rank: 2 };
-  if (pinned.length >= 1) return { label: "Thin case", rank: 1 };
-  return { label: "No pinned exhibits", rank: 0 };
-}
-
-function openDossier() {
-  const choice = $("#accuse-select").value;
-  if (!choice || state.clues.size < 5) return;
-  const suspect = SUSPECTS[choice];
-  const pinned = pinsForSuspect(choice);
-  const strength = caseStrength(choice);
-  $("#dossier-title").textContent = `Accuse ${suspect.name}`;
-  $("#dossier-strength").textContent = `${strength.label} — ${pinned.length} exhibit${pinned.length === 1 ? "" : "s"} pinned to them`;
-  $("#dossier-strength").className = `dossier-strength rank-${strength.rank}`;
-  const list = $("#dossier-pins");
-  list.innerHTML = "";
-  if (!pinned.length) {
-    list.innerHTML = "<li class=\"weak\">You have no pins on this suspect. Accusing from gut feeling is risky.</li>";
-  } else {
-    pinned.forEach((c) => {
-      const li = document.createElement("li");
-      li.textContent = c.title;
-      list.appendChild(li);
-    });
-  }
-  state.journalOpen = false;
-  $("#journal").classList.add("hidden");
-  state.modalOpen = true;
-  if (document.pointerLockElement) document.exitPointerLock();
-  $("#accuse-modal").classList.remove("hidden");
-  audio.click();
-}
-
-function closeDossier() {
-  $("#accuse-modal").classList.add("hidden");
-  state.modalOpen = false;
-  state.journalOpen = true;
-  $("#journal").classList.remove("hidden");
-  renderJournal();
-}
-
-async function confirmAccusation() {
-  const choice = $("#accuse-select").value;
-  if (!choice || state.clues.size < 5 || state.cinemaBusy) return;
-  $("#accuse-modal").classList.add("hidden");
-  state.modalOpen = false;
-  const won = choice === SOLUTION;
-  const pinned = pinsForSuspect(choice);
-  const text = won
-    ? "Elena Voss poisoned the soup with monkshood extract before Ashworth could reverse her inheritance. The final frame holds."
-    : "Wrong charge. The kitchen trail and garden heels pointed elsewhere — rewrite the scene and try again.";
-  state.journalOpen = false;
-  $("#journal").classList.add("hidden");
+async function startMission() {
+  if (state.cinemaBusy) return;
   state.cinemaBusy = true;
-  state.timeScale = 0.22;
-  state.slowMoT = 1.4;
-  audio.finale(won);
-  pushRadio(won
-    ? "Voiceover: Cut. Print it. Case closed — Elena Voss."
-    : "Voiceover: The cut doesn't hold. Back to the kitchen trail.");
-  showRoomBanner(won ? "CASE CLOSED" : "WRONG CUT");
-  await cinemaFade(true, DEMO ? 300 : 900);
-  await showTitleCard({
-    act: won ? "THE END" : "FADE OUT",
-    title: won ? "Case Closed" : "Case Failed",
-    sub: won ? "The heiress poured the death." : "The reel rejects your accusation.",
-    hold: DEMO ? 500 : 2100,
+  audio.init();
+  audio.resume();
+
+  await cinema.fade(true, DEMO ? 250 : 700);
+  await cinema.titleCard({
+    act: "ACT I",
+    title: "Blackwood Manor",
+    sub: "Nightfall. A locked estate. A dead lord.",
+    hold: DEMO ? 450 : 1800,
   });
-  state.cinemaBusy = false;
-  endGame(won, text, { pinned });
-}
 
-function accuse() {
-  openDossier();
-}
+  state.playing = true;
+  resetCaseState(state);
+  state.openingCamDur = DEMO ? 0.8 : 2.8;
+  state.openingCam = state.openingCamDur;
 
-function endGame(won, text, meta = {}) {
-  state.playing = false;
-  if (document.pointerLockElement) document.exitPointerLock();
-  $("#hud").classList.add("hidden");
+  $("#accuse-select").value = "";
+  $$(".jtab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "evidence"));
+  $("#accuse-modal").classList.add("hidden");
+  $("#result-chain").innerHTML = "";
+  ui.syncAccuseButton();
+
+  camera.position.set(0, 1.65, 3.4);
+  camera.fov = 78;
+  camera.updateProjectionMatrix();
+  player.syncFlashlight();
+  $("#radio-log").innerHTML = "";
+
+  resetInvestigation(scene, world);
+
+  if (world.studyDoor) {
+    const lock = STUDY_LOCK.block;
+    world.studyDoor.visible = true;
+    world.studyDoor.rotation.y = 0;
+    world.studyDoor.position.set(lock.x, lock.h / 2, lock.z);
+    if (!world.colliders.includes(world.studyDoor)) world.colliders.push(world.studyDoor);
+  }
+  if (world.studySeal) world.studySeal.visible = true;
+
+  showScreen("#screen-game");
+  $("#hud").classList.remove("hidden");
   $("#journal").classList.add("hidden");
   $("#evidence-modal").classList.add("hidden");
-  $("#accuse-modal").classList.add("hidden");
+  ui.updateHUD();
+  cinema.roomBanner(ui.roomChapter("entrance"));
+  ui.pushRadio("Voiceover: The manor holds its breath. So do you.");
+  state.radioFired.add(RADIO[0].text);
+  audio.startAmbience();
+  audio.startScore();
+  state.cinemaBusy = false;
+  await cinema.fade(false, DEMO ? 250 : 700);
 
-  const mins = Math.max(1, Math.round((Date.now() - state.startTime) / 60000));
-  const pinScore = totalPins();
-  const grade = won
-    ? (state.clues.size >= 8 && pinScore >= 4 ? "S" : state.clues.size >= 6 ? "A" : "B")
-    : "F";
-
-  const eyebrow = $("#result-eyebrow");
-  if (eyebrow) eyebrow.textContent = won ? "Finale — Print" : "Finale — Reshoot";
-  $("#result-grade").textContent = grade;
-  $("#result-title").textContent = won ? "Case Closed" : "Case Failed";
-  $("#result-text").textContent = text;
-  $("#cinema-fade")?.classList.remove("on");
-
-  const chain = $("#result-chain");
-  if (won) {
-    const key = ["ledger", "prints", "extract", "safe", "champagne"]
-      .filter((id) => state.clues.has(id))
-      .map((id) => CLUES[id].title);
-    chain.innerHTML = key.length
-      ? `<p class="chain-label">Decisive chain</p><ul>${key.map((t) => `<li>${t}</li>`).join("")}</ul>`
-      : "";
+  if (DEMO) {
+    $("#pause-hint").classList.add("hidden");
+    runDemo({ state, keys, camera, world, investigation, ui, player });
   } else {
-    const pinned = meta.pinned || [];
-    chain.innerHTML = pinned.length
-      ? `<p class="chain-label">Your pins did not hold</p><ul>${pinned.map((c) => `<li>${c.title}</li>`).join("")}</ul>`
-      : `<p class="chain-label">No theory was pinned before the charge</p>`;
+    $("#pause-hint").classList.remove("hidden");
+    setTimeout(() => player.requestLock(), 200);
   }
+}
 
-  $("#result-stats").innerHTML = `
-    <div><span>${state.clues.size}</span>exhibits</div>
-    <div><span>${pinScore}</span>pins</div>
-    <div><span>${state.notes}</span>notes</div>
-    <div><span>${mins}</span>min</div>
-  `;
-  showScreen("#screen-result");
+function bindEvents() {
+  $("#btn-start").addEventListener("click", async () => {
+    audio.init();
+    audio.resume();
+    await playBrief();
+    // Demo boots via main; manual play waits for Cut to Manor.
+  });
+  $("#btn-deploy").addEventListener("click", startMission);
+  $("#btn-close-ev").addEventListener("click", () => ui.closeEvidence());
+  $("#btn-close-journal").addEventListener("click", () => {
+    state.journalOpen = false;
+    $("#journal").classList.add("hidden");
+    if (state.playing && !DEMO) player.requestLock();
+  });
+  $("#btn-accuse").addEventListener("click", () => ui.openDossier());
+  $("#btn-dossier-cancel").addEventListener("click", () => ui.closeDossier());
+  $("#btn-dossier-confirm").addEventListener("click", () => investigation.confirmAccusation());
+  $("#accuse-select").addEventListener("change", () => ui.syncAccuseButton());
+  $("#btn-replay").addEventListener("click", () => showScreen("#screen-title"));
+  $("#btn-hud-journal").addEventListener("click", () => {
+    if (state.playing && !state.modalOpen) ui.toggleJournal();
+  });
+  $("#game-canvas").addEventListener("click", () => {
+    if (state.playing && !state.locked && !state.modalOpen && !state.journalOpen && !DEMO) {
+      player.requestLock();
+    }
+  });
+
+  $$(".jtab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      $$(".jtab").forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      state.journalTab = tab.dataset.tab;
+      ui.renderJournal();
+    });
+  });
+
+  document.addEventListener("pointerlockchange", () => player.onLockChange());
+  document.addEventListener("mousemove", (e) => player.onMouseMove(e));
+  document.addEventListener("mousedown", () => {
+    if (state.playing && !state.locked && !DEMO) player.requestLock();
+  });
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  window.addEventListener("keydown", (e) => {
+    keys[e.code] = true;
+    if (!state.playing) return;
+    if (e.code === "Escape") {
+      if (!$("#accuse-modal").classList.contains("hidden")) {
+        ui.closeDossier();
+        return;
+      }
+      if (state.modalOpen) {
+        ui.closeEvidence();
+        return;
+      }
+      if (state.journalOpen) ui.toggleJournal();
+      return;
+    }
+    if (e.code === "KeyE") investigation.tryInteract();
+    if (e.code === "KeyF") player.toggleFlashlight();
+    if (e.code === "Tab") {
+      e.preventDefault();
+      if (!state.modalOpen) ui.toggleJournal();
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    keys[e.code] = false;
+  });
 }
 
 function loop() {
@@ -1074,14 +256,14 @@ function loop() {
   }
 
   if (state.playing) {
-    updatePlayer(dt);
-    updateBattery(dt);
-    updateStudyDoor(dt);
-    updateRain(dt);
+    player.updatePlayer(dt);
+    player.updateBattery(dt);
+    player.updateStudyDoor(dt);
+    updateRain(rain, dt, camera);
     updateDust(dust, dt, camera);
-    updateMarkers(dt);
-    updateStorm(dt);
-    drawMinimap();
+    player.updateMarkers(dt);
+    player.updateStorm(dt, rain);
+    ui.drawMinimap(minimapCtx, camera);
 
     const tension = Math.min(
       1,
@@ -1113,259 +295,26 @@ function loop() {
   renderer.render(scene, camera);
 }
 
-/* Demo */
-async function runDemo() {
-  state.yaw = 0;
-  state.pitch = 0;
-  camera.position.set(0, 1.65, 2);
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const hold = async (code, ms) => { keys[code] = true; await wait(ms); keys[code] = false; };
-  const turnTo = async (yaw, ms = 500) => {
-    const start = state.yaw;
-    const steps = Math.max(1, Math.floor(ms / 16));
-    for (let i = 1; i <= steps; i++) {
-      state.yaw = start + ((yaw - start) * i) / steps;
-      await wait(16);
-    }
-  };
-  const lookAt = (x, z) => {
-    state.yaw = Math.atan2(-(x - camera.position.x), -(z - camera.position.z));
-    state.pitch = -0.12;
-  };
-  const takeClue = async (clueId, pinTo = []) => {
-    const marker = world.interactables.find((m) => m.userData.clue === clueId);
-    if (!marker || state.clues.has(clueId)) return;
-    camera.position.set(marker.position.x, 1.65, marker.position.z + 1.4);
-    lookAt(marker.position.x, marker.position.z);
-    camera.rotation.order = "YXZ";
-    camera.rotation.y = state.yaw;
-    camera.rotation.x = state.pitch;
-    camera.updateMatrixWorld(true);
-    await wait(450);
-    collectClue(CLUES[clueId], marker);
-    pinTo.forEach((sid) => state.pins[clueId].add(sid));
-    renderPinChips(clueId);
-    await wait(900);
-    closeEvidence();
-    await wait(250);
-  };
-
-  await turnTo(Math.PI / 2, 600);
-  await hold("KeyW", 1600);
-  await turnTo(Math.PI, 400);
-  await hold("KeyW", 1000);
-  await takeClue("body", ["elena"]);
-  await takeClue("letter", ["whitmore"]);
-  for (const [id, pins] of [
-    ["extract", ["elena"]],
-    ["ledger", ["elena"]],
-    ["will", ["elena"]],
-    ["safe", ["elena"]],
-    ["prints", ["elena"]],
-    ["champagne", ["elena"]],
-  ]) {
-    await takeClue(id, pins);
-  }
-  toggleJournal();
-  await wait(700);
-  document.querySelector('.jtab[data-tab="suspects"]').click();
-  await wait(1000);
-  document.querySelector('.jtab[data-tab="notes"]').click();
-  await wait(600);
-  document.querySelector('.jtab[data-tab="evidence"]').click();
-  await wait(700);
-  $("#accuse-select").value = "elena";
-  syncAccuseButton();
-  await wait(500);
-  accuse();
-  await wait(900);
-  confirmAccusation();
-}
-
-async function playBrief() {
-  await cinemaFade(true, DEMO ? 200 : 500);
-  showScreen("#screen-brief");
-  await cinemaFade(false, DEMO ? 200 : 600);
-  audio.noirHit();
-  const box = $("#brief-lines");
-  box.innerHTML = "";
-  for (const line of BRIEF) {
-    const p = document.createElement("p");
-    p.textContent = line;
-    box.appendChild(p);
-    audio.radio();
-    await waitMs(DEMO ? 180 : 720);
-  }
-}
-
-async function startMission() {
-  if (state.cinemaBusy) return;
-  state.cinemaBusy = true;
-  audio.init();
-  audio.resume();
-
-  await cinemaFade(true, DEMO ? 250 : 700);
-  await showTitleCard({
-    act: "ACT I",
-    title: "Blackwood Manor",
-    sub: "Nightfall. A locked estate. A dead lord.",
-    hold: DEMO ? 450 : 1800,
-  });
-
-  state.playing = true;
-  state.clues = new Set();
-  state.notes = 0;
-  state.fieldNotes = [];
-  state.pins = emptyPins();
-  state.unreadEvidence = 0;
-  state.activeClueId = null;
-  state.startTime = Date.now();
-  state.yaw = 0;
-  state.pitch = -0.08;
-  state.room = "entrance";
-  state.modalOpen = false;
-  state.journalOpen = false;
-  state.journalTab = "evidence";
-  state.flashlightOn = true;
-  state.battery = 100;
-  state.crouching = false;
-  state.fov = 78;
-  state.studyUnlocked = false;
-  state.studyDoorT = 0;
-  state.radioFired = new Set();
-  state.thunderT = 6;
-  state.standY = 1.65;
-  state.timeScale = 1;
-  state.slowMoT = 0;
-  state.studyToastCd = 0;
-  state.exposureBoost = 0;
-  state.accuseReadyAnnounced = false;
-  state.onboardFirstClue = false;
-  state.onboardPinHint = false;
-  state.openingCamDur = DEMO ? 0.8 : 2.8;
-  state.openingCam = state.openingCamDur;
-  state.vx = 0;
-  state.vz = 0;
-  $("#accuse-select").value = "";
-  document.querySelectorAll(".jtab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "evidence"));
-  $("#accuse-modal").classList.add("hidden");
-  $("#result-chain").innerHTML = "";
-  syncAccuseButton();
-  camera.position.set(0, 1.65, 3.4);
-  camera.fov = 78;
-  camera.updateProjectionMatrix();
-  syncFlashlight();
-  $("#radio-log").innerHTML = "";
-
-  resetInvestigation(scene, world);
-
-  if (world.studyDoor) {
-    const lock = STUDY_LOCK.block;
-    world.studyDoor.visible = true;
-    world.studyDoor.rotation.y = 0;
-    world.studyDoor.position.set(lock.x, lock.h / 2, lock.z);
-    if (!world.colliders.includes(world.studyDoor)) world.colliders.push(world.studyDoor);
-  }
-  if (world.studySeal) world.studySeal.visible = true;
-
-  showScreen("#screen-game");
-  $("#hud").classList.remove("hidden");
-  $("#journal").classList.add("hidden");
-  $("#evidence-modal").classList.add("hidden");
-  updateHUD();
-  showRoomBanner(roomChapter("entrance"));
-  pushRadio("Voiceover: The manor holds its breath. So do you.");
-  state.radioFired.add(RADIO[0].text);
-  audio.startAmbience();
-  audio.startScore();
-  state.cinemaBusy = false;
-  await cinemaFade(false, DEMO ? 250 : 700);
-
-  if (DEMO) {
-    $("#pause-hint").classList.add("hidden");
-    runDemo();
-  } else {
-    $("#pause-hint").classList.remove("hidden");
-    setTimeout(requestLock, 200);
-  }
-}
-
-/* Events */
-$("#btn-start").addEventListener("click", async () => {
-  audio.init();
-  audio.resume();
-  await playBrief();
-  if (DEMO) startMission();
-});
-$("#btn-deploy").addEventListener("click", startMission);
-$("#btn-close-ev").addEventListener("click", closeEvidence);
-$("#btn-close-journal").addEventListener("click", () => {
-  state.journalOpen = false;
-  $("#journal").classList.add("hidden");
-  if (state.playing && !DEMO) requestLock();
-});
-$("#btn-accuse").addEventListener("click", accuse);
-$("#btn-dossier-cancel").addEventListener("click", closeDossier);
-$("#btn-dossier-confirm").addEventListener("click", confirmAccusation);
-$("#accuse-select").addEventListener("change", syncAccuseButton);
-$("#btn-replay").addEventListener("click", () => showScreen("#screen-title"));
-$("#btn-hud-journal").addEventListener("click", () => {
-  if (state.playing && !state.modalOpen) toggleJournal();
-});
-$("#game-canvas").addEventListener("click", () => {
-  if (state.playing && !state.locked && !state.modalOpen && !state.journalOpen && !DEMO) requestLock();
-});
-
-document.querySelectorAll(".jtab").forEach((tab) => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".jtab").forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-    state.journalTab = tab.dataset.tab;
-    renderJournal();
-  });
-});
-
-document.addEventListener("pointerlockchange", onLockChange);
-document.addEventListener("mousemove", onMouseMove);
-document.addEventListener("mousedown", onMouseDown);
-document.addEventListener("mouseup", onMouseUp);
-document.addEventListener("contextmenu", (e) => e.preventDefault());
-
-window.addEventListener("keydown", (e) => {
-  keys[e.code] = true;
-  if (!state.playing) return;
-  if (e.code === "Escape") {
-    if (!$("#accuse-modal").classList.contains("hidden")) {
-      closeDossier();
-      return;
-    }
-    if (state.modalOpen) {
-      closeEvidence();
-      return;
-    }
-    if (state.journalOpen) toggleJournal();
-    return;
-  }
-  if (e.code === "KeyE") tryInteract();
-  if (e.code === "KeyF") toggleFlashlight();
-  if (e.code === "Tab") {
-    e.preventDefault();
-    if (!state.modalOpen) toggleJournal();
-  }
-});
-window.addEventListener("keyup", (e) => {
-  keys[e.code] = false;
-});
-
+/* Boot */
 initEngine();
+wireSystems();
+bindEvents();
 loop();
 
 if (DEMO) {
+  // Single path: brief → mission (avoid double startMission from deploy).
   setTimeout(async () => {
-    $("#btn-start").click();
-    await new Promise((r) => setTimeout(r, 900));
-    $("#btn-deploy").click();
+    audio.init();
+    audio.resume();
+    await playBrief();
+    await startMission();
   }, 700);
 }
 
-window.__game = { state, camera, tryInteract, startMission, confirmAccusation };
+window.__game = {
+  state,
+  camera,
+  tryInteract: () => investigation.tryInteract(),
+  startMission,
+  confirmAccusation: () => investigation.confirmAccusation(),
+};

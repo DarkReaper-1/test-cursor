@@ -23,11 +23,16 @@ async function main() {
   });
 
   const page = await context.newPage();
-  await page.goto(BASE, { waitUntil: "networkidle", timeout: 60000 });
+  page.on("pageerror", (e) => console.error("PAGEERROR", e.message));
 
-  // Demo mode auto-starts; wait through briefing + full autopilot
-  await page.waitForSelector("#screen-game.active", { timeout: 20000 });
-  await page.waitForSelector("#screen-result.active", { timeout: 90000 });
+  // Avoid networkidle — CDN fonts/assets can stall it indefinitely.
+  await page.goto(BASE, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.waitForFunction(
+    () => document.querySelector("#screen-game")?.classList.contains("active")
+      && window.__game?.state?.playing,
+    { timeout: 45000 }
+  );
+  await page.waitForSelector("#screen-result.active", { state: "attached", timeout: 120000 });
   await sleep(4000);
 
   const video = page.video();
