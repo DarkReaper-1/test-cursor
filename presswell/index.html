@@ -71,42 +71,44 @@
 
     <main class="main">
       <section id="view-home" class="view active" aria-label="Home">
-        <div class="home-hero">
-          <div class="hero-visual" aria-hidden="true">
-            <span class="hero-ring"></span>
-            <span class="hero-ring delay"></span>
-            <svg viewBox="0 0 160 64" class="hero-wave">
-              <path d="M4 36c18-28 30-28 42 0s30 28 42 0 30-28 42 0 30 28 42 0" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-            </svg>
+        <div class="home-stage">
+          <div class="home-hero">
+            <div class="hero-visual" aria-hidden="true">
+              <span class="hero-ring"></span>
+              <span class="hero-ring delay"></span>
+              <svg viewBox="0 0 200 72" class="hero-wave">
+                <path class="wave-draw" d="M8 40c22-32 38-32 52 0s38 32 52 0 38-32 52 0 18 16 28 0" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <p class="brand-mark hero-brand">PressWell</p>
+            <h2 class="hero-title">Check in calmly</h2>
+            <p class="hero-copy">Camera for pulse. Cuff for blood pressure.</p>
           </div>
-          <p class="brand-mark hero-brand">PressWell</p>
-          <h2 class="hero-title">Check in calmly</h2>
-          <p class="hero-copy">Camera for pulse. Cuff for blood pressure.</p>
-        </div>
 
-        <div class="action-stack">
-          <button type="button" class="action-tile primary" data-go="pulse">
-            <span class="tile-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 7h3l1.2-2h7.6L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-2.2a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Z"/></svg>
-            </span>
-            <span class="tile-copy">
-              <span class="tile-kicker">Camera · PPG</span>
-              <span class="tile-title">Measure heart rate</span>
-              <span class="tile-desc">Cover the lens with your fingertip</span>
-            </span>
-            <span class="tile-arrow" aria-hidden="true">→</span>
-          </button>
-          <button type="button" class="action-tile" data-go="log">
-            <span class="tile-icon muted" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M7 3h10v2H7V3Zm-2 4h14l1 14H4L5 7Zm4 3v8h2v-8H9Zm4 0v8h2v-8h-2Z"/></svg>
-            </span>
-            <span class="tile-copy">
-              <span class="tile-kicker">From your cuff</span>
-              <span class="tile-title">Log blood pressure</span>
-              <span class="tile-desc">Enter the numbers on your monitor</span>
-            </span>
-            <span class="tile-arrow" aria-hidden="true">→</span>
-          </button>
+          <div class="action-stack">
+            <button type="button" class="action-tile primary" data-go="pulse">
+              <span class="tile-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M4 7h3l1.2-2h7.6L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-2.2a2.3 2.3 0 1 1 0-4.6 2.3 2.3 0 0 1 0 4.6Z"/></svg>
+              </span>
+              <span class="tile-copy">
+                <span class="tile-kicker">Camera · PPG</span>
+                <span class="tile-title">Measure heart rate</span>
+                <span class="tile-desc">Cover the lens with your fingertip</span>
+              </span>
+              <span class="tile-arrow" aria-hidden="true">→</span>
+            </button>
+            <button type="button" class="action-tile" data-go="log">
+              <span class="tile-icon muted" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M7 3h10v2H7V3Zm-2 4h14l1 14H4L5 7Zm4 3v8h2v-8H9Zm4 0v8h2v-8h-2Z"/></svg>
+              </span>
+              <span class="tile-copy">
+                <span class="tile-kicker">From your cuff</span>
+                <span class="tile-title">Log blood pressure</span>
+                <span class="tile-desc">Enter the numbers on your monitor</span>
+              </span>
+              <span class="tile-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
 
         <section class="latest-block" aria-labelledby="latest-heading">
@@ -115,9 +117,8 @@
             <button type="button" class="text-btn" data-go="history">History</button>
           </div>
           <div id="latest-card" class="latest-card empty"><p>No readings yet — start with pulse or a cuff log.</p></div>
+          <p id="insight-text" class="insight-inline">Log a few readings to unlock gentle wellness notes.</p>
         </section>
-
-        <p id="insight-text" class="insight-inline">Log a few readings to unlock gentle wellness notes.</p>
       </section>
 
       <section id="view-pulse" class="view" hidden aria-label="Heart rate">
@@ -206,9 +207,9 @@
         </div>
 
         <form id="cuff-form" class="cuff-form">
-          <div class="stepper-grid">
+          <div class="stepper-grid dual">
             <fieldset>
-              <legend>Systolic <span class="hint">(top)</span></legend>
+              <legend>Systolic</legend>
               <div class="stepper">
                 <button type="button" class="step" data-field="sys" data-delta="-1" aria-label="Decrease systolic">−</button>
                 <input id="sys-input" type="number" inputmode="numeric" min="70" max="250" value="120" aria-label="Systolic" />
@@ -216,27 +217,29 @@
               </div>
             </fieldset>
             <fieldset>
-              <legend>Diastolic <span class="hint">(bottom)</span></legend>
+              <legend>Diastolic</legend>
               <div class="stepper">
                 <button type="button" class="step" data-field="dia" data-delta="-1" aria-label="Decrease diastolic">−</button>
                 <input id="dia-input" type="number" inputmode="numeric" min="40" max="150" value="80" aria-label="Diastolic" />
                 <button type="button" class="step" data-field="dia" data-delta="1" aria-label="Increase diastolic">+</button>
               </div>
             </fieldset>
-            <fieldset>
-              <legend>Pulse <span class="hint">(optional)</span></legend>
-              <div class="stepper">
-                <button type="button" class="step" data-field="pulse" data-delta="-1" aria-label="Decrease pulse">−</button>
-                <input id="pulse-input" type="number" inputmode="numeric" min="30" max="220" value="72" aria-label="Pulse" />
-                <button type="button" class="step" data-field="pulse" data-delta="1" aria-label="Increase pulse">+</button>
-              </div>
-            </fieldset>
           </div>
+          <fieldset class="pulse-field">
+            <legend>Pulse <span class="hint">(optional)</span></legend>
+            <div class="stepper">
+              <button type="button" class="step" data-field="pulse" data-delta="-1" aria-label="Decrease pulse">−</button>
+              <input id="pulse-input" type="number" inputmode="numeric" min="30" max="220" value="72" aria-label="Pulse" />
+              <button type="button" class="step" data-field="pulse" data-delta="1" aria-label="Increase pulse">+</button>
+            </div>
+          </fieldset>
           <label class="field">
             <span>Note (optional)</span>
             <input id="note-input" type="text" maxlength="80" placeholder="Morning, after walk, …" />
           </label>
-          <button type="submit" class="btn btn-primary btn-xl">Save cuff reading</button>
+          <div class="save-bar">
+            <button type="submit" class="btn btn-primary btn-xl">Save cuff reading</button>
+          </div>
         </form>
       </section>
 
