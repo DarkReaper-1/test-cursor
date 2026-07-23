@@ -1207,7 +1207,7 @@ async function startMission() {
     act: "ACT I",
     title: "Blackwood Manor",
     sub: "Nightfall. A locked estate. A dead lord.",
-    hold: DEMO ? 450 : 2300,
+    hold: DEMO ? 450 : 1800,
   });
 
   state.playing = true;
@@ -1275,8 +1275,8 @@ async function startMission() {
   state.radioFired.add(RADIO[0].text);
   audio.startAmbience();
   audio.startScore();
-  await cinemaFade(false, DEMO ? 250 : 800);
   state.cinemaBusy = false;
+  await cinemaFade(false, DEMO ? 250 : 700);
 
   if (DEMO) {
     $("#pause-hint").classList.add("hidden");
