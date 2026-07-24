@@ -1,0 +1,3302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SYSTEM — Solo Health Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+:root {
+  --bg-0: #04070c;
+  --bg-1: #070d16;
+  --panel: rgba(5, 14, 26, 0.92);
+  --line: rgba(120, 210, 255, 0.85);
+  --line-soft: rgba(120, 180, 220, 0.22);
+  --cyan: #7fe3ff;
+  --cyan-dim: #3aa9c9;
+  --text: #eaf6ff;
+  --muted: #86a2b8;
+  --danger: #ff4b57;
+  --success: #3dff9a;
+  --warn: #ffc14d;
+  --shadow: 0 0 46px rgba(90, 200, 255, 0.12);
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Rajdhani", sans-serif;
+  --font-mono: "Share Tech Mono", "Consolas", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg-0);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+body {
+  background:
+    radial-gradient(1000px 600px at 50% -15%, rgba(90, 200, 255, 0.1), transparent 55%),
+    radial-gradient(700px 480px at 100% 100%, rgba(20, 80, 140, 0.16), transparent 50%),
+    linear-gradient(180deg, #060d18 0%, #04070c 55%, #01040a 100%);
+  min-height: 100vh;
+}
+
+#app {
+  width: min(430px, 100%);
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 16px 16px 92px;
+}
+
+.screen.active {
+  display: block;
+  animation: fadeRise 0.55s ease both;
+}
+
+@keyframes fadeRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Boot — "Would you like to be registered as a Player?" */
+#boot-screen {
+  place-items: center;
+  padding: 0;
+  position: relative;
+}
+
+#boot-screen.active {
+  display: grid;
+}
+
+.boot-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(120, 210, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 210, 255, 0.05) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 75%);
+  animation: gridPulse 4s ease-in-out infinite;
+}
+
+.scanlines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 3px
+  );
+  opacity: 0.35;
+  animation: scanDrift 6s linear infinite;
+}
+
+@keyframes scanDrift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes gridPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+/* Anime "System" notice frame: sharp rectangle, thin double border, corner ticks */
+.notice-frame,
+.sys-frame,
+.panel {
+  position: relative;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(6, 20, 36, 0.94), rgba(3, 10, 20, 0.97));
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(120, 210, 255, 0.12), inset 0 0 30px rgba(90, 200, 255, 0.05);
+}
+
+.notice-frame::after,
+.sys-frame::after,
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--cyan), var(--cyan)), linear-gradient(var(--cyan), var(--cyan)),
+    linear-gradient(var(--cyan), var(--cyan)), linear-gradient(var(--cyan), var(--cyan)),
+    linear-gradient(var(--cyan), var(--cyan)), linear-gradient(var(--cyan), var(--cyan)),
+    linear-gradient(var(--cyan), var(--cyan)), linear-gradient(var(--cyan), var(--cyan));
+  background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+  background-position:
+    0 0, 0 0,
+    100% 0, 100% 0,
+    0 100%, 0 100%,
+    100% 100%, 100% 100%;
+  filter: drop-shadow(0 0 4px rgba(120, 210, 255, 0.7));
+}
+
+.boot-card {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 26px 20px;
+  width: min(370px, calc(100% - 32px));
+}
+
+.notice-tag {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: var(--cyan);
+  margin: 0 0 14px;
+}
+
+.notice-body {
+  color: var(--text);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  margin: 0 0 18px;
+}
+
+.notice-body strong {
+  color: var(--cyan);
+}
+
+.boot-points {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+}
+
+.boot-points li {
+  border-left: 2px solid var(--cyan-dim);
+  padding: 6px 10px;
+  color: #b7d0e4;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.9rem;
+}
+
+.notice-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.system-tag {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  color: var(--cyan);
+  margin: 0;
+}
+
+.system-tag.danger {
+  color: var(--danger);
+  animation: blink 1.1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.welcome-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.welcome-flash[hidden] {
+  display: none !important;
+}
+
+.welcome-flash.show {
+  opacity: 1;
+}
+
+.welcome-inner {
+  text-align: center;
+  animation: fadeRise 0.6s ease both;
+}
+
+.welcome-text {
+  font-family: var(--font-display);
+  color: var(--cyan);
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-shadow: 0 0 24px rgba(120, 210, 255, 0.55);
+}
+
+.sys-btn {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  border: 1px solid var(--line);
+  background: rgba(120, 210, 255, 0.08);
+  color: var(--cyan);
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.sys-btn:hover:not(:disabled) {
+  background: rgba(120, 210, 255, 0.16);
+  box-shadow: 0 0 18px rgba(120, 210, 255, 0.2);
+}
+
+.sys-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.sys-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sys-btn.primary {
+  background: linear-gradient(180deg, rgba(120, 210, 255, 0.24), rgba(0, 120, 140, 0.18));
+}
+
+.sys-btn.secondary {
+  padding: 10px 12px;
+}
+
+.sys-btn.tiny {
+  padding: 10px 12px;
+  font-size: 0.62rem;
+  min-width: 72px;
+}
+
+.sys-btn.danger {
+  border-color: rgba(255, 75, 87, 0.7);
+  color: #ffb4ba;
+  background: rgba(255, 75, 87, 0.12);
+}
+
+.sys-btn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--line-soft);
+}
+
+.ghost-btn {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.ghost-btn:hover {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--cyan);
+}
+
+.system-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+  animation: pulseDot 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.7);
+    opacity: 0.55;
+  }
+}
+
+.panel {
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.panel-header h2 {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  margin: 0;
+  color: var(--cyan);
+}
+
+.chip {
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  border: 1px solid var(--line-soft);
+  color: var(--muted);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.chip.warn {
+  color: var(--warn);
+  border-color: rgba(255, 193, 77, 0.45);
+}
+
+.chip.scan {
+  color: var(--cyan);
+  border-color: rgba(120, 210, 255, 0.35);
+}
+
+.chip.scan.live {
+  color: var(--success);
+  border-color: rgba(61, 255, 154, 0.5);
+  animation: blink 1s step-end infinite;
+}
+
+/* Status Window — plain System-style stat sheet */
+.status-panel {
+  font-family: var(--font-mono);
+}
+
+.status-title {
+  font-family: var(--font-display);
+  text-align: center;
+  color: var(--cyan);
+  letter-spacing: 0.3em;
+  font-size: 1rem;
+  margin: 2px 0 12px;
+  text-shadow: 0 0 16px rgba(120, 210, 255, 0.5);
+}
+
+.status-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+  margin: 12px 0;
+}
+
+.status-rows {
+  display: grid;
+  gap: 7px;
+}
+
+.status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.92rem;
+}
+
+.status-row dt {
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.status-row dt::after {
+  content: " :";
+}
+
+.status-row dd {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  text-align: right;
+}
+
+.status-row strong {
+  color: var(--cyan);
+  font-size: 1.1rem;
+}
+
+.status-row #rank-badge {
+  margin-right: 6px;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.rank-badge {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.35);
+  vertical-align: middle;
+}
+
+.rank-e { color: #9aa4b2; }
+.rank-d { color: #3dff9a; }
+.rank-c { color: #4da3ff; }
+.rank-b { color: #c084fc; }
+.rank-a { color: #ffc14d; }
+.rank-s { color: #ff5c6a; }
+.rank-n { color: #7fe3ff; }
+
+.xp-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line-soft);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.xp-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+  box-shadow: 0 0 12px rgba(120, 210, 255, 0.45);
+  transition: width 0.45s ease;
+}
+
+.meta {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+}
+
+.meta.streak {
+  color: var(--success);
+}
+
+.stats-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  position: relative;
+}
+
+.stat-item {
+  text-align: center;
+  border: 1px solid var(--line-soft);
+  padding: 8px 4px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.stat-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+}
+
+.quest-brief {
+  margin: 0 0 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  position: relative;
+}
+
+.quest-brief strong {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.quest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  position: relative;
+}
+
+.quest-item {
+  border: 1px solid var(--line-soft);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.quest-item:hover:not(.done) {
+  border-color: rgba(120, 210, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.quest-item.done {
+  border-color: rgba(61, 255, 154, 0.45);
+  background: rgba(61, 255, 154, 0.06);
+}
+
+.quest-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.quest-name {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.quest-check {
+  color: var(--cyan);
+  margin-right: 8px;
+  font-family: var(--font-mono);
+}
+
+.quest-item.done .quest-check {
+  color: var(--success);
+}
+
+.quest-meta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.quest-scan-tag {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  color: var(--cyan-dim);
+}
+
+.bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.bar.danger {
+  background: rgba(255, 75, 87, 0.12);
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #128fa3, var(--cyan));
+  transition: width 0.35s ease;
+}
+
+.bar.danger .bar-fill {
+  background: linear-gradient(90deg, #8a1520, var(--danger));
+}
+
+.quest-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  gap: 8px;
+  position: relative;
+}
+
+.quest-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.penalty-warning {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--danger);
+  background: rgba(255, 75, 87, 0.08);
+  color: #ffb4ba;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(430px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(3, 8, 15, 0.94);
+  border-top: 1px solid var(--line-soft);
+  backdrop-filter: blur(10px);
+  z-index: 20;
+}
+
+.nav-btn {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 16px 8px 20px;
+  cursor: pointer;
+}
+
+.nav-btn.active {
+  color: var(--cyan);
+  box-shadow: inset 0 2px 0 var(--cyan);
+}
+
+.overlay-view {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(2, 5, 10, 0.75);
+  backdrop-filter: blur(6px);
+  padding: 20px 16px 40px;
+  overflow: auto;
+  animation: fadeRise 0.3s ease both;
+}
+
+.overlay-view .panel {
+  width: min(430px, 100%);
+  margin: 0 auto;
+}
+
+.rank-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ladder-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line-soft);
+  padding: 10px;
+  opacity: 0.55;
+}
+
+.ladder-item.unlocked {
+  opacity: 1;
+}
+
+.ladder-item.active {
+  border-color: var(--line);
+  background: rgba(120, 210, 255, 0.06);
+}
+
+.ladder-rank {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  border: 1px solid currentColor;
+}
+
+.ladder-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.ladder-meta,
+.ladder-flag {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.ladder-flag {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+}
+
+.system-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.system-log li {
+  border-left: 2px solid var(--cyan-dim);
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+}
+
+/* Critique AI */
+.critique-panel .panel-header h2 {
+  color: var(--cyan);
+}
+
+.chip.grade {
+  font-weight: 700;
+  color: var(--muted);
+  border-color: var(--line-soft);
+  font-family: var(--font-mono);
+}
+
+.grade-s { color: #7fe3ff; border-color: rgba(127, 227, 255, 0.5); }
+.grade-a { color: #ffc14d; border-color: rgba(255, 193, 77, 0.5); }
+.grade-b { color: #c084fc; border-color: rgba(192, 132, 252, 0.5); }
+.grade-c { color: #4da3ff; border-color: rgba(77, 163, 255, 0.5); }
+.grade-d { color: #ff9a5c; border-color: rgba(255, 154, 92, 0.5); }
+.grade-f { color: var(--danger); border-color: rgba(255, 75, 87, 0.5); }
+
+.critique-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.critique-lines li {
+  border-left: 2px solid var(--cyan-dim);
+  padding: 6px 10px;
+  background: rgba(120, 210, 255, 0.05);
+  color: #cfe8f7;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  font-family: var(--font-mono);
+}
+
+.critique-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.critique-card {
+  border: 1px solid var(--line-soft);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 10px;
+}
+
+.critique-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.critique-card-name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.critique-empty {
+  color: var(--muted);
+  font-size: 0.95rem;
+  padding: 8px 2px;
+}
+
+/* Scanner */
+.scanner-view {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  width: min(430px, 100%);
+  margin: 0 auto;
+  background: #010509;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 16px;
+  animation: fadeRise 0.35s ease both;
+}
+
+.scanner-view[hidden] {
+  display: none !important;
+}
+
+.scanner-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.scanner-top h2 {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.scanner-stage {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  border: 1px solid var(--line);
+  background: #050c14;
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(120, 210, 255, 0.08), var(--shadow);
+}
+
+.scanner-stage.rep-flash {
+  box-shadow: inset 0 0 50px rgba(61, 255, 154, 0.25), 0 0 30px rgba(61, 255, 154, 0.2);
+}
+
+#scanner-video {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#scanner-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scanner-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 18px 14px 22px;
+  background: linear-gradient(180deg, rgba(1, 6, 12, 0.15) 40%, rgba(1, 6, 12, 0.82) 100%);
+}
+
+.scanner-status {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  text-align: center;
+}
+
+.scanner-count {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-shadow: 0 0 20px rgba(120, 210, 255, 0.35);
+  line-height: 1;
+}
+
+.scanner-target {
+  margin: 4px 0 10px;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+}
+
+.scanner-meter {
+  width: min(260px, 80%);
+  height: 8px;
+  border: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+#scanner-meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--success));
+  transition: width 0.2s ease;
+}
+
+.scanner-cue {
+  margin: 0;
+  color: #c6e7ff;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-align: center;
+  min-height: 1.4em;
+}
+
+.scanner-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal[hidden] {
+  display: none !important;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal-panel {
+  position: relative;
+  width: min(400px, 100%);
+  max-height: min(90vh, 760px);
+  overflow: auto;
+  border: 1px solid rgba(255, 75, 87, 0.7);
+  background: linear-gradient(180deg, #240c10, #10070a 70%);
+  padding: 20px 16px;
+  box-shadow: 0 0 40px rgba(255, 75, 87, 0.2);
+  animation: shakeIn 0.45s ease both;
+}
+
+.modal-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--danger), var(--danger)), linear-gradient(var(--danger), var(--danger)),
+    linear-gradient(var(--danger), var(--danger)), linear-gradient(var(--danger), var(--danger)),
+    linear-gradient(var(--danger), var(--danger)), linear-gradient(var(--danger), var(--danger)),
+    linear-gradient(var(--danger), var(--danger)), linear-gradient(var(--danger), var(--danger));
+  background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+  background-position:
+    0 0, 0 0,
+    100% 0, 100% 0,
+    0 100%, 0 100%,
+    100% 100%, 100% 100%;
+}
+
+@keyframes shakeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  60% {
+    transform: scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.modal-panel h2 {
+  font-family: var(--font-display);
+  letter-spacing: 0.18em;
+  color: var(--danger);
+  margin: 8px 0 10px;
+}
+
+.penalty-copy {
+  color: #ffc4c8;
+  margin: 0 0 14px;
+  line-height: 1.35;
+}
+
+.penalty-timer-wrap {
+  margin: 14px 0;
+  text-align: center;
+}
+
+.penalty-timer {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  letter-spacing: 0.12em;
+  color: var(--danger);
+  margin: 4px 0 0;
+  animation: blink 1.2s step-end infinite;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Toast — single-line System Message popup */
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%) translateY(-120%);
+  z-index: 80;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  background: rgba(4, 12, 22, 0.96);
+  color: var(--cyan);
+  width: min(390px, calc(100% - 24px));
+  text-align: center;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+  opacity: 0;
+}
+
+.toast::before {
+  content: "[ System ] ";
+  color: var(--muted);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast[data-kind="danger"] {
+  border-color: rgba(255, 75, 87, 0.7);
+  color: #ffb4ba;
+}
+
+.toast[data-kind="success"] {
+  border-color: rgba(61, 255, 154, 0.55);
+  color: var(--success);
+}
+
+.rankup {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 6, 14, 0.85);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.rankup[hidden] {
+  display: none !important;
+}
+
+.rankup.show {
+  opacity: 1;
+}
+
+.rankup-inner {
+  text-align: center;
+  animation: fadeRise 0.45s ease both;
+}
+
+.rankup-inner h2 {
+  font-family: var(--font-display);
+  letter-spacing: 0.28em;
+  color: var(--cyan);
+  font-size: 1.6rem;
+  margin: 8px 0 10px;
+}
+
+.rankup-inner .rank-badge {
+  margin-top: 18px;
+  width: 76px;
+  height: 76px;
+  font-size: 2rem;
+}
+
+@media (min-width: 480px) {
+  #app {
+    border-left: 1px solid var(--line-soft);
+    border-right: 1px solid var(--line-soft);
+    box-shadow: 0 0 80px rgba(120, 210, 255, 0.06);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <section id="boot-screen" class="screen active" aria-live="polite">
+      <div class="boot-grid"></div>
+      <div class="scanlines"></div>
+      <div class="notice-frame boot-card">
+        <p class="notice-tag">[ Notification ]</p>
+        <p class="notice-body">
+          You have met the requirements to receive the special class,
+          <strong>"Player."</strong><br /><br />
+          Would you like to be registered as a Player?
+        </p>
+        <ul class="boot-points">
+          <li>Daily Quests verified live by the Camera Scanner</li>
+          <li>Reps only count when a full form cycle completes</li>
+          <li>Fail the day → a Penalty Quest is issued</li>
+        </ul>
+        <div class="notice-actions">
+          <button id="btn-awaken" class="sys-btn primary" type="button">YES</button>
+          <button
+            id="btn-decline"
+            class="sys-btn ghost"
+            type="button"
+            disabled
+            title="The System does not accept refusal."
+          >
+            NO
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div id="welcome-flash" class="welcome-flash" hidden>
+      <div class="welcome-inner">
+        <p class="notice-tag">[ Notification ]</p>
+        <p class="welcome-text">Congratulations!<br />You have been registered as a Player.</p>
+      </div>
+    </div>
+
+    <section id="main-screen" class="screen">
+      <header class="top-bar">
+        <div class="brand-mark">
+          <span class="system-dot"></span>
+          <span>SOLO HEALTH</span>
+        </div>
+        <div class="top-actions">
+          <span id="camera-pill" class="chip scan">SCANNER READY</span>
+          <button id="btn-reset-day" class="ghost-btn" type="button" title="Advance day">NEXT DAY</button>
+        </div>
+      </header>
+
+      <article id="status-window" class="panel status-panel">
+        <h2 class="status-title">Status</h2>
+        <div class="status-rule"></div>
+
+        <dl class="status-rows">
+          <div class="status-row"><dt>Name</dt><dd id="stat-name">Hunter</dd></div>
+          <div class="status-row"><dt>Title</dt><dd id="stat-title">Player</dd></div>
+          <div class="status-row">
+            <dt>Level</dt>
+            <dd><strong id="player-level">1</strong></dd>
+          </div>
+          <div class="status-row"><dt>Job</dt><dd id="stat-job">None</dd></div>
+          <div class="status-row"><dt>HP</dt><dd id="stat-hp">100 / 100</dd></div>
+          <div class="status-row"><dt>MP</dt><dd id="stat-mp">10 / 10</dd></div>
+          <div class="status-row"><dt>Fatigue Level</dt><dd id="stat-fatigue">Low</dd></div>
+        </dl>
+
+        <div class="status-rule"></div>
+
+        <ul id="stats-list" class="stats-grid"></ul>
+
+        <div class="status-rule"></div>
+
+        <div class="status-rows">
+          <div class="status-row">
+            <dt>Rank</dt>
+            <dd>
+              <span id="rank-badge" class="rank-badge rank-e" data-rank="E">E</span>
+              <span id="rank-name">E-Rank Hunter</span>
+            </dd>
+          </div>
+        </div>
+
+        <div class="xp-track" aria-label="Experience progress">
+          <div id="xp-fill" class="xp-fill"></div>
+        </div>
+        <p id="xp-text" class="meta">0 / 100 XP</p>
+        <p id="streak-text" class="meta streak">Streak: 0 days</p>
+      </article>
+
+      <article id="quest-window" class="panel quest-panel">
+        <div class="panel-header">
+          <h2>DAILY QUEST</h2>
+          <span id="quest-timer" class="chip warn">23:59:59</span>
+        </div>
+        <p class="quest-brief">
+          Open the <strong>Camera Scanner</strong> for each objective. Progress is verified by pose tracking — manual logging is disabled.
+        </p>
+        <ul id="quest-list" class="quest-list"></ul>
+        <div class="quest-footer">
+          <p id="quest-progress">0 / 0 verified</p>
+        </div>
+        <p class="penalty-warning">⚠ Failure to complete the Daily Quest will bring about a penalty.</p>
+      </article>
+
+      <article id="critique-window" class="panel critique-panel" hidden>
+        <div class="panel-header">
+          <h2>CRITIQUE AI</h2>
+          <span id="critique-grade" class="chip grade">—</span>
+        </div>
+        <p id="critique-latest-title" class="quest-brief">Awaiting scan data…</p>
+        <ul id="critique-latest-lines" class="critique-lines"></ul>
+      </article>
+
+      <nav class="bottom-nav" aria-label="Primary">
+        <button class="nav-btn active" data-view="home" type="button">STATUS</button>
+        <button class="nav-btn" data-view="ranks" type="button">RANKS</button>
+        <button class="nav-btn" data-view="critique" type="button">CRITIQUE</button>
+        <button class="nav-btn" data-view="log" type="button">LOG</button>
+      </nav>
+    </section>
+
+    <section id="critique-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>CRITIQUE AI — HISTORY</h2>
+          <button class="ghost-btn close-view" type="button" data-close="critique">CLOSE</button>
+        </div>
+        <p class="quest-brief">Every scan is graded on tracking lock, rep depth, and tempo — the System does not accept partial reps.</p>
+        <ul id="critique-history" class="critique-history"></ul>
+      </div>
+    </section>
+
+    <section id="ranks-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>HUNTER RANKS</h2>
+          <button class="ghost-btn close-view" type="button" data-close="ranks">CLOSE</button>
+        </div>
+        <p class="quest-brief">Rise by verified XP. Penalty failures can set you back.</p>
+        <ol id="rank-ladder" class="rank-ladder"></ol>
+      </div>
+    </section>
+
+    <section id="log-view" class="overlay-view" hidden>
+      <div class="panel">
+        <div class="panel-header">
+          <h2>SYSTEM LOG</h2>
+          <button class="ghost-btn close-view" type="button" data-close="log">CLOSE</button>
+        </div>
+        <ul id="system-log" class="system-log"></ul>
+      </div>
+    </section>
+
+    <!-- Camera Scanner -->
+    <section id="scanner-view" class="scanner-view" hidden>
+      <div class="scanner-top">
+        <div>
+          <p class="system-tag">[ CAMERA SCANNER ]</p>
+          <h2 id="scanner-title">Push-ups</h2>
+        </div>
+        <button id="btn-close-scanner" class="ghost-btn" type="button">EXIT</button>
+      </div>
+      <div id="scanner-stage" class="scanner-stage">
+        <video id="scanner-video" playsinline muted></video>
+        <canvas id="scanner-canvas"></canvas>
+        <div class="scanner-hud">
+          <p id="scanner-status" class="scanner-status">Initializing…</p>
+          <p id="scanner-count" class="scanner-count">0</p>
+          <p id="scanner-target" class="scanner-target">Target 0</p>
+          <div class="scanner-meter"><div id="scanner-meter-fill"></div></div>
+          <p id="scanner-cue" class="scanner-cue">Step into frame</p>
+        </div>
+      </div>
+      <div class="scanner-actions">
+        <button id="btn-synth" class="sys-btn secondary" type="button" title="Use synthetic hunter when no camera body">SIM FEED</button>
+        <button id="btn-finish-scan" class="sys-btn primary" type="button">LOCK PROGRESS</button>
+      </div>
+    </section>
+
+    <div id="penalty-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="penalty-title">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel penalty">
+        <p class="system-tag danger">[ WARNING ]</p>
+        <h2 id="penalty-title">PENALTY QUEST</h2>
+        <p class="penalty-copy">Daily Quest incomplete. Clear each trial in the Camera Scanner or suffer demotion.</p>
+        <ul id="penalty-list" class="quest-list"></ul>
+        <div class="penalty-timer-wrap">
+          <p class="label">TIME REMAINING</p>
+          <p id="penalty-timer" class="penalty-timer">04:00:00</p>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-fail-penalty" class="sys-btn danger" type="button">SURRENDER</button>
+          <button id="btn-clear-penalty" class="sys-btn primary" type="button" disabled title="Clear by scanning all penalty objectives">SCAN TO CLEAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <div id="rankup-overlay" class="rankup" hidden>
+      <div class="rankup-inner">
+        <p class="system-tag">[ SYSTEM NOTICE ]</p>
+        <h2>RANK UP</h2>
+        <p id="rankup-text">You have been promoted.</p>
+        <div id="rankup-badge" class="rank-badge rank-d">D</div>
+      </div>
+    </div>
+  </div>
+  <script>
+/* ---- js/pose-math.js ---- */
+/** Joint-angle helpers for MoveNet / MediaPipe-style landmarks */
+
+function angle(a, b, c) {
+  if (!a || !b || !c) return null;
+  const ab = { x: a.x - b.x, y: a.y - b.y };
+  const cb = { x: c.x - b.x, y: c.y - b.y };
+  const dot = ab.x * cb.x + ab.y * cb.y;
+  const mag = Math.hypot(ab.x, ab.y) * Math.hypot(cb.x, cb.y);
+  if (!mag) return null;
+  const cos = Math.min(1, Math.max(-1, dot / mag));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
+function mid(a, b) {
+  if (!a || !b) return null;
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score ?? 1, b.score ?? 1) };
+}
+
+function dist(a, b) {
+  if (!a || !b) return null;
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function visible(p, min = 0.25) {
+  return p && (p.score == null || p.score >= min);
+}
+
+/** Normalize MediaPipe (0-1) or pixel landmarks into named COCO-ish map */
+function toKeyMap(landmarks, width = 1, height = 1, isNormalized = true) {
+  if (!landmarks?.length) return null;
+
+  // MediaPipe Pose Landmarker 33-point order
+  const MP = [
+    "nose",
+    "left_eye_inner",
+    "left_eye",
+    "left_eye_outer",
+    "right_eye_inner",
+    "right_eye",
+    "right_eye_outer",
+    "left_ear",
+    "right_ear",
+    "mouth_left",
+    "mouth_right",
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_pinky",
+    "right_pinky",
+    "left_index",
+    "right_index",
+    "left_thumb",
+    "right_thumb",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle",
+    "left_heel",
+    "right_heel",
+    "left_foot_index",
+    "right_foot_index",
+  ];
+
+  const map = {};
+  landmarks.forEach((lm, i) => {
+    const name = lm.name || MP[i];
+    if (!name) return;
+    map[name] = {
+      x: isNormalized ? lm.x * width : lm.x,
+      y: isNormalized ? lm.y * height : lm.y,
+      score: lm.visibility ?? lm.score ?? 1,
+    };
+  });
+  return map;
+}
+
+const SKELETON = [
+  ["left_shoulder", "right_shoulder"],
+  ["left_shoulder", "left_elbow"],
+  ["left_elbow", "left_wrist"],
+  ["right_shoulder", "right_elbow"],
+  ["right_elbow", "right_wrist"],
+  ["left_shoulder", "left_hip"],
+  ["right_shoulder", "right_hip"],
+  ["left_hip", "right_hip"],
+  ["left_hip", "left_knee"],
+  ["left_knee", "left_ankle"],
+  ["right_hip", "right_knee"],
+  ["right_knee", "right_ankle"],
+  ["nose", "left_shoulder"],
+  ["nose", "right_shoulder"],
+];
+
+
+/* ---- js/rep-counter.js ---- */
+
+
+/**
+ * Phase-based counters for camera-verified exercises.
+ * Research basis: joint-angle up↔down state machines (MediaPipe / MoveNet fitness apps).
+ */
+function createRepCounter(kind) {
+  switch (kind) {
+    case "pushup":
+      return makeAngleRep({
+        sample: (k) => avgAngles(k, [
+          ["left_shoulder", "left_elbow", "left_wrist"],
+          ["right_shoulder", "right_elbow", "right_wrist"],
+        ]),
+        downBelow: 95,
+        upAbove: 150,
+        cueDown: "Lower your chest — elbows bend",
+        cueUp: "Press up to lockout",
+      });
+    case "squat":
+      return makeAngleRep({
+        sample: (k) => avgAngles(k, [
+          ["left_hip", "left_knee", "left_ankle"],
+          ["right_hip", "right_knee", "right_ankle"],
+        ]),
+        downBelow: 110,
+        upAbove: 155,
+        cueDown: "Sit hips back — deepen the squat",
+        cueUp: "Drive up to stand tall",
+      });
+    case "situp":
+      return makeAngleRep({
+        sample: (k) => {
+          const hip = mid(k.left_hip, k.right_hip);
+          const shoulder = mid(k.left_shoulder, k.right_shoulder);
+          const knee = mid(k.left_knee, k.right_knee);
+          return angle(shoulder, hip, knee);
+        },
+        downBelow: 75,
+        upAbove: 125,
+        cueDown: "Curl shoulders toward knees",
+        cueUp: "Control back down",
+      });
+    case "run":
+      return makeStepCounter();
+    case "hydrate":
+      return makeDrinkCounter();
+    case "mind":
+      return makeStillnessCounter();
+    default:
+      return makeAngleRep({
+        sample: () => null,
+        downBelow: 90,
+        upAbove: 150,
+      });
+  }
+}
+
+function avgAngles(k, triples) {
+  const vals = [];
+  for (const [a, b, c] of triples) {
+    if (visible(k[a]) && visible(k[b]) && visible(k[c])) {
+      const v = angle(k[a], k[b], k[c]);
+      if (v != null) vals.push(v);
+    }
+  }
+  if (!vals.length) return null;
+  return vals.reduce((s, n) => s + n, 0) / vals.length;
+}
+
+function makeAngleRep({ sample, downBelow, upAbove, invert = false, cueDown, cueUp }) {
+  let phase = "up";
+  let reps = 0;
+  let lastAngle = null;
+  let cool = 0;
+
+  return {
+    kind: "rep",
+    reset() {
+      phase = "up";
+      reps = 0;
+      lastAngle = null;
+      cool = 0;
+    },
+    getReps: () => reps,
+    update(keymap, dt = 16) {
+      cool = Math.max(0, cool - dt);
+      const a = sample(keymap);
+      lastAngle = a;
+      if (a == null) {
+        return { reps, angle: null, phase, cue: "Step into frame — full body visible", gained: 0 };
+      }
+
+      let gained = 0;
+      if (!invert) {
+        if (phase === "up" && a < downBelow) {
+          phase = "down";
+        } else if (phase === "down" && a > upAbove && cool <= 0) {
+          phase = "up";
+          reps += 1;
+          gained = 1;
+          cool = 280;
+        }
+      } else {
+        // sit-up style: rising torso increases shoulder-hip-knee "openness" depending on camera;
+        // use: start open (lying), curl closed, return open = 1 rep
+        if (phase === "up" && a < downBelow) {
+          phase = "down";
+        } else if (phase === "down" && a > upAbove && cool <= 0) {
+          phase = "up";
+          reps += 1;
+          gained = 1;
+          cool = 320;
+        }
+      }
+
+      const cue = phase === "up" ? cueDown : cueUp;
+      return { reps, angle: a, phase, cue, gained };
+    },
+  };
+}
+
+function makeStepCounter() {
+  let reps = 0; // steps
+  let lastSide = null;
+  let cool = 0;
+  let prevL = null;
+  let prevR = null;
+
+  return {
+    kind: "steps",
+    reset() {
+      reps = 0;
+      lastSide = null;
+      cool = 0;
+      prevL = null;
+      prevR = null;
+    },
+    getReps: () => reps,
+    /** ~1400 steps ≈ 1 km jogging-in-place estimate */
+    stepsToKm: (steps) => Math.round((steps / 1400) * 100) / 100,
+    update(keymap, dt = 16) {
+      cool = Math.max(0, cool - dt);
+      const lk = keymap.left_knee;
+      const rk = keymap.right_knee;
+      const lh = keymap.left_hip;
+      const rh = keymap.right_hip;
+      if (!visible(lk) || !visible(rk) || !visible(lh) || !visible(rh)) {
+        return { reps, angle: null, phase: "idle", cue: "Jog in place — knees visible", gained: 0, km: 0 };
+      }
+
+      const lLift = (lh.y - lk.y) / Math.max(40, Math.abs(lh.y - (keymap.left_ankle?.y ?? lk.y + 80)));
+      const rLift = (rh.y - rk.y) / Math.max(40, Math.abs(rh.y - (keymap.right_ankle?.y ?? rk.y + 80)));
+
+      let gained = 0;
+      if (cool <= 0) {
+        if (lLift > 0.18 && lastSide !== "L" && (prevL == null || lLift > prevL)) {
+          lastSide = "L";
+          reps += 1;
+          gained = 1;
+          cool = 180;
+        } else if (rLift > 0.18 && lastSide !== "R" && (prevR == null || rLift > prevR)) {
+          lastSide = "R";
+          reps += 1;
+          gained = 1;
+          cool = 180;
+        }
+      }
+      prevL = lLift;
+      prevR = rLift;
+      const km = Math.round((reps / 1400) * 100) / 100;
+      return {
+        reps,
+        angle: Math.round(((lLift + rLift) / 2) * 100),
+        phase: lastSide || "idle",
+        cue: "Keep jogging — high knees",
+        gained,
+        km,
+      };
+    },
+  };
+}
+
+function makeDrinkCounter() {
+  let glasses = 0;
+  let holding = 0;
+  let cool = 0;
+
+  return {
+    kind: "glasses",
+    reset() {
+      glasses = 0;
+      holding = 0;
+      cool = 0;
+    },
+    getReps: () => glasses,
+    update(keymap, dt = 16) {
+      cool = Math.max(0, cool - dt);
+      const nose = keymap.nose;
+      const lw = keymap.left_wrist;
+      const rw = keymap.right_wrist;
+      if (!visible(nose)) {
+        return { reps: glasses, cue: "Face the scanner to log hydration", gained: 0, hold: 0 };
+      }
+      const near =
+        (visible(lw) && dist(lw, nose) < 55) ||
+        (visible(rw) && dist(rw, nose) < 55);
+
+      let gained = 0;
+      if (near && cool <= 0) {
+        holding += dt;
+        if (holding >= 1400) {
+          glasses += 1;
+          gained = 1;
+          holding = 0;
+          cool = 1200;
+        }
+      } else if (!near) {
+        holding = Math.max(0, holding - dt * 0.6);
+      }
+
+      return {
+        reps: glasses,
+        cue: near ? "Hold drink pose…" : "Raise wrist to mouth like drinking",
+        gained,
+        hold: Math.min(1, holding / 1400),
+        angle: null,
+        phase: near ? "sip" : "idle",
+      };
+    },
+  };
+}
+
+function makeStillnessCounter() {
+  let ms = 0;
+  let samples = [];
+
+  return {
+    kind: "minutes",
+    reset() {
+      ms = 0;
+      samples = [];
+    },
+    getReps: () => Math.floor(ms / 60000),
+    getMinutes: () => Math.round((ms / 60000) * 10) / 10,
+    update(keymap, dt = 16) {
+      const shoulder = mid(keymap.left_shoulder, keymap.right_shoulder);
+      const hip = mid(keymap.left_hip, keymap.right_hip);
+      if (!shoulder || !hip) {
+        return { reps: Math.floor(ms / 60000), minutes: ms / 60000, cue: "Sit in frame and hold still", gained: 0 };
+      }
+      samples.push({ x: shoulder.x, y: shoulder.y });
+      if (samples.length > 18) samples.shift();
+      let motion = 0;
+      for (let i = 1; i < samples.length; i++) {
+        motion += Math.hypot(samples[i].x - samples[i - 1].x, samples[i].y - samples[i - 1].y);
+      }
+      const still = samples.length >= 8 && motion / samples.length < 1.8;
+      let gainedMin = 0;
+      const before = Math.floor(ms / 60000);
+      if (still) {
+        ms += dt;
+      }
+      const after = Math.floor(ms / 60000);
+      if (after > before) gainedMin = after - before;
+
+      return {
+        reps: after,
+        minutes: Math.round((ms / 60000) * 10) / 10,
+        cue: still ? "Focus lock engaged — hold" : "Reduce movement to train focus",
+        gained: gainedMin,
+        hold: still ? 1 : 0,
+        phase: still ? "focus" : "idle",
+        angle: motion,
+      };
+    },
+  };
+}
+
+function questKind(questId) {
+  const id = String(questId).replace(/^p-/, "");
+  if (id.includes("push")) return "pushup";
+  if (id.includes("sit")) return "situp";
+  if (id.includes("squat")) return "squat";
+  if (id.includes("run")) return "run";
+  if (id.includes("hydrate")) return "hydrate";
+  if (id.includes("mind")) return "mind";
+  return "pushup";
+}
+
+
+/* ---- js/game-data.js ---- */
+/** Solo Leveling–inspired ranks, stats, and quest templates */
+
+const RANKS = [
+  { id: "E", name: "E-Rank Hunter", minXp: 0, color: "#6b7280", next: "D" },
+  { id: "D", name: "D-Rank Hunter", minXp: 250, color: "#22c55e", next: "C" },
+  { id: "C", name: "C-Rank Hunter", minXp: 700, color: "#3b82f6", next: "B" },
+  { id: "B", name: "B-Rank Hunter", minXp: 1500, color: "#a855f7", next: "A" },
+  { id: "A", name: "A-Rank Hunter", minXp: 3000, color: "#f59e0b", next: "S" },
+  { id: "S", name: "S-Rank Hunter", minXp: 5500, color: "#ef4444", next: "N" },
+  { id: "N", name: "National Level", minXp: 10000, color: "#00e5ff", next: null },
+];
+
+/** Flavor "Job" shown in the Status Window, unlocked with rank. */
+const RANK_JOBS = {
+  E: "None",
+  D: "Fighter",
+  C: "Assassin",
+  B: "Tank",
+  A: "Mage",
+  S: "Necromancer",
+  N: "Shadow Monarch",
+};
+
+const STAT_KEYS = [
+  { key: "str", label: "STR", full: "Strength" },
+  { key: "agi", label: "AGI", full: "Agility" },
+  { key: "vit", label: "VIT", full: "Vitality" },
+  { key: "int", label: "INT", full: "Intelligence" },
+  { key: "per", label: "PER", full: "Perception" },
+];
+
+/** Daily quest pool — scaled lightly by rank index (camera-verified) */
+function buildDailyQuests(rankIndex = 0) {
+  const scale = 1 + rankIndex * 0.15;
+  return [
+    {
+      id: "pushups",
+      name: "Push-ups",
+      target: Math.round(30 * scale),
+      unit: "reps",
+      stat: "str",
+      xp: 25,
+      progress: 0,
+    },
+    {
+      id: "situps",
+      name: "Sit-ups",
+      target: Math.round(30 * scale),
+      unit: "reps",
+      stat: "vit",
+      xp: 25,
+      progress: 0,
+    },
+    {
+      id: "squats",
+      name: "Squats",
+      target: Math.round(30 * scale),
+      unit: "reps",
+      stat: "str",
+      xp: 25,
+      progress: 0,
+    },
+    {
+      id: "run",
+      name: "Run (jog in place)",
+      target: Math.round(2 * scale * 10) / 10,
+      unit: "km",
+      stat: "agi",
+      xp: 40,
+      progress: 0,
+    },
+    {
+      id: "hydrate",
+      name: "Hydration",
+      target: 6,
+      unit: "glasses",
+      stat: "vit",
+      xp: 15,
+      progress: 0,
+    },
+    {
+      id: "mind",
+      name: "Focus Training",
+      target: 2,
+      unit: "min",
+      stat: "int",
+      xp: 20,
+      progress: 0,
+    },
+  ];
+}
+
+/** Classic Solo Leveling penalty quest (adapted for health) */
+function buildPenaltyQuest(rankIndex = 0) {
+  const scale = 1 + rankIndex * 0.2;
+  return [
+    {
+      id: "p-pushups",
+      name: "Penalty Push-ups",
+      target: Math.round(50 * scale),
+      unit: "reps",
+      progress: 0,
+    },
+    {
+      id: "p-situps",
+      name: "Penalty Sit-ups",
+      target: Math.round(50 * scale),
+      unit: "reps",
+      progress: 0,
+    },
+    {
+      id: "p-squats",
+      name: "Penalty Squats",
+      target: Math.round(50 * scale),
+      unit: "reps",
+      progress: 0,
+    },
+    {
+      id: "p-run",
+      name: "Penalty Run",
+      target: Math.round(5 * scale * 10) / 10,
+      unit: "km",
+      progress: 0,
+    },
+  ];
+}
+
+function rankForXp(totalXp) {
+  let current = RANKS[0];
+  for (const rank of RANKS) {
+    if (totalXp >= rank.minXp) current = rank;
+  }
+  return current;
+}
+
+function rankIndex(id) {
+  return Math.max(0, RANKS.findIndex((r) => r.id === id));
+}
+
+function xpToNextLevel(level) {
+  return Math.round(100 * Math.pow(1.35, level - 1));
+}
+
+
+/* ---- js/critique-ai.js ---- */
+/**
+ * Critique AI — analyzes scanner rep data (depth, tempo, tracking loss) and
+ * writes a System-voice performance review after every scan and every day.
+ */
+
+const DEPTH_TARGET = {
+  pushup: 95, // elbow angle at bottom, lower = deeper
+  squat: 100, // knee angle at bottom, lower = deeper
+  situp: 70, // torso angle at curl, lower = deeper
+};
+
+const GRADES = [
+  { min: 90, id: "S", label: "S-Rank Form" },
+  { min: 78, id: "A", label: "A-Rank Form" },
+  { min: 62, id: "B", label: "B-Rank Form" },
+  { min: 45, id: "C", label: "C-Rank Form" },
+  { min: 25, id: "D", label: "D-Rank Form" },
+  { min: 0, id: "F", label: "Rejected" },
+];
+
+function gradeForScore(score) {
+  return GRADES.find((g) => score >= g.min) ?? GRADES[GRADES.length - 1];
+}
+
+function mean(arr) {
+  return arr.length ? arr.reduce((s, n) => s + n, 0) / arr.length : 0;
+}
+
+function stdev(arr) {
+  if (arr.length < 2) return 0;
+  const m = mean(arr);
+  return Math.sqrt(mean(arr.map((n) => (n - m) ** 2)));
+}
+
+/** Collects per-frame scanner output during a live scan session. */
+function createFormTracker(kind) {
+  const depths = [];
+  const repTimestamps = [];
+  const holds = [];
+  let totalFrames = 0;
+  let lostFrames = 0;
+
+  return {
+    kind,
+    record(result, now = Date.now()) {
+      totalFrames += 1;
+      if (result.angle == null && result.hold == null) lostFrames += 1;
+      if (result.phase === "down" && typeof result.angle === "number") {
+        depths.push(result.angle);
+      }
+      if (typeof result.hold === "number") holds.push(result.hold);
+      if (result.gained > 0) repTimestamps.push(now);
+    },
+    hasData: () => totalFrames > 0,
+    metrics() {
+      const intervals = [];
+      for (let i = 1; i < repTimestamps.length; i++) {
+        intervals.push(repTimestamps[i] - repTimestamps[i - 1]);
+      }
+      return {
+        totalFrames,
+        lostFrames,
+        trackingRate: totalFrames ? 1 - lostFrames / totalFrames : 1,
+        minDepth: depths.length ? Math.min(...depths) : null,
+        avgDepth: depths.length ? mean(depths) : null,
+        repCount: repTimestamps.length,
+        avgIntervalMs: mean(intervals),
+        intervalStdevMs: stdev(intervals),
+        avgHold: holds.length ? mean(holds) : null,
+      };
+    },
+  };
+}
+
+/** Builds a System-voice critique for a single completed (or abandoned) quest. */
+function critiqueQuest({ name, kind, target, achieved, tracker }) {
+  const m = tracker.metrics();
+  const lines = [];
+  let score = 50;
+
+  const completion = target > 0 ? Math.min(1, achieved / target) : 0;
+  score += Math.round(completion * 20) - 10;
+
+  const trackingPct = Math.round(m.trackingRate * 100);
+  if (m.totalFrames > 20) {
+    if (m.trackingRate > 0.92) {
+      lines.push(`Tracking lock held at ${trackingPct}% — the scanner never lost you.`);
+      score += 10;
+    } else if (m.trackingRate > 0.75) {
+      lines.push(`Tracking held ${trackingPct}% of the scan. Minor frame drift detected.`);
+    } else {
+      lines.push(`Tracking dropped to ${trackingPct}%. Stay centered and fully in frame.`);
+      score -= 15;
+    }
+  }
+
+  if (DEPTH_TARGET[kind] != null && m.minDepth != null) {
+    const targetAngle = DEPTH_TARGET[kind];
+    const gap = m.minDepth - targetAngle;
+    if (gap <= 5) {
+      lines.push(`Depth: full range confirmed (${Math.round(m.minDepth)}°). Textbook extension.`);
+      score += 20;
+    } else if (gap <= 20) {
+      lines.push(`Depth: close but shallow by ~${Math.round(gap)}°. Push a fraction further next rep.`);
+      score += 5;
+    } else {
+      lines.push(`Depth: reps cut short by ~${Math.round(gap)}°. Partial reps will not raise your rank.`);
+      score -= 15;
+    }
+  }
+
+  if (m.repCount >= 3 && m.avgIntervalMs > 0) {
+    const cv = m.intervalStdevMs / m.avgIntervalMs;
+    if (cv < 0.25) {
+      lines.push(`Tempo: rock-steady rhythm (±${Math.round(m.intervalStdevMs)}ms). Excellent control.`);
+      score += 15;
+    } else if (cv < 0.5) {
+      lines.push(`Tempo: mostly even, some rushed reps near the end.`);
+      score += 3;
+    } else {
+      lines.push(`Tempo: erratic pacing. Slow down and control the eccentric.`);
+      score -= 10;
+    }
+  }
+
+  if (kind === "hydrate" || kind === "mind") {
+    if (m.avgHold != null) {
+      if (m.avgHold > 0.7) {
+        lines.push(`Hold discipline was excellent — minimal drift from position.`);
+        score += 15;
+      } else if (m.avgHold > 0.35) {
+        lines.push(`Hold discipline was inconsistent. Commit fully to the pose.`);
+        score += 2;
+      } else {
+        lines.push(`Hold discipline was weak. The System nearly rejected this log.`);
+        score -= 10;
+      }
+    }
+  }
+
+  if (!lines.length) {
+    lines.push(`Insufficient scanner data — objective was logged from partial telemetry.`);
+    score -= 10;
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const grade = gradeForScore(score);
+
+  const closers = {
+    S: "The System acknowledges peak execution, Hunter.",
+    A: "Strong work. Keep this standard and the ranks will follow.",
+    B: "Adequate. There is a clear ceiling above you — go find it.",
+    C: "Passable, but sloppy reps compound into a weak Hunter.",
+    D: "Barely counted. The System is watching your form, not just your count.",
+    F: "This performance would not survive a Penalty Quest.",
+  };
+  lines.push(closers[grade.id]);
+
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    kind: "quest",
+    questName: name,
+    score,
+    grade: grade.id,
+    gradeLabel: grade.label,
+    lines,
+    ts: Date.now(),
+  };
+}
+
+/** End-of-day critique across every quest completed that day. */
+function critiqueDay({ quests, streak, stats, rank }) {
+  const lines = [];
+  const cleared = quests.filter((q) => q.progress >= q.target);
+  const rate = quests.length ? cleared.length / quests.length : 0;
+  let score = Math.round(rate * 70);
+
+  lines.push(
+    `Daily Quest: ${cleared.length}/${quests.length} objectives verified by the Camera Scanner.`
+  );
+
+  if (streak > 0) {
+    lines.push(`Streak sustained at ${streak} day${streak === 1 ? "" : "s"}. Consistency is a stat too.`);
+    score += Math.min(20, streak * 2);
+  } else {
+    lines.push(`Streak reset. The System does not carry momentum for free.`);
+  }
+
+  const weakest = Object.entries(stats).sort((a, b) => a[1] - b[1])[0];
+  if (weakest) {
+    lines.push(`Weakest attribute: ${weakest[0].toUpperCase()} (${weakest[1]}). Prioritize it tomorrow.`);
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  const grade = gradeForScore(score);
+  lines.push(
+    rate >= 1
+      ? `Full clear as ${rank}. The gate ahead has been noted.`
+      : `Incomplete clear as ${rank}. Precision over excuses, Hunter.`
+  );
+
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    kind: "day",
+    questName: "Daily Critique",
+    score,
+    grade: grade.id,
+    gradeLabel: grade.label,
+    lines,
+    ts: Date.now(),
+  };
+}
+
+
+/* ---- js/scanner.js ---- */
+
+
+
+const VISION_MODULE_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
+const MODEL_URL =
+  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm";
+
+let landmarker = null;
+let loadPromise = null;
+
+/**
+ * Loaded lazily (not as a static import) so an unreachable CDN — offline dev,
+ * a locked-down network — fails only the live-camera path, not the whole
+ * module; the synthetic/demo pose feed keeps working either way.
+ */
+async function ensureModel(onStatus) {
+  if (landmarker) return landmarker;
+  if (loadPromise) return loadPromise;
+  loadPromise = (async () => {
+    onStatus?.("Loading pose model…");
+    const { PoseLandmarker, FilesetResolver } = await import(VISION_MODULE_URL);
+    const vision = await FilesetResolver.forVisionTasks(WASM_URL);
+    try {
+      landmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: MODEL_URL,
+          delegate: "GPU",
+        },
+        runningMode: "VIDEO",
+        numPoses: 1,
+        minPoseDetectionConfidence: 0.45,
+        minPosePresenceConfidence: 0.45,
+        minTrackingConfidence: 0.45,
+      });
+      onStatus?.("Pose model ready");
+    } catch {
+      // CPU fallback
+      onStatus?.("GPU failed — retrying CPU…");
+      landmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: MODEL_URL,
+          delegate: "CPU",
+        },
+        runningMode: "VIDEO",
+        numPoses: 1,
+      });
+      onStatus?.("Pose model ready (CPU)");
+    }
+    return landmarker;
+  })();
+  try {
+    return await loadPromise;
+  } finally {
+    loadPromise = null;
+  }
+}
+
+/**
+ * Fully functional camera scanner session.
+ * Uses live webcam + MediaPipe Pose Landmarker; optional synthetic driver for demos/tests.
+ */
+function createScannerSession(ui) {
+  const {
+    video,
+    canvas,
+    statusEl,
+    cueEl,
+    countEl,
+    meterEl,
+    stageEl,
+  } = ui;
+
+  let stream = null;
+  let raf = 0;
+  let running = false;
+  let counter = null;
+  let session = null;
+  let lastTs = 0;
+  let synthetic = false;
+  let synthT = 0;
+  let useCamera = true;
+
+  const ctx = canvas.getContext("2d");
+
+  function setStatus(msg) {
+    if (statusEl) statusEl.textContent = msg;
+  }
+
+  function setCue(msg) {
+    if (cueEl) cueEl.textContent = msg;
+  }
+
+  function setCount(label) {
+    if (countEl) countEl.textContent = label;
+  }
+
+  function setMeter(pct) {
+    if (meterEl) meterEl.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+  }
+
+  async function startCamera() {
+    if (stream) return;
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: "user",
+        width: { ideal: 720 },
+        height: { ideal: 1280 },
+      },
+    });
+    video.srcObject = stream;
+    video.playsInline = true;
+    video.muted = true;
+    await video.play();
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+  }
+
+  function drawFrame(keymap, w, h) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // scanner frame HUD
+    ctx.save();
+    ctx.strokeStyle = "rgba(0,229,255,0.55)";
+    ctx.lineWidth = 2;
+    const m = 18;
+    const L = 28;
+    // corners
+    [
+      [m, m, 1, 1],
+      [w - m, m, -1, 1],
+      [m, h - m, 1, -1],
+      [w - m, h - m, -1, -1],
+    ].forEach(([x, y, sx, sy]) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y + sy * L);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x + sx * L, y);
+      ctx.stroke();
+    });
+    ctx.restore();
+
+    if (!keymap) return;
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,229,255,0.85)";
+    ctx.fillStyle = "rgba(61,255,154,0.95)";
+
+    for (const [a, b] of SKELETON) {
+      const p = keymap[a];
+      const q = keymap[b];
+      if (!p || !q) continue;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(q.x, q.y);
+      ctx.stroke();
+    }
+    for (const p of Object.values(keymap)) {
+      if (!p) continue;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /** Place a point at `len` px from `origin` along `deg` (screen y+ down). */
+  function polar(origin, deg, len) {
+    const r = (deg * Math.PI) / 180;
+    return { x: origin.x + Math.cos(r) * len, y: origin.y + Math.sin(r) * len, score: 0.98 };
+  }
+
+  /** Build A—B—C with exact interior angle at B. */
+  function jointChain(b, angleDeg, lenA, lenC, rotDeg) {
+    const a = polar(b, rotDeg, lenA);
+    const c = polar(b, rotDeg + angleDeg, lenC);
+    return { a, b, c };
+  }
+
+  /** Synthetic landmark trajectories — same counters as live camera (demo/CI). */
+  function syntheticKeymap(kind, t, w, h) {
+    const cx = w * 0.5;
+    const map = {};
+    const put = (name, p) => {
+      map[name] = { x: p.x, y: p.y, score: p.score ?? 0.98 };
+    };
+    const wave = (speed) => (Math.sin(t * speed) + 1) / 2; // 0..1
+
+    if (kind === "pushup") {
+      // Exact elbow angle sweep 165° → 70° → 165°
+      const elbowAngle = 165 - wave(3.6) * 95;
+      const elbow = { x: cx - 20, y: h * 0.42 };
+      const chain = jointChain(elbow, elbowAngle, h * 0.11, h * 0.11, 200);
+      const shoulder = chain.a;
+      const wrist = chain.c;
+      const hip = { x: shoulder.x + w * 0.18, y: shoulder.y + h * 0.08 };
+      put("nose", { x: shoulder.x - 8, y: shoulder.y - 26 });
+      put("left_shoulder", shoulder);
+      put("right_shoulder", { x: shoulder.x + 12, y: shoulder.y + 6 });
+      put("left_elbow", elbow);
+      put("right_elbow", { x: elbow.x + 10, y: elbow.y + 5 });
+      put("left_wrist", wrist);
+      put("right_wrist", { x: wrist.x + 10, y: wrist.y + 5 });
+      put("left_hip", hip);
+      put("right_hip", { x: hip.x + 12, y: hip.y + 5 });
+      put("left_knee", { x: hip.x + 40, y: hip.y + 50 });
+      put("right_knee", { x: hip.x + 48, y: hip.y + 55 });
+      put("left_ankle", { x: hip.x + 70, y: hip.y + 95 });
+      put("right_ankle", { x: hip.x + 78, y: hip.y + 100 });
+    } else if (kind === "squat") {
+      // Exact knee angle sweep 165° → 90° → 165°
+      const kneeAngle = 165 - wave(2.9) * 80;
+      const kneeL = { x: cx - 35, y: h * 0.62 };
+      const kneeR = { x: cx + 35, y: h * 0.62 };
+      const left = jointChain(kneeL, kneeAngle, h * 0.14, h * 0.14, 250);
+      const right = jointChain(kneeR, kneeAngle, h * 0.14, h * 0.14, -70);
+      // left.a = hip-ish, left.c = ankle-ish depending on rot — normalize: hip above, ankle below
+      const hipL = left.a.y < left.c.y ? left.a : left.c;
+      const ankleL = left.a.y < left.c.y ? left.c : left.a;
+      const hipR = right.a.y < right.c.y ? right.a : right.c;
+      const ankleR = right.a.y < right.c.y ? right.c : right.a;
+      const shoulderY = Math.min(hipL.y, hipR.y) - h * 0.2;
+      put("nose", { x: cx, y: shoulderY - 34 });
+      put("left_shoulder", { x: cx - 42, y: shoulderY });
+      put("right_shoulder", { x: cx + 42, y: shoulderY });
+      put("left_elbow", { x: cx - 58, y: shoulderY + 36 });
+      put("right_elbow", { x: cx + 58, y: shoulderY + 36 });
+      put("left_wrist", { x: cx - 50, y: shoulderY + 66 });
+      put("right_wrist", { x: cx + 50, y: shoulderY + 66 });
+      put("left_hip", hipL);
+      put("right_hip", hipR);
+      put("left_knee", kneeL);
+      put("right_knee", kneeR);
+      put("left_ankle", ankleL);
+      put("right_ankle", ankleR);
+    } else if (kind === "situp") {
+      // Exact shoulder-hip-knee angle: 140° (open) → 55° (curl) → 140°
+      const torsoAngle = 140 - wave(3.1) * 90;
+      const hip = { x: cx, y: h * 0.6 };
+      const chain = jointChain(hip, torsoAngle, h * 0.18, h * 0.16, 200);
+      const shoulder = chain.a;
+      const knee = chain.c;
+      put("nose", { x: shoulder.x, y: shoulder.y - 28 });
+      put("left_shoulder", { x: shoulder.x - 18, y: shoulder.y });
+      put("right_shoulder", { x: shoulder.x + 18, y: shoulder.y });
+      put("left_elbow", { x: shoulder.x - 30, y: shoulder.y + 22 });
+      put("right_elbow", { x: shoulder.x + 30, y: shoulder.y + 22 });
+      put("left_wrist", { x: shoulder.x - 8, y: shoulder.y - 8 });
+      put("right_wrist", { x: shoulder.x + 8, y: shoulder.y - 8 });
+      put("left_hip", { x: hip.x - 14, y: hip.y });
+      put("right_hip", { x: hip.x + 14, y: hip.y });
+      put("left_knee", { x: knee.x - 10, y: knee.y });
+      put("right_knee", { x: knee.x + 10, y: knee.y });
+      put("left_ankle", { x: knee.x + 36, y: knee.y + 40 });
+      put("right_ankle", { x: knee.x + 44, y: knee.y + 42 });
+    } else if (kind === "run") {
+      const swing = Math.sin(t * 9);
+      const base = h * 0.36;
+      put("nose", { x: cx, y: base - 40 });
+      put("left_shoulder", { x: cx - 36, y: base });
+      put("right_shoulder", { x: cx + 36, y: base });
+      put("left_elbow", { x: cx - 50, y: base + 35 - swing * 20 });
+      put("right_elbow", { x: cx + 50, y: base + 35 + swing * 20 });
+      put("left_wrist", { x: cx - 40, y: base + 70 - swing * 25 });
+      put("right_wrist", { x: cx + 40, y: base + 70 + swing * 25 });
+      put("left_hip", { x: cx - 20, y: base + 90 });
+      put("right_hip", { x: cx + 20, y: base + 90 });
+      put("left_knee", { x: cx - 24, y: base + 140 - Math.max(0, swing) * 70 });
+      put("right_knee", { x: cx + 24, y: base + 140 - Math.max(0, -swing) * 70 });
+      put("left_ankle", { x: cx - 26, y: base + 210 - Math.max(0, swing) * 50 });
+      put("right_ankle", { x: cx + 26, y: base + 210 - Math.max(0, -swing) * 50 });
+    } else if (kind === "hydrate") {
+      const sip = wave(1.8) > 0.42;
+      const nose = { x: cx, y: h * 0.28 };
+      put("nose", nose);
+      put("left_shoulder", { x: cx - 40, y: h * 0.38 });
+      put("right_shoulder", { x: cx + 40, y: h * 0.38 });
+      put("left_elbow", { x: cx - 60, y: h * 0.48 });
+      put("right_elbow", { x: cx + 30, y: h * (sip ? 0.3 : 0.46) });
+      put("left_wrist", { x: cx - 45, y: h * 0.56 });
+      put("right_wrist", sip
+        ? { x: nose.x + 8, y: nose.y + 6 }
+        : { x: cx + 55, y: h * 0.55 });
+      put("left_hip", { x: cx - 22, y: h * 0.58 });
+      put("right_hip", { x: cx + 22, y: h * 0.58 });
+      put("left_knee", { x: cx - 24, y: h * 0.72 });
+      put("right_knee", { x: cx + 24, y: h * 0.72 });
+      put("left_ankle", { x: cx - 24, y: h * 0.86 });
+      put("right_ankle", { x: cx + 24, y: h * 0.86 });
+    } else {
+      const n = Math.sin(t * 0.35) * 1.2;
+      put("nose", { x: cx + n, y: h * 0.28 });
+      put("left_shoulder", { x: cx - 38, y: h * 0.36 });
+      put("right_shoulder", { x: cx + 38, y: h * 0.36 });
+      put("left_elbow", { x: cx - 52, y: h * 0.48 });
+      put("right_elbow", { x: cx + 52, y: h * 0.48 });
+      put("left_wrist", { x: cx - 40, y: h * 0.56 });
+      put("right_wrist", { x: cx + 40, y: h * 0.56 });
+      put("left_hip", { x: cx - 22, y: h * 0.56 });
+      put("right_hip", { x: cx + 22, y: h * 0.56 });
+      put("left_knee", { x: cx - 26, y: h * 0.72 });
+      put("right_knee", { x: cx + 26, y: h * 0.72 });
+      put("left_ankle", { x: cx - 26, y: h * 0.86 });
+      put("right_ankle", { x: cx + 26, y: h * 0.86 });
+    }
+    return map;
+  }
+
+  function applyProgress(result) {
+    if (!session) return;
+    const { quest, onProgress, kind } = session;
+    let display = "0";
+    let pct = 0;
+
+    if (kind === "run") {
+      const sessionKm = result.km ?? 0;
+      const live = Math.min(quest.target, (session.baseProgress || 0) + sessionKm);
+      const prev = quest._scanValue ?? quest.progress;
+      if (live > prev) {
+        onProgress(Math.round((live - prev) * 10) / 10);
+        quest._scanValue = live;
+      }
+      display = `${live.toFixed(1)}`;
+      pct = (live / quest.target) * 100;
+    } else if (kind === "mind") {
+      const sessionMin = result.minutes ?? 0;
+      const live = Math.min(quest.target, (session.baseProgress || 0) + sessionMin);
+      const prev = quest._scanValue ?? quest.progress;
+      if (live > prev) {
+        onProgress(Math.round((live - prev) * 10) / 10);
+        quest._scanValue = live;
+      }
+      display = `${live.toFixed(1)}`;
+      pct = (live / quest.target) * 100;
+    } else if (kind === "hydrate") {
+      if (result.gained > 0) onProgress(result.gained);
+      display = String(quest.progress);
+      pct = ((quest.progress + (result.hold || 0) * 0.25) / quest.target) * 100;
+    } else {
+      if (result.gained > 0) {
+        onProgress(result.gained);
+        stageEl?.classList.add("rep-flash");
+        setTimeout(() => stageEl?.classList.remove("rep-flash"), 180);
+      }
+      const live = Math.min(quest.target, (session.baseProgress || 0) + (counter?.getReps?.() || 0));
+      display = String(live);
+      pct = (live / quest.target) * 100;
+    }
+
+    setCount(display);
+    setMeter(pct);
+    setCue(result.cue || "Scanning…");
+  }
+
+  async function loop(ts) {
+    if (!running) return;
+    const dt = lastTs ? Math.min(64, ts - lastTs) : 16;
+    lastTs = ts;
+
+    const w = canvas.width;
+    const h = canvas.height;
+    let keymap = null;
+    let fromCamera = false;
+
+    if (synthetic) {
+      synthT += dt / 1000;
+      keymap = syntheticKeymap(session.kind, synthT, w, h);
+    } else if (useCamera && landmarker && video.readyState >= 2) {
+      try {
+        const lm = landmarker.detectForVideo(video, performance.now());
+        const pose = lm.landmarks?.[0];
+        if (pose) {
+          keymap = toKeyMap(pose, w, h, true);
+          fromCamera = true;
+        }
+      } catch {
+        /* frame skip */
+      }
+    }
+
+    ctx.clearRect(0, 0, w, h);
+    if (useCamera && video.readyState >= 2) {
+      ctx.save();
+      ctx.translate(w, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, w, h);
+      ctx.restore();
+      if (fromCamera && keymap) {
+        for (const p of Object.values(keymap)) {
+          p.x = w - p.x;
+        }
+      }
+      if (synthetic) {
+        ctx.fillStyle = "rgba(4,12,22,0.28)";
+        ctx.fillRect(0, 0, w, h);
+      }
+    } else {
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, "#071525");
+      g.addColorStop(1, "#0c2438");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Live camera with no body → optional simulation fallback
+    if (!keymap && session?.allowSynthFallback) {
+      synthT += dt / 1000;
+      keymap = syntheticKeymap(session.kind, synthT, w, h);
+      setStatus("SIMULATION FEED — no body detected");
+    }
+
+    drawFrame(keymap, w, h);
+
+    if (keymap && counter) {
+      // accelerate hold-based quests in simulation so demos can finish
+      let useDt = dt;
+      if (synthetic) {
+        if (session.kind === "mind") useDt = dt * 50;
+        if (session.kind === "hydrate") useDt = dt * 2.5;
+        if (session.kind === "run") useDt = dt * 3;
+      }
+      const result = counter.update(keymap, useDt);
+      applyProgress(result);
+      session.onFrame?.(result);
+      if (session.kind !== "hydrate" && session.kind !== "mind" && session.kind !== "run") {
+        const live = (session.baseProgress || 0) + counter.getReps();
+        if (live >= session.quest.target) {
+          setStatus("OBJECTIVE VERIFIED");
+        }
+      }
+    } else {
+      setCue("Align your full body in the scanner");
+    }
+
+    raf = requestAnimationFrame(loop);
+  }
+
+  async function start(opts) {
+    const {
+      quest,
+      onProgress,
+      onClose,
+      onFrame,
+      forceSynthetic = false,
+      allowSynthFallback = false,
+    } = opts;
+
+    session = {
+      quest,
+      onProgress,
+      onClose,
+      onFrame,
+      kind: questKind(quest.id),
+      baseProgress: quest.progress,
+      allowSynthFallback,
+    };
+    quest._scanValue = quest.progress;
+    counter = createRepCounter(session.kind);
+    counter.reset();
+    synthetic = forceSynthetic;
+    synthT = 0;
+    lastTs = 0;
+    running = true;
+
+    // size canvas to stage
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+
+    setStatus(forceSynthetic ? "SIMULATION MODE" : "Initializing scanner…");
+    setCount("—");
+    setMeter((quest.progress / quest.target) * 100);
+    setCue("Preparing pose landmarker…");
+
+    if (!forceSynthetic) {
+      try {
+        await ensureModel(setStatus);
+        await startCamera();
+        useCamera = true;
+        setStatus("CAMERA LOCKED — perform the movement");
+      } catch (err) {
+        console.warn(err);
+        useCamera = false;
+        synthetic = true;
+        setStatus("Camera unavailable — simulation feed");
+      }
+    } else {
+      useCamera = false;
+      try {
+        // still try camera for realism in UI if permitted
+        await startCamera();
+        useCamera = true;
+        await ensureModel(setStatus).catch(() => null);
+      } catch {
+        useCamera = false;
+      }
+      setStatus("SIMULATION MODE — synthetic hunter");
+    }
+
+    raf = requestAnimationFrame(loop);
+  }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+    stopCamera();
+    const close = session?.onClose;
+    session = null;
+    counter = null;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    close?.();
+  }
+
+  function enableSynthetic(on = true) {
+    synthetic = on;
+    if (on) setStatus("SIMULATION MODE");
+  }
+
+  return {
+    start,
+    stop,
+    enableSynthetic,
+    isRunning: () => running,
+    ensureModel: () => ensureModel(setStatus),
+  };
+}
+
+
+/* ---- js/app.js ---- */
+
+
+
+
+
+const STORAGE_KEY = "solo-health-v2";
+
+const defaultState = () => ({
+  name: "Hunter",
+  level: 1,
+  xp: 0,
+  totalXp: 0,
+  streak: 0,
+  stats: { str: 10, agi: 10, vit: 10, int: 10, per: 10 },
+  quests: buildDailyQuests(0),
+  day: 1,
+  penaltyActive: false,
+  penaltyQuests: [],
+  penaltySeconds: 4 * 60 * 60,
+  log: ["[SYSTEM] Camera Scanner online. Quests require live verification."],
+  lastCompletedDay: false,
+  critiques: [],
+});
+
+let state = load();
+let activeQuest = null;
+let activeIsPenalty = false;
+let formTracker = null;
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => [...document.querySelectorAll(sel)];
+
+const scanner = createScannerSession({
+  video: $("#scanner-video"),
+  canvas: $("#scanner-canvas"),
+  statusEl: $("#scanner-status"),
+  cueEl: $("#scanner-cue"),
+  countEl: $("#scanner-count"),
+  meterEl: $("#scanner-meter-fill"),
+  stageEl: $("#scanner-stage"),
+});
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    return { ...defaultState(), ...JSON.parse(raw) };
+  } catch {
+    return defaultState();
+  }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function pushLog(msg) {
+  state.log.unshift(`[Day ${state.day}] ${msg}`);
+  state.log = state.log.slice(0, 50);
+}
+
+function currentRank() {
+  return rankForXp(state.totalXp);
+}
+
+function pushCritique(entry) {
+  state.critiques.unshift(entry);
+  state.critiques = state.critiques.slice(0, 30);
+  pushLog(`[Critique AI] ${entry.questName}: ${entry.gradeLabel} (${entry.score}/100)`);
+  showToast(`CRITIQUE AI — ${entry.gradeLabel}`, entry.score >= 62 ? "success" : "danger");
+  renderCritique();
+}
+
+function showToast(message, kind = "info") {
+  const toast = $("#toast");
+  toast.hidden = false;
+  toast.dataset.kind = kind;
+  toast.textContent = message;
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+  toast.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => {
+      toast.hidden = true;
+    }, 350);
+  }, 2600);
+}
+
+function renderStats() {
+  $("#stats-list").innerHTML = STAT_KEYS.map(
+    ({ key, label, full }) => `
+    <li class="stat-item" title="${full}">
+      <span class="stat-label">${label}</span>
+      <span class="stat-value">${state.stats[key]}</span>
+    </li>`
+  ).join("");
+}
+
+function fatigueLevel() {
+  if (state.penaltyActive) return "Critical";
+  const done = state.quests.filter((q) => q.progress >= q.target).length;
+  if (done >= state.quests.length) return "Low";
+  if (done === 0) return "High";
+  return "Moderate";
+}
+
+function renderStatus() {
+  const rank = currentRank();
+  const badge = $("#rank-badge");
+  badge.textContent = rank.id === "N" ? "N" : rank.id;
+  badge.className = `rank-badge rank-${rank.id.toLowerCase()}`;
+  badge.dataset.rank = rank.id;
+  $("#rank-name").textContent = rank.name;
+  $("#player-level").textContent = String(state.level);
+  $("#stat-name").textContent = state.name;
+  $("#stat-title").textContent = "Player";
+  $("#stat-job").textContent = RANK_JOBS[rank.id] || "None";
+  const hp = 100 + (state.stats.vit - 10) * 8;
+  const mp = 10 + (state.stats.int - 10) * 4;
+  $("#stat-hp").textContent = `${hp} / ${hp}`;
+  $("#stat-mp").textContent = `${mp} / ${mp}`;
+  $("#stat-fatigue").textContent = fatigueLevel();
+  const need = xpToNextLevel(state.level);
+  $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
+  $("#xp-text").textContent = `${state.xp} / ${need} XP`;
+  $("#streak-text").textContent = `Streak: ${state.streak} days`;
+  renderStats();
+}
+
+function questCard(q, { penalty = false } = {}) {
+  const done = q.progress >= q.target;
+  const pct = Math.min(100, (q.progress / q.target) * 100);
+  return `
+    <li class="quest-item ${done ? "done" : ""}" data-id="${q.id}">
+      <div class="quest-top">
+        <div>
+          <p class="quest-name"><span class="quest-check">${done ? "☑" : "☐"}</span>${q.name}</p>
+          <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
+            q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
+          }</p>
+          <p class="quest-scan-tag">📷 Camera verification required</p>
+        </div>
+        <button class="sys-btn tiny ${penalty ? "scan-penalty" : "scan-quest"}" data-id="${q.id}" type="button" ${
+          done ? "disabled" : ""
+        }>
+          ${done ? "VERIFIED" : "SCAN"}
+        </button>
+      </div>
+      <div class="bar ${penalty ? "danger" : ""}"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </li>`;
+}
+
+function renderQuests() {
+  $("#quest-list").innerHTML = state.quests.map((q) => questCard(q)).join("");
+  const doneCount = state.quests.filter((q) => q.progress >= q.target).length;
+  $("#quest-progress").textContent = `${doneCount} / ${state.quests.length} verified`;
+}
+
+function renderPenalty() {
+  const modal = $("#penalty-modal");
+  modal.hidden = !state.penaltyActive;
+  if (!state.penaltyActive) return;
+
+  $("#penalty-list").innerHTML = state.penaltyQuests
+    .map((q) => questCard(q, { penalty: true }))
+    .join("");
+
+  const allDone = state.penaltyQuests.every((q) => q.progress >= q.target);
+  $("#btn-clear-penalty").disabled = !allDone;
+
+  const h = Math.floor(state.penaltySeconds / 3600);
+  const m = Math.floor((state.penaltySeconds % 3600) / 60);
+  const s = state.penaltySeconds % 60;
+  $("#penalty-timer").textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function renderRanks() {
+  const rank = currentRank();
+  $("#rank-ladder").innerHTML = RANKS.map((r) => {
+    const active = r.id === rank.id;
+    const unlocked = state.totalXp >= r.minXp;
+    return `
+      <li class="ladder-item ${active ? "active" : ""} ${unlocked ? "unlocked" : "locked"}">
+        <span class="ladder-rank rank-${r.id.toLowerCase()}">${r.id === "N" ? "N" : r.id}</span>
+        <div>
+          <p class="ladder-name">${r.name}</p>
+          <p class="ladder-meta">${r.minXp.toLocaleString()} total XP</p>
+        </div>
+        <span class="ladder-flag">${active ? "CURRENT" : unlocked ? "CLEARED" : "LOCKED"}</span>
+      </li>`;
+  }).join("");
+}
+
+function renderLog() {
+  $("#system-log").innerHTML = state.log.map((line) => `<li>${escapeHtml(line)}</li>`).join("");
+}
+
+function critiqueCard(entry) {
+  return `
+    <li class="critique-card grade-${entry.grade.toLowerCase()}">
+      <div class="critique-card-top">
+        <p class="critique-card-name">${escapeHtml(entry.questName)}</p>
+        <span class="chip grade">${entry.grade} · ${entry.score}</span>
+      </div>
+      <ul class="critique-lines">
+        ${entry.lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}
+      </ul>
+    </li>`;
+}
+
+function renderCritique() {
+  const latest = state.critiques[0];
+  const panel = $("#critique-window");
+  if (latest) {
+    panel.hidden = false;
+    $("#critique-grade").textContent = `${latest.grade} · ${latest.score}`;
+    $("#critique-grade").className = `chip grade grade-${latest.grade.toLowerCase()}`;
+    $("#critique-latest-title").innerHTML = `<strong>${escapeHtml(latest.questName)}</strong> — ${escapeHtml(latest.gradeLabel)}`;
+    $("#critique-latest-lines").innerHTML = latest.lines
+      .map((l) => `<li>${escapeHtml(l)}</li>`)
+      .join("");
+  } else {
+    panel.hidden = true;
+  }
+  $("#critique-history").innerHTML = state.critiques.map(critiqueCard).join("") ||
+    `<li class="critique-empty">No scans reviewed yet. Complete a quest for the Critique AI to analyze your form.</li>`;
+}
+
+function escapeHtml(str) {
+  return str.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
+function renderAll() {
+  renderStatus();
+  renderQuests();
+  renderPenalty();
+  renderRanks();
+  renderLog();
+  renderCritique();
+  save();
+}
+
+function gainXp(amount) {
+  state.xp += amount;
+  state.totalXp += amount;
+  let leveled = false;
+  while (state.xp >= xpToNextLevel(state.level)) {
+    state.xp -= xpToNextLevel(state.level);
+    state.level += 1;
+    leveled = true;
+    state.stats.per += 1;
+  }
+  if (leveled) {
+    pushLog(`Level up! You are now Lv.${state.level}.`);
+    showToast(`LEVEL UP — Lv.${state.level}`, "success");
+  }
+  const before = $("#rank-badge").dataset.rank;
+  const after = currentRank();
+  if (before && before !== after.id) celebrateRankUp(after);
+}
+
+function celebrateRankUp(rank) {
+  pushLog(`Rank promotion: ${rank.name}.`);
+  const overlay = $("#rankup-overlay");
+  $("#rankup-text").textContent = `You have been promoted to ${rank.name}.`;
+  const badge = $("#rankup-badge");
+  badge.textContent = rank.id === "N" ? "N" : rank.id;
+  badge.className = `rank-badge rank-${rank.id.toLowerCase()}`;
+  overlay.hidden = false;
+  overlay.classList.add("show");
+  showToast(`RANK UP — ${rank.id}-Rank`, "success");
+  setTimeout(() => {
+    overlay.classList.remove("show");
+    setTimeout(() => {
+      overlay.hidden = true;
+    }, 400);
+  }, 2800);
+}
+
+function addQuestProgress(quest, amount, { penalty = false } = {}) {
+  if (!quest || amount <= 0 || quest.progress >= quest.target) return;
+  const before = quest.progress;
+  const step = quest.unit === "km" || quest.unit === "min" ? amount : Math.round(amount);
+  quest.progress = Math.min(
+    quest.target,
+    Math.round((quest.progress + step) * 10) / 10
+  );
+  const gained = quest.progress - before;
+  if (gained <= 0) return;
+
+  if (quest.progress >= quest.target && before < quest.target) {
+    if (!penalty) {
+      gainXp(quest.xp);
+      state.stats[quest.stat] += 1;
+      pushLog(`Scanner verified: ${quest.name}. +${quest.xp} XP`);
+      showToast(`VERIFIED — ${quest.name}`, "success");
+      checkDailyClear();
+    } else {
+      pushLog(`Penalty objective verified: ${quest.name}.`);
+      showToast(`PENALTY CLEARED — ${quest.name}`, "success");
+      if (state.penaltyQuests.every((q) => q.progress >= q.target)) {
+        clearPenalty(true);
+      }
+    }
+  }
+  renderAll();
+}
+
+function checkDailyClear() {
+  const allDone = state.quests.every((q) => q.progress >= q.target);
+  if (allDone && !state.lastCompletedDay) {
+    state.lastCompletedDay = true;
+    state.streak += 1;
+    state.stats.per += 1;
+    gainXp(50);
+    pushLog("Daily Quest cleared via Camera Scanner. Streak +1.");
+    showToast("DAILY QUEST CLEARED", "success");
+    pushCritique(
+      critiqueDay({
+        quests: state.quests,
+        streak: state.streak,
+        stats: state.stats,
+        rank: currentRank().name,
+      })
+    );
+  }
+}
+
+function triggerPenalty() {
+  if (state.penaltyActive) return;
+  const idx = rankIndex(currentRank().id);
+  state.penaltyActive = true;
+  state.penaltyQuests = buildPenaltyQuest(idx);
+  state.penaltySeconds = 4 * 60 * 60;
+  state.streak = 0;
+  pushLog("WARNING: Daily Quest failed. Penalty Quest issued.");
+  showToast("PENALTY QUEST ISSUED", "danger");
+  renderAll();
+}
+
+function clearPenalty(survived) {
+  state.penaltyActive = false;
+  state.penaltyQuests = [];
+  if (survived) {
+    pushLog("Penalty Quest survived. No demotion.");
+    gainXp(30);
+    showToast("PENALTY CLEARED — You survived.", "success");
+  }
+  renderAll();
+}
+
+function failPenalty() {
+  const loss = Math.min(state.totalXp, 200);
+  state.totalXp = Math.max(0, state.totalXp - loss);
+  state.xp = Math.max(0, state.xp - 40);
+  for (const { key } of STAT_KEYS) {
+    state.stats[key] = Math.max(1, state.stats[key] - 2);
+  }
+  state.penaltyActive = false;
+  state.penaltyQuests = [];
+  pushLog(`Penalty failed. Stats reduced. Lost ${loss} total XP.`);
+  showToast("PENALTY FAILED — Stats reduced", "danger");
+  renderAll();
+}
+
+function advanceDay() {
+  if (state.penaltyActive) {
+    showToast("Resolve the Penalty Quest first.", "danger");
+    return;
+  }
+  const incomplete = state.quests.some((q) => q.progress < q.target);
+  if (incomplete) {
+    triggerPenalty();
+    return;
+  }
+  state.day += 1;
+  state.lastCompletedDay = false;
+  state.quests = buildDailyQuests(rankIndex(currentRank().id));
+  pushLog("New day. Fresh Daily Quest assigned.");
+  showToast(`DAY ${state.day} — New Daily Quest`);
+  renderAll();
+}
+
+async function openScanner(quest, { penalty = false, forceSynthetic = false } = {}) {
+  if (!quest || quest.progress >= quest.target) return;
+  activeQuest = quest;
+  activeIsPenalty = penalty;
+
+  $("#scanner-title").textContent = quest.name;
+  $("#scanner-target").textContent = `Target ${quest.target} ${quest.unit}`;
+  $("#scanner-view").hidden = false;
+  $("#camera-pill").textContent = "SCANNING";
+  $("#camera-pill").classList.add("live");
+
+  const params = new URLSearchParams(location.search);
+  const demo = params.get("demo") === "1" || forceSynthetic;
+
+  formTracker = createFormTracker(questKind(quest.id));
+
+  await scanner.start({
+    quest,
+    forceSynthetic: demo,
+    allowSynthFallback: demo || params.get("sim") === "1",
+    onFrame: (result) => formTracker?.record(result),
+    onProgress: (amount) => {
+      addQuestProgress(quest, amount, { penalty });
+      $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
+      if (quest.progress >= quest.target) {
+        $("#scanner-status").textContent = "OBJECTIVE VERIFIED";
+      }
+    },
+  });
+}
+
+function closeScanner() {
+  scanner.stop();
+  $("#scanner-view").hidden = true;
+  $("#camera-pill").textContent = "SCANNER READY";
+  $("#camera-pill").classList.remove("live");
+  if (activeQuest && formTracker?.hasData()) {
+    pushCritique(
+      critiqueQuest({
+        name: activeQuest.name,
+        kind: questKind(activeQuest.id),
+        target: activeQuest.target,
+        achieved: activeQuest.progress,
+        tracker: formTracker,
+      })
+    );
+  }
+  formTracker = null;
+  activeQuest = null;
+  activeIsPenalty = false;
+  renderAll();
+}
+
+function bindEvents() {
+  $("#btn-awaken").addEventListener("click", () => {
+    const flash = $("#welcome-flash");
+    flash.hidden = false;
+    requestAnimationFrame(() => flash.classList.add("show"));
+    scanner.ensureModel().catch(() => {});
+    setTimeout(() => {
+      flash.classList.remove("show");
+      $("#boot-screen").classList.remove("active");
+      $("#main-screen").classList.add("active");
+      setTimeout(() => {
+        flash.hidden = true;
+      }, 400);
+      showToast("[SYSTEM] Camera Scanner armed.", "success");
+    }, 1900);
+  });
+
+  $("#quest-list").addEventListener("click", (e) => {
+    const btn = e.target.closest(".scan-quest");
+    if (!btn || btn.disabled) return;
+    const quest = state.quests.find((q) => q.id === btn.dataset.id);
+    openScanner(quest, { penalty: false });
+  });
+
+  $("#penalty-list").addEventListener("click", (e) => {
+    const btn = e.target.closest(".scan-penalty");
+    if (!btn || btn.disabled) return;
+    const quest = state.penaltyQuests.find((q) => q.id === btn.dataset.id);
+    openScanner(quest, { penalty: true });
+  });
+
+  $("#btn-close-scanner").addEventListener("click", closeScanner);
+  $("#btn-finish-scan").addEventListener("click", closeScanner);
+
+  $("#btn-synth").addEventListener("click", () => {
+    scanner.enableSynthetic(true);
+    showToast("Simulation feed enabled", "info");
+  });
+
+  $("#btn-reset-day").addEventListener("click", advanceDay);
+
+  $("#btn-clear-penalty").addEventListener("click", () => {
+    if (state.penaltyQuests.every((q) => q.progress >= q.target)) {
+      clearPenalty(true);
+    } else {
+      showToast("Scan all penalty objectives first.", "danger");
+    }
+  });
+
+  $("#btn-fail-penalty").addEventListener("click", failPenalty);
+
+  $$(".nav-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $$(".nav-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const view = btn.dataset.view;
+      $("#ranks-view").hidden = view !== "ranks";
+      $("#log-view").hidden = view !== "log";
+      $("#critique-view").hidden = view !== "critique";
+      if (view === "ranks") renderRanks();
+      if (view === "log") renderLog();
+      if (view === "critique") renderCritique();
+    });
+  });
+
+  $$(".close-view").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $(`#${btn.dataset.close}-view`).hidden = true;
+      $$(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.view === "home"));
+    });
+  });
+}
+
+function tickTimers() {
+  const now = new Date();
+  const end = new Date(now);
+  end.setHours(23, 59, 59, 999);
+  const diff = Math.max(0, Math.floor((end - now) / 1000));
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  $("#quest-timer").textContent = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+  if (state.penaltyActive && state.penaltySeconds > 0) {
+    state.penaltySeconds -= 1;
+    if (state.penaltySeconds <= 0) failPenalty();
+    else renderPenalty();
+  }
+}
+
+window.__SOLO__ = {
+  getState: () => structuredClone(state),
+  reset: () => {
+    state = defaultState();
+    save();
+    renderAll();
+  },
+  awaken: () => $("#btn-awaken").click(),
+  openScanner: (id, opts) => {
+    const q =
+      state.quests.find((x) => x.id === id) ||
+      state.penaltyQuests.find((x) => x.id === id);
+    return openScanner(q, { forceSynthetic: true, ...opts, penalty: !!state.penaltyQuests.find((x) => x.id === id) });
+  },
+  closeScanner,
+  advanceDay,
+  triggerPenalty,
+  grantXp: (n) => {
+    gainXp(n);
+    renderAll();
+  },
+  addProgress: (id, amount) => {
+    const q =
+      state.quests.find((x) => x.id === id) ||
+      state.penaltyQuests.find((x) => x.id === id);
+    if (!q) return;
+    addQuestProgress(q, amount, { penalty: state.penaltyQuests.includes(q) });
+  },
+  scanner,
+};
+
+function init() {
+  const params = new URLSearchParams(location.search);
+  if (params.get("persist") !== "1") {
+    state = defaultState();
+    save();
+  }
+  bindEvents();
+  renderAll();
+  setInterval(tickTimers, 1000);
+  tickTimers();
+}
+
+init();
+
+  </script>
+</body>
+</html>

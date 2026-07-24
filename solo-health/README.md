@@ -41,6 +41,20 @@ python3 -m http.server 8765 --directory ..
 Open http://127.0.0.1:8765/solo-health/  
 Allow camera access, tap **SCAN** on a quest, perform the movement in frame.
 
+## Single-file build
+
+```bash
+cd solo-health
+npm run build
+```
+
+Bundles `index.html` + `css/style.css` + all `js/*.js` modules into one
+self-contained `dist/solo-health.standalone.html` — no server, no separate
+files. Open it directly in a browser (`file://` works). If the MediaPipe
+model or camera can't be reached (offline, no camera, restricted network),
+the app automatically falls back to the synthetic pose feed, so it still
+runs end-to-end.
+
 ## Demo video
 
 ```bash

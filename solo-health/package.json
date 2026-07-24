@@ -6,7 +6,8 @@
   "scripts": {
     "start": "python3 -m http.server 8765 --directory ..",
     "demo": "node demo/record-demo.js",
-    "record": "node demo/record-demo.js"
+    "record": "node demo/record-demo.js",
+    "build": "node scripts/build-single-file.js"
   },
   "devDependencies": {
     "playwright": "^1.49.0"
