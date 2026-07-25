@@ -31,6 +31,7 @@ These rules apply across product, design, engineering, legal, and marketing:
 | Document | Description |
 |----------|-------------|
 | [design/INFORMATION_ARCHITECTURE.md](design/INFORMATION_ARCHITECTURE.md) | Navigation, screen inventory, deep links, settings hierarchy |
+| [design/NAVIGATION_FLOW.md](design/NAVIGATION_FLOW.md) | Launch, onboarding, tabs, deep links, sheets |
 | [design/WIREFRAMES.md](design/WIREFRAMES.md) | Text wireframes for every primary screen |
 | [design/UI_COMPONENT_LIBRARY.md](design/UI_COMPONENT_LIBRARY.md) | Design tokens, components, accessibility, dark mode |
 
@@ -40,6 +41,7 @@ These rules apply across product, design, engineering, legal, and marketing:
 |----------|-------------|
 | [architecture/DATABASE_SCHEMA.md](architecture/DATABASE_SCHEMA.md) | Core Data / SQLite schema, indexes, encryption, migrations |
 | [architecture/SWIFT_PROJECT_ARCHITECTURE.md](architecture/SWIFT_PROJECT_ARCHITECTURE.md) | Clean Architecture + MVVM + DI, modules, folder structure |
+| [architecture/FOLDER_STRUCTURE.md](architecture/FOLDER_STRUCTURE.md) | Complete repository / package tree |
 | [architecture/API_SPECIFICATIONS.md](architecture/API_SPECIFICATIONS.md) | Local + optional cloud REST/JSON specs (offline-first) |
 | [architecture/BLUETOOTH_INTEGRATION.md](architecture/BLUETOOTH_INTEGRATION.md) | BLE for BP cuffs & scales, GATT, DeviceAdapter |
 | [architecture/AI_ASSISTANT.md](architecture/AI_ASSISTANT.md) | Insight pipeline, safety rules, offline heuristics + optional LLM |

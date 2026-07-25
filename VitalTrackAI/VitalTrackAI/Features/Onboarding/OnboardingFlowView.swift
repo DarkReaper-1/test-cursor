@@ -16,7 +16,7 @@ struct OnboardingFlowView: View {
             TabView(selection: $step) {
                 OnboardingPage(
                     title: "Welcome to VitalTrack AI",
-                    bodyText: "A calm place to log blood pressure from external monitors and heart rate from PPG — with honest limits.",
+                    bodyText: TrustCopy.shortBPBanner + "\n\nA calm place to log cuff blood pressure and heart rate from PPG — with honest limits.",
                     systemImage: "heart.text.square.fill"
                 ).tag(OnboardingStep.welcome)
 

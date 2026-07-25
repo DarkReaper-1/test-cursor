@@ -5,7 +5,8 @@ struct HelpView: View {
     var body: some View {
         List {
             Section("Getting started") {
-                Text("Log blood pressure from an FDA-cleared external monitor using manual entry, Bluetooth, Apple Health, or CSV.")
+                Text(TrustCopy.shortBPBanner)
+                Text("Supported BP inputs: manual entry, Bluetooth cuff, Apple Health, or CSV.")
                 Text("Use camera PPG or Apple Watch/Health for heart rate only.")
                 NavigationLink("FAQ") { FAQView() }
             }

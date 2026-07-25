@@ -7,8 +7,7 @@ public enum TrustCopy {
     public static let bloodPressureSource = TrustPolicy.bloodPressureSourceDisclaimer
     public static let heartRatePPG = TrustPolicy.heartRatePPGDisclaimer
 
-    public static let shortBPBanner =
-        "BP from FDA-cleared monitors only — never estimated from the camera."
+    public static let shortBPBanner = TrustPolicy.bloodPressureSourceDisclaimer
 
     public static let shortHRBanner =
         "Camera & Watch: heart rate (PPG) only — not blood pressure."
@@ -16,9 +15,13 @@ public enum TrustCopy {
     public static let insightsBanner =
         "Insights are informational only and are not medical advice."
 
+    public static let firstLaunchBanner =
+        "\(TrustPolicy.bloodPressureSourceDisclaimer) Camera measurements are heart rate only."
+
     public static let whatWeCannotDo = """
-    VitalTrack AI cannot measure blood pressure with the camera or Apple Watch. \
-    Blood pressure requires an FDA-cleared external monitor (manual entry, Bluetooth cuff, Apple Health sync, or CSV import).
+    VitalTrack AI cannot measure blood pressure with the camera, flash, fingerprint, or Apple Watch. \
+    \(TrustPolicy.bloodPressureSourceDisclaimer) \
+    Supported inputs: manual entry, Bluetooth cuff, Apple Health import, and CSV.
     """
 
     public static let whatWeCanDo = """
@@ -32,7 +35,7 @@ public enum TrustCopy {
     """
 
     public static let whyExternalBP = """
-    Accurate blood pressure needs a validated cuff or equivalent FDA-cleared device. \
-    Phone cameras are not a substitute for clinical BP measurement.
+    \(TrustPolicy.bloodPressureSourceDisclaimer) \
+    Accurate blood pressure needs a validated cuff. Phone cameras are not a substitute for clinical BP measurement.
     """
 }

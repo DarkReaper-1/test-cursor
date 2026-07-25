@@ -4,13 +4,13 @@ import VitalTrackDesignSystem
 struct FAQView: View {
     private let items: [(String, String)] = [
         ("Can the camera measure blood pressure?",
-         "No. The camera only supports heart rate via PPG. Blood pressure requires an FDA-cleared external monitor."),
-        ("What counts as a BP source?",
-         "Manual cuff entry, Bluetooth cuff, Apple Health imports, and CSV imports from valid monitors."),
+         "No. \(TrustCopy.shortBPBanner) The camera only supports heart rate via PPG."),
+        ("Where do blood pressure numbers come from?",
+         TrustCopy.shortBPBanner + " Supported inputs: manual entry, Bluetooth cuff, Apple Health, and CSV."),
         ("Are insights medical advice?",
-         "No. Insights are informational pattern notes only. Talk with a clinician for decisions."),
+         "No. \(TrustCopy.insightsBanner) Talk with a clinician for decisions."),
         ("Does Apple Watch measure BP in VitalTrack AI?",
-         "No. Watch data is used for heart rate / HRV pathways, not blood pressure estimation.")
+         "No. Watch data is used for heart rate / HRV pathways only — never blood pressure estimation.")
     ]
 
     var body: some View {

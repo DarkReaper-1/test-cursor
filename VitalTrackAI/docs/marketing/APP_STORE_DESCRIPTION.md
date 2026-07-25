@@ -4,7 +4,8 @@
 **Claim review:** Mandatory before submit  
 **Related:** [MARKETING_COPY.md](MARKETING_COPY.md), [prd/PRD.md](../prd/PRD.md)
 
-> **Zero misleading BP claims.** Camera / flash / Apple Watch = heart rate only. Blood pressure comes from FDA-cleared external monitors (manual, Bluetooth cuff, HealthKit, CSV). Always: informational only — not medical advice.
+> **Required trust line:** This app tracks blood pressure readings that you obtain from an FDA-cleared blood pressure monitor.  
+> Camera / flash / Apple Watch = heart rate only. Always: informational only — not medical advice.
 
 ---
 
@@ -35,7 +36,7 @@ Track blood pressure from your cuff—manual, Bluetooth, HealthKit, or CSV—and
 **VitalTrack AI** helps you keep a clear, trustworthy log of your cardiovascular numbers—without hype.
 
 **Blood pressure from real monitors**  
-Log BP the honest way: enter readings from your FDA-cleared cuff, connect a compatible Bluetooth monitor, import from Apple Health, or bring in a CSV. VitalTrack does **not** claim to measure blood pressure with your camera or fingerprint.
+This app tracks blood pressure readings that you obtain from an FDA-cleared blood pressure monitor. Enter values from your cuff, connect a compatible Bluetooth monitor, import from Apple Health, or bring in a CSV. VitalTrack does **not** claim to measure blood pressure with your camera or fingerprint.
 
 **Heart rate via PPG**  
 Measure heart rate using the camera and flash (PPG), or pull heart rate from Apple Watch through HealthKit. That’s heart rate—not blood pressure.

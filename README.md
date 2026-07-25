@@ -2,9 +2,29 @@
 
 This repository contains independent projects:
 
-1. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
-2. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-3. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+1. **[VitalTrack AI](#vitaltrack-ai)** — Trust-first iOS cardiovascular tracking (SwiftUI)
+2. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
+3. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
+4. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+
+---
+
+## VitalTrack AI
+
+Production-oriented **SwiftUI** iOS app for heart rate (camera PPG / Watch / HealthKit) and **honest blood pressure logging** from FDA-cleared external monitors only — never camera-estimated BP.
+
+```bash
+cd VitalTrackAI
+./Scripts/generate-xcodeproj.sh   # requires XcodeGen
+open VitalTrackAI.xcodeproj       # requires Xcode
+# library tests:
+swift test
+```
+
+Docs (PRD, IA, architecture, legal, marketing): [VitalTrackAI/docs/README.md](VitalTrackAI/docs/README.md)  
+App overview: [VitalTrackAI/README.md](VitalTrackAI/README.md)
+
+> This app tracks blood pressure readings that you obtain from an FDA-cleared blood pressure monitor. Informational only — not medical advice.
 
 ---
 

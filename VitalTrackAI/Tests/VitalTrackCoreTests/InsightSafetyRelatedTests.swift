@@ -8,7 +8,10 @@ final class TrustPolicyTests: XCTestCase {
 
     func testDisclaimersPresent() {
         XCTAssertTrue(TrustPolicy.medicalDisclaimer.lowercased().contains("not medical advice"))
-        XCTAssertTrue(TrustPolicy.bloodPressureSourceDisclaimer.contains("FDA-cleared"))
+        XCTAssertEqual(
+            TrustPolicy.bloodPressureSourceDisclaimer,
+            "This app tracks blood pressure readings that you obtain from an FDA-cleared blood pressure monitor."
+        )
         XCTAssertTrue(TrustPolicy.heartRatePPGDisclaimer.contains("PPG"))
     }
 }

@@ -23,7 +23,7 @@ struct DashboardView: View {
                         .font(VTTypography.body())
                         .foregroundStyle(VTColors.textSecondary)
 
-                    VTDisclaimerBanner(.custom(TrustCopy.insightsBanner + " " + TrustCopy.shortBPBanner))
+                    VTDisclaimerBanner(.custom(TrustCopy.firstLaunchBanner + " " + TrustCopy.insightsBanner))
 
                     ForEach(session.settings.dashboardCards) { card in
                         cardView(card)
