@@ -1,0 +1,8 @@
+{
+  "name": "vitaltrack-ai-demo",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8799 --directory ../..",
+    "demo": "node record-demo.js"
+  }
+}
