@@ -11,6 +11,17 @@ Modular SwiftUI app + Swift Package libraries for logging vital signs with **str
 
 Canonical copy lives in `VitalTrackCore.TrustPolicy` and `VitalTrackDesignSystem.TrustCopy`.
 
+## Demo video (HTML walkthrough)
+
+Interactive iPhone-framed UI that mirrors the SwiftUI trust flow (onboarding → PPG HR → cuff BP → insights):
+
+```bash
+cd VitalTrackAI/demo
+python3 -m http.server 8799 --directory ../..
+# open http://127.0.0.1:8799/VitalTrackAI/demo/index.html?demo=1
+npm run demo   # records /opt/cursor/artifacts/vitaltrack-ai-demo.mp4 (needs Playwright)
+```
+
 ## Open in Xcode
 
 ```bash
