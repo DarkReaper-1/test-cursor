@@ -25,7 +25,7 @@ struct FAQView: View {
             .padding(.vertical, 4)
         }
         .scrollContentBackground(.hidden)
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("FAQ")
     }
 }
