@@ -4,10 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VitalTrack AI — Demo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <!-- Local/system fonts only — no Google Fonts (avoids hung loads behind egress filters). -->
   <style>
+    @font-face {
+      font-family: "VT Serif";
+      src: local("Iowan Old Style"), local("Palatino Linotype"), local("Palatino"), local("Georgia");
+      font-weight: 600 700;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "VT Sans";
+      src: local("Atkinson Hyperlegible"), local("Avenir Next"), local("Segoe UI"), local("Helvetica Neue"), local("Arial");
+      font-weight: 400 700;
+      font-display: swap;
+    }
     :root {
       /* Comfort mode defaults — tuned for 40+ / aging vision */
       --canvas: #F7FAF9;
@@ -35,7 +45,7 @@
     * { box-sizing: border-box; }
     html, body {
       margin: 0; height: 100%;
-      font-family: "Atkinson Hyperlegible", "Segoe UI", sans-serif;
+      font-family: "VT Sans", "Segoe UI", Helvetica, Arial, sans-serif;
       font-size: 18px;
       line-height: 1.5;
       color: var(--text);
@@ -64,7 +74,7 @@
     }
     .demo-title h1 {
       margin: 0;
-      font-family: Fraunces, Georgia, serif;
+      font-family: "VT Serif", Georgia, "Times New Roman", serif;
       font-size: 1.55rem;
       font-weight: 700;
     }
@@ -157,13 +167,13 @@
     }
     .content.no-dock { padding-bottom: 32px; }
     .brand {
-      font-family: Fraunces, Georgia, serif;
+      font-family: "VT Serif", Georgia, "Times New Roman", serif;
       font-weight: 700;
       color: var(--brand);
       letter-spacing: -0.02em;
     }
     .display {
-      font-family: Fraunces, Georgia, serif;
+      font-family: "VT Serif", Georgia, "Times New Roman", serif;
       font-size: 2.15rem;
       line-height: 1.2;
       margin: 10px 0 12px;
@@ -240,7 +250,7 @@
       font-weight: 700;
     }
     .metric {
-      font-family: Fraunces, Georgia, serif;
+      font-family: "VT Serif", Georgia, "Times New Roman", serif;
       font-size: 3rem;
       font-weight: 700;
       color: var(--text);
@@ -369,7 +379,7 @@
       font-weight: 700;
     }
     .monitor .big {
-      font-family: Fraunces, Georgia, serif;
+      font-family: "VT Serif", Georgia, "Times New Roman", serif;
       font-size: 3.1rem; font-weight: 700; letter-spacing: -0.02em;
       line-height: 1.1;
     }
