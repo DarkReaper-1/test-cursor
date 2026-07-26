@@ -21,6 +21,7 @@ final class CSVExporterTests: XCTestCase {
         XCTAssertTrue(text.hasPrefix("id,systolic,diastolic,pulse,recordedAt,source"))
         XCTAssertTrue(text.contains("120,80,70"))
         XCTAssertTrue(text.contains("manual"))
+        XCTAssertTrue(text.contains("medicationTiming"))
         XCTAssertFalse(text.lowercased().contains("camera"))
     }
 
@@ -34,5 +35,31 @@ final class CSVExporterTests: XCTestCase {
         XCTAssertTrue(text.contains("FDA-cleared"))
         XCTAssertTrue(text.contains("not medical advice") || text.contains("informational"))
         XCTAssertTrue(text.contains("PPG"))
+    }
+
+    func testRichDoctorReportIncludesMedsAndLifestyle() async throws {
+        let formatter = DoctorReportFormatter()
+        let med = Medication(name: "Lisinopril", dosage: "10 mg")
+        let text = try await formatter.formatRichSummary(
+            DoctorReportInput(
+                bloodPressure: [
+                    BloodPressureReading(
+                        systolic: 132,
+                        diastolic: 84,
+                        source: .manual,
+                        medicationTiming: .beforeMedication
+                    )
+                ],
+                heartRate: [],
+                medications: [med],
+                doses: [MedicationDose(medicationId: med.id, medicationName: med.name, status: .taken)],
+                checkIns: [CheckIn(waterGlasses: 5, sleepHours: 7, sodiumMg: 1600, exerciseMinutes: 35)],
+                patientLabel: "Alex"
+            )
+        )
+        XCTAssertTrue(text.contains("Lisinopril"))
+        XCTAssertTrue(text.contains("MEDICATIONS"))
+        XCTAssertTrue(text.contains("LIFESTYLE"))
+        XCTAssertTrue(text.contains("Before medication") || text.contains("before"))
     }
 }

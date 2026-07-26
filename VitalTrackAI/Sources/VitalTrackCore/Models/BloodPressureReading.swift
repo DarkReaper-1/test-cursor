@@ -9,6 +9,9 @@ public struct BloodPressureReading: Identifiable, Codable, Sendable, Equatable, 
     public var source: MeasurementSource
     public var deviceName: String?
     public var notes: String?
+    public var medicationTiming: MedicationTimingContext
+    public var linkedMedicationId: UUID?
+    public var timeBucket: ReadingTimeBucket
     public var createdAt: Date
 
     public init(
@@ -20,6 +23,9 @@ public struct BloodPressureReading: Identifiable, Codable, Sendable, Equatable, 
         source: MeasurementSource,
         deviceName: String? = nil,
         notes: String? = nil,
+        medicationTiming: MedicationTimingContext = .notTracked,
+        linkedMedicationId: UUID? = nil,
+        timeBucket: ReadingTimeBucket? = nil,
         createdAt: Date = .now
     ) {
         self.id = id
@@ -30,6 +36,9 @@ public struct BloodPressureReading: Identifiable, Codable, Sendable, Equatable, 
         self.source = source
         self.deviceName = deviceName
         self.notes = notes
+        self.medicationTiming = medicationTiming
+        self.linkedMedicationId = linkedMedicationId
+        self.timeBucket = timeBucket ?? ReadingTimeBucket.from(date: recordedAt)
         self.createdAt = createdAt
     }
 
@@ -46,5 +55,27 @@ public struct BloodPressureReading: Identifiable, Codable, Sendable, Equatable, 
         guard source.isValidBloodPressureSource else {
             throw VitalTrackError.invalidBloodPressureSource(source)
         }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, systolic, diastolic, pulse, recordedAt, source, deviceName, notes
+        case medicationTiming, linkedMedicationId, timeBucket, createdAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        systolic = try c.decode(Int.self, forKey: .systolic)
+        diastolic = try c.decode(Int.self, forKey: .diastolic)
+        pulse = try c.decodeIfPresent(Int.self, forKey: .pulse)
+        recordedAt = try c.decode(Date.self, forKey: .recordedAt)
+        source = try c.decode(MeasurementSource.self, forKey: .source)
+        deviceName = try c.decodeIfPresent(String.self, forKey: .deviceName)
+        notes = try c.decodeIfPresent(String.self, forKey: .notes)
+        medicationTiming = try c.decodeIfPresent(MedicationTimingContext.self, forKey: .medicationTiming) ?? .notTracked
+        linkedMedicationId = try c.decodeIfPresent(UUID.self, forKey: .linkedMedicationId)
+        let decodedBucket = try c.decodeIfPresent(ReadingTimeBucket.self, forKey: .timeBucket)
+        timeBucket = decodedBucket ?? ReadingTimeBucket.from(date: recordedAt)
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? recordedAt
     }
 }

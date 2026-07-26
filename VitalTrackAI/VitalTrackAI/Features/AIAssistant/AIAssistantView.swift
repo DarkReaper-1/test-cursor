@@ -7,7 +7,7 @@ struct AIAssistantView: View {
     @State private var messages: [CoachMessage] = [
         CoachMessage(
             role: .assistant,
-            text: "Hi — I’m your VitalTrack AI coach. Ask about pulse trends, recovery, hydration, or when to talk with a clinician. I explain why, and I never diagnose."
+            text: "Hi — I’m your VitalTrack AI health coach. Ask about blood pressure numbers, why a reading was higher, food, sleep, medication logs, or whether you’re improving. I use simple language, remember this chat, and I never diagnose."
         )
     ]
     @State private var draft = ""

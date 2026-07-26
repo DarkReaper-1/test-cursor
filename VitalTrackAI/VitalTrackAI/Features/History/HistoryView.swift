@@ -135,14 +135,24 @@ struct HistoryView: View {
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 }
+                if !stats.weeklySystolic.isEmpty {
+                    ChartBars(values: stats.weeklySystolic, colorBlindSafe: true)
+                        .frame(height: 100)
+                        .padding(.bottom, 8)
+                }
                 ForEach(bp.prefix(30)) { reading in
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("\(reading.displayValue) mmHg")
                                 .font(VTTypography.body().weight(.bold))
-                            Text(reading.category.displayName)
+                            Text("\(reading.category.displayName) · \(reading.timeBucket.displayName)")
                                 .font(VTTypography.caption())
                                 .foregroundStyle(VTColors.textSecondary)
+                            if reading.medicationTiming != .notTracked {
+                                Text(reading.medicationTiming.displayName)
+                                    .font(VTTypography.caption())
+                                    .foregroundStyle(VTColors.brandDeep)
+                            }
                         }
                         Spacer()
                         VTSourceChip(reading.source.displayName)
@@ -191,25 +201,35 @@ struct HistoryView: View {
 
 struct ChartBars: View {
     let values: [Double]
+    var colorBlindSafe: Bool = false
 
     var body: some View {
         GeometryReader { geo in
             let maxV = max(values.max() ?? 1, 1)
+            let minV = values.min() ?? 0
             HStack(alignment: .bottom, spacing: 6) {
-                ForEach(Array(values.enumerated()), id: \.offset) { _, value in
+                ForEach(Array(values.enumerated()), id: \.offset) { index, value in
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [VTColors.accentSoft, VTColors.brandPrimary],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                        .fill(barColor(value: value, minV: minV, maxV: maxV, index: index))
+                        .frame(
+                            width: max(8, (geo.size.width - CGFloat(values.count) * 6) / CGFloat(max(values.count, 1))),
+                            height: max(8, geo.size.height * CGFloat(value / maxV))
                         )
-                        .frame(width: max(8, (geo.size.width - CGFloat(values.count) * 6) / CGFloat(max(values.count, 1))), height: max(8, geo.size.height * CGFloat(value / maxV)))
+                        .accessibilityLabel("Point \(index + 1): \(Int(value))")
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("Trend chart with \(values.count) points")
+    }
+
+    private func barColor(value: Double, minV: Double, maxV: Double, index: Int) -> Color {
+        if colorBlindSafe {
+            // Blue–orange friendly encoding: darker blue = higher values (not red/green).
+            let t = maxV > minV ? (value - minV) / (maxV - minV) : 0.5
+            return t > 0.66 ? VTColors.brandSecondary : (t > 0.33 ? VTColors.brandPrimary : VTColors.info.opacity(0.75))
+        }
+        return VTColors.brandPrimary
     }
 }

@@ -151,10 +151,21 @@ public struct HistoryStats: Codable, Sendable, Equatable {
     public var lowestBPM: Double?
     public var averageSys: Double?
     public var averageDia: Double?
+    public var highestSys: Int?
+    public var lowestSys: Int?
+    public var morningAvgSys: Double?
+    public var eveningAvgSys: Double?
+    public var beforeMedAvgSys: Double?
+    public var afterMedAvgSys: Double?
+    public var weekAvgSys: Double?
+    public var monthAvgSys: Double?
     public var measurementStreak: Int
     public var totalMeasurements: Int
     public var weeklyBPMs: [Double]
     public var monthlyBPMs: [Double]
+    public var weeklySystolic: [Double]
+    public var monthlySystolic: [Double]
+    public var yearlySystolic: [Double]
 
     public init(
         averageBPM: Double? = nil,
@@ -162,19 +173,41 @@ public struct HistoryStats: Codable, Sendable, Equatable {
         lowestBPM: Double? = nil,
         averageSys: Double? = nil,
         averageDia: Double? = nil,
+        highestSys: Int? = nil,
+        lowestSys: Int? = nil,
+        morningAvgSys: Double? = nil,
+        eveningAvgSys: Double? = nil,
+        beforeMedAvgSys: Double? = nil,
+        afterMedAvgSys: Double? = nil,
+        weekAvgSys: Double? = nil,
+        monthAvgSys: Double? = nil,
         measurementStreak: Int = 0,
         totalMeasurements: Int = 0,
         weeklyBPMs: [Double] = [],
-        monthlyBPMs: [Double] = []
+        monthlyBPMs: [Double] = [],
+        weeklySystolic: [Double] = [],
+        monthlySystolic: [Double] = [],
+        yearlySystolic: [Double] = []
     ) {
         self.averageBPM = averageBPM
         self.highestBPM = highestBPM
         self.lowestBPM = lowestBPM
         self.averageSys = averageSys
         self.averageDia = averageDia
+        self.highestSys = highestSys
+        self.lowestSys = lowestSys
+        self.morningAvgSys = morningAvgSys
+        self.eveningAvgSys = eveningAvgSys
+        self.beforeMedAvgSys = beforeMedAvgSys
+        self.afterMedAvgSys = afterMedAvgSys
+        self.weekAvgSys = weekAvgSys
+        self.monthAvgSys = monthAvgSys
         self.measurementStreak = measurementStreak
         self.totalMeasurements = totalMeasurements
         self.weeklyBPMs = weeklyBPMs
         self.monthlyBPMs = monthlyBPMs
+        self.weeklySystolic = weeklySystolic
+        self.monthlySystolic = monthlySystolic
+        self.yearlySystolic = yearlySystolic
     }
 }

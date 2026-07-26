@@ -14,9 +14,15 @@ struct MoreView: View {
 
                     VTDisclaimerBanner(.bloodPressure)
 
+                    moreSection(title: "Your health") {
+                        MoreLinkRow(title: "Medications", subtitle: "Doses, reminders, refill notes", systemImage: "pills.fill", destination: MedicationsView())
+                        MoreLinkRow(title: "Learning center", subtitle: "Plain-language heart health", systemImage: "book.fill", destination: LearningCenterView())
+                        MoreLinkRow(title: "Family care", subtitle: "Opt-in caregiver sharing", systemImage: "person.3.fill", destination: FamilyCareView())
+                    }
+
                     moreSection(title: "Your data") {
                         MoreLinkRow(title: "History", subtitle: "Past cuff and pulse readings", systemImage: "clock.arrow.circlepath", destination: HistoryView())
-                        MoreLinkRow(title: "Analytics", subtitle: "Weekly and monthly trends", systemImage: "chart.xyaxis.line", destination: AnalyticsView())
+                        MoreLinkRow(title: "Analytics", subtitle: "Week, month, year BP trends", systemImage: "chart.xyaxis.line", destination: AnalyticsView())
                         MoreLinkRow(title: "Reports", subtitle: "CSV, PDF, doctor summary", systemImage: "doc.richtext", destination: ReportsView())
                         MoreLinkRow(title: "Devices", subtitle: "Bluetooth cuffs and scales", systemImage: "wave.3.right.circle", destination: DevicesView())
                     }

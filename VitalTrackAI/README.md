@@ -11,9 +11,11 @@ Modular SwiftUI app + Swift Package libraries for logging vital signs with **str
 
 Canonical copy lives in `VitalTrackCore.TrustPolicy` and `VitalTrackDesignSystem.TrustCopy`.
 
-## UI (comfort-first AI companion)
+## UI (comfort-first AI companion for adults 40+)
 
-SwiftUI screens use a calm teal health aesthetic with **large type**, **56pt tap targets**, living Home scores, smarter pulse results, conversational **Coach**, monitor-style BP entry, and plain-language labels (Home · Pulse · BP · Coach · More). Design tokens live in `VitalTrackDesignSystem`. AI is offline-heuristic first and always informational — never diagnostic; camera never measures BP.
+SwiftUI screens use a calm teal health aesthetic with **large type**, **56pt tap targets**, living Home scores (“How am I doing?”), medications, lifestyle check-ins, learning center, calm crisis guidance, richer BP charts, doctor-ready reports, conversational **Coach**, and plain-language tabs (Home · Pulse · BP · Coach · More). Design tokens live in `VitalTrackDesignSystem`. AI is offline-heuristic first and always informational — never diagnostic; camera never measures BP.
+
+Competitor pain-point mapping: [`docs/research/COMPETITOR_PAIN_POINTS.md`](docs/research/COMPETITOR_PAIN_POINTS.md).
 
 ## Demo video (HTML walkthrough)
 
@@ -69,7 +71,7 @@ Docs: [`docs/`](docs/) (PRD, architecture, legal, design).
 
 Splash → multi-step onboarding (includes **What we cannot do** / FDA-cleared BP messaging) → tabs:
 
-**Home · Heart · BP · Insights · More** (Analytics, History, Devices, Reports, Settings, Subscription, Privacy, Help)
+**Home · Pulse · BP · Coach · More** (Medications, Learning, Family care, Analytics, History, Devices, Reports, Settings, Subscription, Privacy, Help)
 
 ## Tests
 

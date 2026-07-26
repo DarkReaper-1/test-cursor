@@ -15,6 +15,11 @@ struct DashboardView: View {
     @State private var todayCheckIn: CheckIn?
     @State private var recentHR: [HeartRateSample] = []
     @State private var recentBP: [BloodPressureReading] = []
+    @State private var activeMeds: [Medication] = []
+    @State private var todayDoses: [MedicationDose] = []
+    @State private var weekAvgSys: Double?
+    @State private var monthAvgSys: Double?
+    @State private var bpPlainInsight: String?
     @State private var errorMessage: String?
     @State private var showCheckIn = false
     @State private var milestoneToast: String?
@@ -45,6 +50,8 @@ struct DashboardView: View {
 
                     quickActions
 
+                    howAmIDoingCard
+
                     if let insight {
                         insightCard(insight)
                     }
@@ -53,7 +60,11 @@ struct DashboardView: View {
                         summaryCard(summary)
                     }
 
+                    medicationStatusCard
+
                     hydrationAndGoal
+
+                    lifestyleRow
 
                     streakCard
 
@@ -186,17 +197,104 @@ struct DashboardView: View {
         }
     }
 
+    private var howAmIDoingCard: some View {
+        VTCard(emphasized: true) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("How am I doing?")
+                    .font(VTTypography.title(18))
+                if let latestBP {
+                    Text("Today’s reading: \(latestBP.displayValue) mmHg")
+                        .font(VTTypography.body().weight(.bold))
+                    Text(bpPlainInsight ?? "Keep logging with your FDA-cleared cuff. Patterns help more than one number.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                } else {
+                    Text("No cuff reading yet today.")
+                        .font(VTTypography.body().weight(.bold))
+                    Text("Next step: enter numbers from your home monitor on the BP tab.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Weekly avg")
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                        Text(weekAvgSys.map { String(format: "%.0f sys", $0) } ?? "—")
+                            .font(VTTypography.body().weight(.bold))
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Monthly avg")
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                        Text(monthAvgSys.map { String(format: "%.0f sys", $0) } ?? "—")
+                            .font(VTTypography.body().weight(.bold))
+                    }
+                    Spacer()
+                }
+            }
+        }
+    }
+
     private func insightCard(_ insight: Insight) -> some View {
         VTCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text("AI insight of the day")
+                Text("Personalized insight")
                     .font(VTTypography.title(18))
                 Text(insight.title)
                     .font(VTTypography.body().weight(.bold))
                 Text(insight.body)
                     .font(VTTypography.caption())
                     .foregroundStyle(VTColors.textSecondary)
-                    .lineLimit(5)
+                    .lineLimit(6)
+            }
+        }
+    }
+
+    private var medicationStatusCard: some View {
+        VTCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Medication status")
+                    .font(VTTypography.title(18))
+                if activeMeds.isEmpty {
+                    Text("Add medications in More → Medications for reminders and dose history.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                } else {
+                    let taken = todayDoses.filter { $0.status == .taken }.count
+                    Text("\(taken) of \(activeMeds.count) logged taken today")
+                        .font(VTTypography.body().weight(.bold))
+                    Text(activeMeds.prefix(3).map { "\($0.name) \($0.dosage)" }.joined(separator: " · "))
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+            }
+        }
+    }
+
+    private var lifestyleRow: some View {
+        HStack(spacing: 12) {
+            VTCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Sleep")
+                        .font(VTTypography.title(18))
+                    Text(todayCheckIn?.sleepHours.map { String(format: "%.1fh", $0) } ?? "—")
+                        .font(VTTypography.metric(28))
+                    Text(todayCheckIn?.exerciseMinutes.map { "\($0) min move" } ?? "Log exercise in check-in")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+            }
+            VTCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Weight")
+                        .font(VTTypography.title(18))
+                    Text(todayCheckIn?.weightKg.map { String(format: "%.1f kg", $0) } ?? "—")
+                        .font(VTTypography.metric(28))
+                    Text(todayCheckIn?.stressLevel.map(\.displayName) ?? "Stress optional")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
             }
         }
     }
@@ -366,6 +464,7 @@ struct DashboardView: View {
             let nextStreak = await composition.scoreEngine.computeStreak(from: context)
             let insights = await composition.environment.insightEngine.generateInsights(from: context.insightContext)
             let previous = streak.currentDays
+            let stats = await composition.scoreEngine.historyStats(from: context)
             score = daily
             summary = dailySummary
             streak = nextStreak
@@ -375,6 +474,11 @@ struct DashboardView: View {
             recentHR = Array(context.heartRate.prefix(5))
             recentBP = Array(context.bloodPressure.prefix(5))
             todayCheckIn = context.checkIns.first { Calendar.current.isDateInToday($0.date) }
+            activeMeds = context.medications.filter(\.isActive)
+            todayDoses = context.doses.filter { Calendar.current.isDateInToday($0.takenAt) }
+            weekAvgSys = stats.weekAvgSys
+            monthAvgSys = stats.monthAvgSys
+            bpPlainInsight = plainBPInsight(latest: context.bloodPressure.first, week: stats.weekAvgSys, month: stats.monthAvgSys, insights: insights)
             errorMessage = nil
             if nextStreak.currentDays > 0, nextStreak.currentDays > previous, [3, 7, 14, 30].contains(nextStreak.currentDays) {
                 withAnimation {
@@ -392,6 +496,34 @@ struct DashboardView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func plainBPInsight(
+        latest: BloodPressureReading?,
+        week: Double?,
+        month: Double?,
+        insights: [Insight]
+    ) -> String {
+        if let encouraging = insights.first(where: { $0.relatedMetric == "bloodPressure" && $0.severity == .info }) {
+            return encouraging.body
+        }
+        guard let latest else {
+            return "Log a cuff reading to see how today compares with your averages."
+        }
+        if let week {
+            let delta = Double(latest.systolic) - week
+            if abs(delta) < 3 {
+                return "Today’s \(latest.displayValue) is close to your weekly average. Steady logging helps your clinician."
+            }
+            if delta < 0 {
+                return "Nice — today’s systolic looks about \(Int(abs(delta))) mmHg lower than your weekly average. Keep your routine."
+            }
+            return "Today’s systolic is about \(Int(delta)) mmHg above your weekly average. Rest, recheck later if needed, and note sleep or stress. Not a diagnosis."
+        }
+        if let month {
+            return "Monthly average systolic is about \(Int(month)) mmHg. Keep building your record with your FDA-cleared cuff."
+        }
+        return "You’re off to a good start. A few more readings unlock clearer trends."
     }
 }
 

@@ -10,6 +10,20 @@ struct CheckInSheet: View {
     @State private var mood: MoodTag = .good
     @State private var sleepHours = 7.0
     @State private var includeSleep = true
+    @State private var includeLifestyle = false
+    @State private var weightKg = 75.0
+    @State private var includeWeight = false
+    @State private var sodiumMg = 1500
+    @State private var includeSodium = false
+    @State private var caffeineCups = 1
+    @State private var alcoholDrinks = 0
+    @State private var smoked = 0
+    @State private var exerciseMinutes = 20
+    @State private var includeExercise = false
+    @State private var steps = 4000
+    @State private var includeSteps = false
+    @State private var stressLevel: StressLevel = .mild
+    @State private var includeStress = false
     @State private var status = ""
 
     var body: some View {
@@ -19,7 +33,7 @@ struct CheckInSheet: View {
                     VTScreenHeader(
                         eyebrow: "Check-in",
                         title: "How are you today?",
-                        subtitle: "Water, mood, and sleep help your AI coach personalize tips."
+                        subtitle: "Water, mood, sleep, and optional lifestyle notes help explain BP patterns."
                     )
                     VTDisclaimerBanner(.insights)
 
@@ -73,6 +87,63 @@ struct CheckInSheet: View {
                         }
                     }
 
+                    VTCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle("Add lifestyle details", isOn: $includeLifestyle)
+                                .font(VTTypography.title(18))
+                            Text("Optional — only what helps you and your clinician.")
+                                .font(VTTypography.caption())
+                                .foregroundStyle(VTColors.textSecondary)
+
+                            if includeLifestyle {
+                                Toggle("Weight (kg)", isOn: $includeWeight)
+                                if includeWeight {
+                                    Stepper(value: $weightKg, in: 35...200, step: 0.5) {
+                                        Text(String(format: "%.1f kg", weightKg))
+                                            .font(VTTypography.body().weight(.bold))
+                                    }
+                                    .frame(minHeight: 48)
+                                }
+
+                                Toggle("Sodium estimate (mg)", isOn: $includeSodium)
+                                if includeSodium {
+                                    Stepper("\(sodiumMg) mg", value: $sodiumMg, in: 500...5000, step: 100)
+                                        .frame(minHeight: 48)
+                                }
+
+                                Stepper("Caffeine cups: \(caffeineCups)", value: $caffeineCups, in: 0...10)
+                                    .frame(minHeight: 48)
+                                Stepper("Alcohol drinks: \(alcoholDrinks)", value: $alcoholDrinks, in: 0...10)
+                                    .frame(minHeight: 48)
+                                Stepper("Cigarettes: \(smoked)", value: $smoked, in: 0...40)
+                                    .frame(minHeight: 48)
+
+                                Toggle("Exercise minutes", isOn: $includeExercise)
+                                if includeExercise {
+                                    Stepper("\(exerciseMinutes) min", value: $exerciseMinutes, in: 0...180, step: 5)
+                                        .frame(minHeight: 48)
+                                }
+
+                                Toggle("Steps", isOn: $includeSteps)
+                                if includeSteps {
+                                    Stepper("\(steps) steps", value: $steps, in: 0...30000, step: 500)
+                                        .frame(minHeight: 48)
+                                }
+
+                                Toggle("Stress level", isOn: $includeStress)
+                                if includeStress {
+                                    Picker("Stress", selection: $stressLevel) {
+                                        ForEach(StressLevel.allCases) { level in
+                                            Text(level.displayName).tag(level)
+                                        }
+                                    }
+                                    .pickerStyle(.segmented)
+                                    .frame(minHeight: 44)
+                                }
+                            }
+                        }
+                    }
+
                     if !status.isEmpty {
                         Text(status)
                             .font(VTTypography.caption())
@@ -104,6 +175,17 @@ struct CheckInSheet: View {
                 sleepHours = sleep
                 includeSleep = true
             }
+            if today.weightKg != nil || today.sodiumMg != nil || today.exerciseMinutes != nil {
+                includeLifestyle = true
+            }
+            if let w = today.weightKg { weightKg = w; includeWeight = true }
+            if let s = today.sodiumMg { sodiumMg = s; includeSodium = true }
+            caffeineCups = today.caffeineCups ?? caffeineCups
+            alcoholDrinks = today.alcoholDrinks ?? 0
+            smoked = today.smokedCigarettes ?? 0
+            if let e = today.exerciseMinutes { exerciseMinutes = e; includeExercise = true }
+            if let st = today.steps { steps = st; includeSteps = true }
+            if let stress = today.stressLevel { stressLevel = stress; includeStress = true }
         }
     }
 
@@ -111,11 +193,19 @@ struct CheckInSheet: View {
         let checkIn = CheckIn(
             waterGlasses: water,
             mood: mood,
-            sleepHours: includeSleep ? sleepHours : nil
+            sleepHours: includeSleep ? sleepHours : nil,
+            weightKg: includeLifestyle && includeWeight ? weightKg : nil,
+            sodiumMg: includeLifestyle && includeSodium ? sodiumMg : nil,
+            caffeineCups: includeLifestyle ? caffeineCups : nil,
+            alcoholDrinks: includeLifestyle ? alcoholDrinks : nil,
+            smokedCigarettes: includeLifestyle ? smoked : nil,
+            exerciseMinutes: includeLifestyle && includeExercise ? exerciseMinutes : nil,
+            steps: includeLifestyle && includeSteps ? steps : nil,
+            stressLevel: includeLifestyle && includeStress ? stressLevel : nil
         )
         do {
             try await composition.companionStore.upsertCheckIn(checkIn)
-            status = "Saved. Your Home scores will update."
+            status = "Saved. Home insights will update when patterns appear."
             dismiss()
         } catch {
             status = error.localizedDescription

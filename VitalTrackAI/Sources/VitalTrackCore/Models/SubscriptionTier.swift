@@ -17,18 +17,21 @@ public enum SubscriptionTier: String, Codable, Sendable, CaseIterable, Identifia
         switch self {
         case .free:
             return [
-                "Manual blood pressure logging",
+                "Manual blood pressure logging from your cuff",
+                "Medication reminders and dose history",
+                "Lifestyle check-ins (sleep, water, sodium, movement)",
                 "Camera PPG heart rate (not blood pressure)",
-                "Basic history and charts",
-                "Local insights (informational only)"
+                "Basic history, charts, and calm crisis guidance",
+                "Learning center and local AI coach (informational)"
             ]
         case .premium:
             return [
                 "Everything in Free",
-                "Doctor-ready PDF export",
-                "CSV import/export without limits",
-                "Advanced trend insights",
-                "Priority device pairing tips"
+                "Unlimited history and advanced BP analytics",
+                "Doctor-ready PDF/CSV reports with meds & lifestyle",
+                "Family/caregiver sharing (opt-in)",
+                "Cloud backup and wearable sync extras",
+                "Trend forecasting insights (informational only)"
             ]
         }
     }

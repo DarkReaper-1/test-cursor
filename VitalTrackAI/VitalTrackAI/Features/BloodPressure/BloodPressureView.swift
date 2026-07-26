@@ -9,10 +9,12 @@ struct BloodPressureView: View {
     @State private var diastolic = 80
     @State private var pulse = 72
     @State private var source: MeasurementSource = .manual
+    @State private var medicationTiming: MedicationTimingContext = .notTracked
     @State private var recent: [BloodPressureReading] = []
     @State private var status = "Type the numbers shown on your FDA-cleared cuff."
     @State private var errorMessage: String?
     @State private var showSavedToast = false
+    @State private var crisisItem: CrisisSheetItem?
 
     private let allowedSources: [MeasurementSource] = [.manual, .bluetoothCuff, .healthKit, .csvImport]
 
@@ -23,7 +25,7 @@ struct BloodPressureView: View {
                     VTScreenHeader(
                         eyebrow: "Blood pressure",
                         title: "Enter cuff numbers",
-                        subtitle: "Large steppers make logging easier."
+                        subtitle: "Large steppers. Optional before/after medication."
                     )
 
                     VTDisclaimerBanner(.custom(
@@ -52,6 +54,18 @@ struct BloodPressureView: View {
                                     }
                                 }
                                 .pickerStyle(.menu)
+                                .frame(minHeight: 44)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Medication timing")
+                                    .font(VTTypography.title(18))
+                                Picker("Medication timing", selection: $medicationTiming) {
+                                    ForEach(MedicationTimingContext.allCases) { item in
+                                        Text(item.displayName).tag(item)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
                                 .frame(minHeight: 44)
                             }
 
@@ -101,9 +115,14 @@ struct BloodPressureView: View {
                                     Text(reading.displayValue + " mmHg")
                                         .font(VTTypography.title(20))
                                         .foregroundStyle(VTColors.textPrimary)
-                                    Text(reading.category.displayName)
+                                    Text("\(reading.category.displayName) · \(reading.timeBucket.displayName)")
                                         .font(VTTypography.caption())
                                         .foregroundStyle(VTColors.textSecondary)
+                                    if reading.medicationTiming != .notTracked {
+                                        Text(reading.medicationTiming.displayName)
+                                            .font(VTTypography.caption())
+                                            .foregroundStyle(VTColors.brandDeep)
+                                    }
                                 }
                                 Spacer()
                                 VTSourceChip(reading.source.displayName)
@@ -127,6 +146,11 @@ struct BloodPressureView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .padding(.top, 8)
                         .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            .sheet(item: $crisisItem) { item in
+                CrisisGuidanceSheet(guidance: item.guidance, readingLabel: item.label) {
+                    crisisItem = nil
                 }
             }
             .task { await load() }
@@ -155,18 +179,33 @@ struct BloodPressureView: View {
             diastolic: diastolic,
             pulse: pulse,
             source: source,
-            deviceName: "External monitor"
+            deviceName: "External monitor",
+            medicationTiming: medicationTiming
         )
         do {
             try await composition.environment.bloodPressureRepository.save(reading)
-            status = "Saved \(reading.displayValue) mmHg."
+            status = plainLanguageStatus(for: reading)
             errorMessage = nil
             await load()
             withAnimation { showSavedToast = true }
             try? await Task.sleep(nanoseconds: 1_800_000_000)
             withAnimation { showSavedToast = false }
+            if let guidance = composition.crisisEngine.guidance(for: reading) {
+                crisisItem = CrisisSheetItem(guidance: guidance, label: reading.displayValue)
+            }
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func plainLanguageStatus(for reading: BloodPressureReading) -> String {
+        switch reading.category {
+        case .normal, .elevated:
+            return "Saved \(reading.displayValue) mmHg. You’re building a helpful record for your clinician."
+        case .hypertensionStage1:
+            return "Saved \(reading.displayValue) mmHg. Keep logging calmly and share patterns at your next visit."
+        default:
+            return "Saved \(reading.displayValue) mmHg. Review the calm guidance if it appears."
         }
     }
 
@@ -183,6 +222,12 @@ struct BloodPressureView: View {
             errorMessage = error.localizedDescription
         }
     }
+}
+
+private struct CrisisSheetItem: Identifiable {
+    let id = UUID()
+    let guidance: CrisisGuidance
+    let label: String
 }
 
 #Preview {

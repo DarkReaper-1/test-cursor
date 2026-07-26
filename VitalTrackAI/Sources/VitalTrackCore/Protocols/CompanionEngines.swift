@@ -5,6 +5,8 @@ public struct CompanionContext: Sendable {
     public var heartRate: [HeartRateSample]
     public var hrv: [HRVSample]
     public var checkIns: [CheckIn]
+    public var medications: [Medication]
+    public var doses: [MedicationDose]
     public var waterGoalGlasses: Int
     public var lastLogDate: Date?
 
@@ -13,6 +15,8 @@ public struct CompanionContext: Sendable {
         heartRate: [HeartRateSample] = [],
         hrv: [HRVSample] = [],
         checkIns: [CheckIn] = [],
+        medications: [Medication] = [],
+        doses: [MedicationDose] = [],
         waterGoalGlasses: Int = 8,
         lastLogDate: Date? = nil
     ) {
@@ -20,6 +24,8 @@ public struct CompanionContext: Sendable {
         self.heartRate = heartRate
         self.hrv = hrv
         self.checkIns = checkIns
+        self.medications = medications
+        self.doses = doses
         self.waterGoalGlasses = waterGoalGlasses
         self.lastLogDate = lastLogDate
     }
@@ -29,9 +35,17 @@ public struct CompanionContext: Sendable {
             bloodPressure: bloodPressure,
             heartRate: heartRate,
             hrv: hrv,
+            checkIns: checkIns,
+            medications: medications,
+            doses: doses,
             lastLogDate: lastLogDate
         )
     }
+}
+
+public protocol CrisisGuidanceComputing: Sendable {
+    func severity(for reading: BloodPressureReading) -> CrisisSeverity
+    func guidance(for reading: BloodPressureReading) -> CrisisGuidance?
 }
 
 public protocol ScoreComputing: Sendable {

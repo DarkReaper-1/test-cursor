@@ -461,8 +461,8 @@
     <div class="chrome">
       <div class="demo-title">
         <h1>VitalTrack AI</h1>
-        <p>Your AI health companion — pulse, cuff BP, and plain-English coaching.</p>
-        <div class="comfort-badge">AI Coach · Daily scores · Comfort mode</div>
+        <p>Ultimate BP & heart companion for adults 40+ — calm, clear, trustworthy.</p>
+        <div class="comfort-badge">Meds · Insights · Doctor reports · Comfort mode</div>
       </div>
       <div class="phone" id="device-frame">
         <div class="phone-notch" aria-hidden="true"></div>
@@ -505,16 +505,26 @@
                 <span>Camera pulse checks are estimates. Blood pressure comes from an FDA-cleared cuff. Coaching is informational only — not medical advice.</span>
               </div>
               <div class="card" style="border-color:var(--brand);">
+                <h3>How am I doing?</h3>
+                <div class="metric" id="dash-bp">128/78<span>mmHg</span></div>
+                <div class="caption" id="dash-bp-cap">Nice — today’s systolic looks about 6 mmHg lower than your weekly average. Keep your routine. Not a diagnosis.</div>
+                <div class="caption" style="margin-top:10px;">Weekly avg 134 sys · Monthly avg 131 sys</div>
+              </div>
+              <div class="card">
                 <h3>Daily health score</h3>
                 <div class="metric" id="dash-score">72<span>/100</span></div>
                 <div class="caption" id="dash-score-cap">Recovery 78 · Stress Steady · Consistency 71%</div>
               </div>
               <div class="card">
-                <h3>AI insight of the day</h3>
+                <h3>Personalized insight</h3>
                 <div class="insight" id="dash-insight">
-                  <strong>Keep logging consistently</strong>
-                  <span class="caption">Add a pulse check and cuff reading so your coach can explain personal trends. Informational only.</span>
+                  <strong>Sleep and blood pressure</strong>
+                  <span class="caption">On shorter-sleep days, your systolic averages looked higher. A pattern in your logs — not proof of cause. Informational only.</span>
                 </div>
+              </div>
+              <div class="card">
+                <h3>Medication status</h3>
+                <div class="caption">1 of 1 logged taken today · Lisinopril 10 mg · Supportive reminder at 8:00</div>
               </div>
               <button type="button" class="btn btn-primary" id="btn-quick-scan" style="margin-bottom:12px;">Quick scan</button>
               <div class="card">
@@ -523,17 +533,13 @@
                 <div class="caption" id="dash-hr-cap">Use Pulse for a fingertip check.</div>
               </div>
               <div class="card">
-                <h3>Latest blood pressure</h3>
-                <div class="metric" id="dash-bp">—<span>mmHg</span></div>
-                <div class="caption" id="dash-bp-cap">Log numbers from your FDA-cleared cuff.</div>
+                <h3>Hydration · Sleep · Streak</h3>
+                <div class="caption" id="dash-habit">5/8 glasses · 7.5h sleep · 3-day streak · Goal: keep logging</div>
               </div>
               <div class="card">
-                <h3>Hydration · Streak</h3>
-                <div class="caption" id="dash-habit">0/8 glasses · 1-day streak · Goal: take a pulse check</div>
-              </div>
-              <div class="card">
-                <h3>This week</h3>
+                <h3>This week (systolic)</h3>
                 <div class="chart" id="dash-chart" aria-hidden="true"></div>
+                <div class="caption">Color-blind friendly bars · Morning vs evening in Analytics</div>
               </div>
             </div>
           </section>
@@ -793,7 +799,7 @@
       const bp = state.readings[0];
       if (bp) {
         $("#dash-bp").innerHTML = `${bp.sys}/${bp.dia}<span>mmHg</span>`;
-        $("#dash-bp-cap").textContent = `Manual cuff · ${bp.cat} · just now`;
+        $("#dash-bp-cap").textContent = `Saved from your cuff · ${bp.cat}. Compare with weekly averages on Home. Informational only — not a diagnosis.`;
       }
       if (state.hr) {
         $("#dash-hr").innerHTML = `${state.hr}<span>BPM</span>`;

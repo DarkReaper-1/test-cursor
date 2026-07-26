@@ -1,11 +1,12 @@
 import SwiftUI
+import VitalTrackCore
 import VitalTrackDesignSystem
 
 struct ReportsView: View {
     @EnvironmentObject private var composition: AppComposition
     @EnvironmentObject private var session: SessionStore
     @State private var summary = ""
-    @State private var exportNote = "Exports include source labels and trust disclaimers."
+    @State private var exportNote = "Exports include source labels, medications, lifestyle, and trust disclaimers."
     @State private var shareCSV: Data?
 
     var body: some View {
@@ -14,7 +15,7 @@ struct ReportsView: View {
                 VTScreenHeader(
                     eyebrow: "Reports",
                     title: "Share with your doctor",
-                    subtitle: "Exports include source labels and honest disclaimers."
+                    subtitle: "Beautiful clinician summaries with charts context, meds, and lifestyle."
                 )
                 VTDisclaimerBanner(.custom(TrustCopy.medicalDisclaimer))
                 VTDisclaimerBanner(.bloodPressure)
@@ -51,18 +52,26 @@ struct ReportsView: View {
     private func buildSummary() async {
         let bp = (try? await composition.environment.bloodPressureRepository.fetchAll()) ?? []
         let hr = (try? await composition.environment.heartRateRepository.fetchAll()) ?? []
-        summary = (try? await composition.environment.doctorReportFormatter.formatSummary(
+        let meds = (try? await composition.medicationRepository.fetchAll()) ?? []
+        let doses = (try? await composition.medicationRepository.fetchDoses(limit: 40)) ?? []
+        let checkIns = (try? await composition.checkInRepository.fetchAll()) ?? []
+        let input = DoctorReportInput(
             bloodPressure: bp,
             heartRate: hr,
+            medications: meds,
+            doses: doses,
+            checkIns: checkIns,
             patientLabel: session.settings.preferredName
-        )) ?? "Could not build summary."
+        )
+        summary = (try? await composition.environment.doctorReportFormatter.formatRichSummary(input))
+            ?? "Could not build summary."
     }
 
     private func exportCSV() async {
         let bp = (try? await composition.environment.bloodPressureRepository.fetchAll()) ?? []
         if let data = try? await composition.environment.exporter.exportBloodPressureCSV(bp) {
             shareCSV = data
-            exportNote = "CSV ready (\(data.count) bytes). Sources are labeled; camera is never a BP source."
+            exportNote = "CSV ready (\(data.count) bytes). Includes medication timing and time-of-day. Camera is never a BP source."
         }
     }
 
@@ -72,7 +81,7 @@ struct ReportsView: View {
             title: "VitalTrack AI Clinician Report",
             body: summary
         ) {
-            exportNote = "PDF ready (\(data.count) bytes) with embedded disclaimers."
+            exportNote = "PDF ready (\(data.count) bytes) with meds, lifestyle, and embedded disclaimers."
         }
     }
 }

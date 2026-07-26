@@ -180,16 +180,34 @@ public struct ScoreEngine: ScoreComputing {
         let streak = await computeStreak(from: context)
         let week = context.heartRate.filter { $0.recordedAt >= daysAgo(7) }.sorted { $0.recordedAt < $1.recordedAt }.map(\.bpm)
         let month = context.heartRate.filter { $0.recordedAt >= daysAgo(30) }.sorted { $0.recordedAt < $1.recordedAt }.map(\.bpm)
+        let weekBP = bp.filter { $0.recordedAt >= daysAgo(7) }
+        let monthBP = bp.filter { $0.recordedAt >= daysAgo(30) }
+        let yearBP = bp.filter { $0.recordedAt >= daysAgo(365) }
+        let morning = bp.filter { $0.timeBucket == .morning }
+        let evening = bp.filter { $0.timeBucket == .evening }
+        let before = bp.filter { $0.medicationTiming == .beforeMedication }
+        let after = bp.filter { $0.medicationTiming == .afterMedication }
         return HistoryStats(
             averageBPM: average(hr),
             highestBPM: hr.max(),
             lowestBPM: hr.min(),
             averageSys: bp.isEmpty ? nil : Double(bp.map(\.systolic).reduce(0, +)) / Double(bp.count),
             averageDia: bp.isEmpty ? nil : Double(bp.map(\.diastolic).reduce(0, +)) / Double(bp.count),
+            highestSys: bp.map(\.systolic).max(),
+            lowestSys: bp.map(\.systolic).min(),
+            morningAvgSys: average(morning.map { Double($0.systolic) }),
+            eveningAvgSys: average(evening.map { Double($0.systolic) }),
+            beforeMedAvgSys: average(before.map { Double($0.systolic) }),
+            afterMedAvgSys: average(after.map { Double($0.systolic) }),
+            weekAvgSys: average(weekBP.map { Double($0.systolic) }),
+            monthAvgSys: average(monthBP.map { Double($0.systolic) }),
             measurementStreak: streak.currentDays,
             totalMeasurements: context.heartRate.count + context.bloodPressure.count,
             weeklyBPMs: week,
-            monthlyBPMs: month
+            monthlyBPMs: month,
+            weeklySystolic: weekBP.sorted { $0.recordedAt < $1.recordedAt }.map { Double($0.systolic) },
+            monthlySystolic: monthBP.sorted { $0.recordedAt < $1.recordedAt }.map { Double($0.systolic) },
+            yearlySystolic: yearBP.sorted { $0.recordedAt < $1.recordedAt }.map { Double($0.systolic) }
         )
     }
 

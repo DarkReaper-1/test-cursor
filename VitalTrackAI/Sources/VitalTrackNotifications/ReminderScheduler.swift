@@ -71,13 +71,13 @@ public final class ReminderScheduler: @unchecked Sendable {
     private func body(for reminder: Reminder) -> String {
         switch reminder.kind {
         case .bloodPressureLog:
-            return "Time to log blood pressure from your FDA-cleared monitor. VitalTrack AI does not measure BP with the camera."
+            return "Good morning! Ready to record today’s blood pressure from your FDA-cleared cuff? No pressure — just a gentle nudge."
         case .heartRateCheck:
-            return "Optional heart rate check via Watch, Health, or camera PPG (heart rate only)."
+            return "You’re doing great. Optional pulse check via Watch, Health, or camera PPG (heart rate only — not blood pressure)."
         case .medication:
-            return reminder.notes ?? "Medication reminder. Follow your clinician’s instructions."
+            return reminder.notes ?? "Friendly reminder for your medication. Follow your clinician’s instructions."
         case .custom:
-            return reminder.notes ?? "VitalTrack AI reminder."
+            return reminder.notes ?? "We’re here when you’re ready. Small steps count."
         }
     }
 }

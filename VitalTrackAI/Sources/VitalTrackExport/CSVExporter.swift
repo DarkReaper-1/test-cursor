@@ -7,11 +7,14 @@ public struct CSVExporter: Exporting {
     public init() {}
 
     public func exportBloodPressureCSV(_ readings: [BloodPressureReading]) async throws -> Data {
-        var lines = ["id,systolic,diastolic,pulse,recordedAt,source,deviceName,notes,category"]
+        var lines = [
+            "id,systolic,diastolic,pulse,recordedAt,source,deviceName,notes,category,medicationTiming,timeBucket,linkedMedicationId"
+        ]
         for r in readings.sorted(by: { $0.recordedAt < $1.recordedAt }) {
             let pulse = r.pulse.map(String.init) ?? ""
             let device = escape(r.deviceName ?? "")
             let notes = escape(r.notes ?? "")
+            let linked = r.linkedMedicationId?.uuidString ?? ""
             lines.append([
                 r.id.uuidString,
                 String(r.systolic),
@@ -21,7 +24,10 @@ public struct CSVExporter: Exporting {
                 r.source.rawValue,
                 device,
                 notes,
-                r.category.rawValue
+                r.category.rawValue,
+                r.medicationTiming.rawValue,
+                r.timeBucket.rawValue,
+                linked
             ].joined(separator: ","))
         }
         guard let data = lines.joined(separator: "\n").data(using: .utf8) else {

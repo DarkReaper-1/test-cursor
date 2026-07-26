@@ -13,6 +13,8 @@ final class AppComposition: ObservableObject {
     let readingStore: ReadingStore
     let companionStore: CompanionStore
     let checkInRepository: InMemoryCheckInRepository
+    let medicationRepository: InMemoryMedicationRepository
+    let careProfileRepository: InMemoryCareProfileRepository
     let settingsStore: UserSettingsStore
     let reminderScheduler: ReminderScheduler
     let csvImport: CSVImportService
@@ -20,6 +22,7 @@ final class AppComposition: ObservableObject {
     let scoreEngine: ScoreEngine
     let summaryEngine: DailySummaryEngine
     let coachEngine: CoachAnswerEngine
+    let crisisEngine: CrisisGuidanceEngine
 
     init() {
         let bpRepo = InMemoryBloodPressureRepository()
@@ -27,6 +30,8 @@ final class AppComposition: ObservableObject {
         let hrvRepo = InMemoryHRVRepository()
         let deviceRepo = InMemoryDeviceRepository()
         let checkIns = InMemoryCheckInRepository()
+        let medications = InMemoryMedicationRepository()
+        let careProfiles = InMemoryCareProfileRepository()
         let healthKit = HealthKitService()
         let bluetooth = BluetoothManager()
         let exporter = CSVExporter()
@@ -36,6 +41,7 @@ final class AppComposition: ObservableObject {
         let scores = ScoreEngine()
         let summaries = DailySummaryEngine()
         let coach = CoachAnswerEngine()
+        let crisis = CrisisGuidanceEngine()
 
         self.environment = AppEnvironment(
             bloodPressureRepository: bpRepo,
@@ -54,9 +60,12 @@ final class AppComposition: ObservableObject {
             bloodPressure: bpRepo,
             heartRate: hrRepo,
             hrv: hrvRepo,
-            checkIns: checkIns
+            checkIns: checkIns,
+            medications: medications
         )
         self.checkInRepository = checkIns
+        self.medicationRepository = medications
+        self.careProfileRepository = careProfiles
         self.settingsStore = UserSettingsStore()
         self.reminderScheduler = ReminderScheduler()
         self.csvImport = CSVImportService()
@@ -64,5 +73,6 @@ final class AppComposition: ObservableObject {
         self.scoreEngine = scores
         self.summaryEngine = summaries
         self.coachEngine = coach
+        self.crisisEngine = crisis
     }
 }
