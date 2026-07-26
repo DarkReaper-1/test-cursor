@@ -1,25 +1,26 @@
 import SwiftUI
 
+/// Comfort palette: higher contrast secondary text and clearer strokes for 40+ readers.
 public enum VTColors {
-    public static let canvas = Color(red: 0.953, green: 0.969, blue: 0.965) // #F3F7F6
+    public static let canvas = Color(red: 0.969, green: 0.980, blue: 0.976) // #F7FAF9
     public static let elevated = Color.white
-    public static let subtle = Color(red: 0.906, green: 0.945, blue: 0.937) // #E7F1EF
-    public static let brandPrimary = Color(red: 0.059, green: 0.463, blue: 0.431) // #0F766E
-    public static let brandPrimaryPressed = Color(red: 0.043, green: 0.373, blue: 0.345)
-    public static let brandSecondary = Color(red: 0.114, green: 0.306, blue: 0.420) // #1D4E6B
-    public static let accentSoft = Color(red: 0.369, green: 0.918, blue: 0.831)
-    public static let textPrimary = Color(red: 0.063, green: 0.133, blue: 0.122)
-    public static let textSecondary = Color(red: 0.239, green: 0.353, blue: 0.333)
-    public static let textTertiary = Color(red: 0.420, green: 0.522, blue: 0.498)
-    public static let stroke = Color(red: 0.788, green: 0.851, blue: 0.835)
-    public static let success = Color(red: 0.184, green: 0.490, blue: 0.290)
-    public static let warning = Color(red: 0.718, green: 0.475, blue: 0.122)
-    public static let danger = Color(red: 0.706, green: 0.137, blue: 0.094)
-    public static let info = Color(red: 0.090, green: 0.412, blue: 0.667)
-    public static let disclaimerBackground = Color(red: 0.910, green: 0.941, blue: 0.933)
+    public static let subtle = Color(red: 0.894, green: 0.937, blue: 0.925) // #E4EFEC
+    public static let brandPrimary = Color(red: 0.039, green: 0.373, blue: 0.345) // #0A5F58
+    public static let brandPrimaryPressed = Color(red: 0.031, green: 0.298, blue: 0.275)
+    public static let brandSecondary = Color(red: 0.086, green: 0.247, blue: 0.341) // #163F57
+    public static let accentSoft = Color(red: 0.310, green: 0.839, blue: 0.761)
+    public static let textPrimary = Color(red: 0.039, green: 0.094, blue: 0.086) // #0A1816
+    public static let textSecondary = Color(red: 0.141, green: 0.243, blue: 0.224) // #243E39
+    public static let textTertiary = Color(red: 0.227, green: 0.341, blue: 0.318) // #3A5751
+    public static let stroke = Color(red: 0.624, green: 0.710, blue: 0.686) // #9FB5AF
+    public static let success = Color(red: 0.122, green: 0.420, blue: 0.227)
+    public static let warning = Color(red: 0.604, green: 0.384, blue: 0.063)
+    public static let danger = Color(red: 0.608, green: 0.110, blue: 0.078)
+    public static let info = Color(red: 0.043, green: 0.373, blue: 0.600)
+    public static let disclaimerBackground = Color(red: 0.863, green: 0.925, blue: 0.906) // #DCECE7
 
     public static let canvasGradient = LinearGradient(
-        colors: [canvas, subtle.opacity(0.9)],
+        colors: [canvas, subtle.opacity(0.95)],
         startPoint: .top,
         endPoint: .bottom
     )

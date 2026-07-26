@@ -232,6 +232,22 @@ Blurred content + Authenticate button.
 - At accessibility XXXL, stack source badge below metric.
 - Tab bar uses system sizing; avoid custom tab icons that clip labels.
 
+### Comfort mode (default for 40+ / aging vision)
+
+VitalTrack ships **comfort-first**, not tiny “fitness app” UI:
+
+| Rule | Spec |
+|------|------|
+| Body text | ≥ 19 pt default (`VTTypography.body`) |
+| Captions / disclaimers | ≥ 16 pt — never fine-print disclaimers |
+| Primary buttons | Min height **56 pt**, bold label |
+| Steppers / icon buttons | Min **56×56 pt** hit target |
+| Secondary text | Higher contrast (`#243E39`), not light gray |
+| Card titles | Plain language sentence case, not tiny uppercase |
+| Density | One job per screen; fewer cards on Home |
+| Copy | Short sentences; numbered steps for HR measurement |
+| Settings | “Larger text”, “Higher contrast”, “Reduce motion” promoted |
+
 ---
 
 ## 7. Accessibility notes
@@ -245,6 +261,7 @@ Blurred content + Authenticate button.
 | Localization | Strings from `L10n`; avoid UIImage text |
 | RTL | Mirror navigation; keep numeric order sys/dia clear |
 | Haptics | Light impact on successful save; none on errors that already alert |
+| Older adults | Large type default, plain language, no jargon without explanation |
 
 ---
 

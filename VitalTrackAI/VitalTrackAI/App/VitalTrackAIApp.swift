@@ -12,6 +12,8 @@ struct VitalTrackAIApp: App {
                 .environmentObject(session)
                 .environmentObject(composition)
                 .preferredColorScheme(.light)
+                // Comfort-first baseline for adults 40+; Settings can still prefer system sizing later.
+                .dynamicTypeSize(session.settings.largerText ? .xLarge : .large)
         }
     }
 }

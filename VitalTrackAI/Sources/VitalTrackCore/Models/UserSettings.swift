@@ -9,6 +9,10 @@ public struct UserSettings: Codable, Sendable, Equatable {
     public var healthKitEnabled: Bool
     public var notificationsEnabled: Bool
     public var showDisclaimers: Bool
+    /// Comfort defaults favor adults 40+ (larger type, higher contrast).
+    public var largerText: Bool
+    public var higherContrast: Bool
+    public var reduceMotion: Bool
 
     public init(
         hasCompletedOnboarding: Bool = false,
@@ -18,7 +22,10 @@ public struct UserSettings: Codable, Sendable, Equatable {
         subscriptionTier: SubscriptionTier = .free,
         healthKitEnabled: Bool = false,
         notificationsEnabled: Bool = false,
-        showDisclaimers: Bool = true
+        showDisclaimers: Bool = true,
+        largerText: Bool = true,
+        higherContrast: Bool = true,
+        reduceMotion: Bool = false
     ) {
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.preferredName = preferredName
@@ -28,6 +35,9 @@ public struct UserSettings: Codable, Sendable, Equatable {
         self.healthKitEnabled = healthKitEnabled
         self.notificationsEnabled = notificationsEnabled
         self.showDisclaimers = showDisclaimers
+        self.largerText = largerText
+        self.higherContrast = higherContrast
+        self.reduceMotion = reduceMotion
     }
 
     public static let `default` = UserSettings()

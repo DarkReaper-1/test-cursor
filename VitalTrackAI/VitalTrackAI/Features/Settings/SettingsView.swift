@@ -16,6 +16,15 @@ struct SettingsView: View {
                     .onSubmit { Task { await saveName() } }
             }
 
+            Section("Comfort & readability") {
+                Text("Designed for easy reading at age 40 and beyond.")
+                    .font(VTTypography.caption())
+                    .foregroundStyle(VTColors.textSecondary)
+                Toggle("Larger text", isOn: comfortBinding(\.largerText))
+                Toggle("Higher contrast", isOn: comfortBinding(\.higherContrast))
+                Toggle("Reduce motion", isOn: comfortBinding(\.reduceMotion))
+            }
+
             Section("Dashboard cards") {
                 ForEach(DashboardCardKind.allCases) { card in
                     Toggle(card.title, isOn: binding(for: card))
@@ -79,6 +88,17 @@ struct SettingsView: View {
             set: { value in
                 var s = session.settings
                 s.healthKitEnabled = value
+                Task { await session.updateSettings(s, settingsStore: composition.settingsStore) }
+            }
+        )
+    }
+
+    private func comfortBinding(_ keyPath: WritableKeyPath<UserSettings, Bool>) -> Binding<Bool> {
+        Binding(
+            get: { session.settings[keyPath: keyPath] },
+            set: { value in
+                var s = session.settings
+                s[keyPath: keyPath] = value
                 Task { await session.updateSettings(s, settingsStore: composition.settingsStore) }
             }
         )

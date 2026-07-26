@@ -20,9 +20,9 @@ async function main() {
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 430, height: 920 },
+    viewport: { width: 460, height: 960 },
     deviceScaleFactor: 2,
-    recordVideo: { dir: ARTIFACTS, size: { width: 430, height: 920 } },
+    recordVideo: { dir: ARTIFACTS, size: { width: 460, height: 960 } },
   });
 
   const page = await context.newPage();
@@ -32,12 +32,12 @@ async function main() {
   await page.goto(BASE, { waitUntil: "networkidle" });
 
   // Tour is driven by ?demo=1 (~22s). Capture key frames along the way.
-  await sleep(1800);
+  await sleep(2000);
   await page.screenshot({
     path: path.join(SHOTS, "vitaltrack-demo-splash.png"),
   });
 
-  await sleep(4000);
+  await sleep(5500);
   await page.screenshot({
     path: path.join(SHOTS, "vitaltrack-demo-onboarding.png"),
   });
@@ -46,7 +46,7 @@ async function main() {
   await page.waitForFunction(
     () => document.querySelector("#view-home")?.classList.contains("active"),
     null,
-    { timeout: 30000 }
+    { timeout: 60000 }
   );
   await sleep(400);
   await page.screenshot({
