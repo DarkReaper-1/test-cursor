@@ -4,8 +4,8 @@ import VitalTrackDesignSystem
 
 struct AnalyticsView: View {
     @EnvironmentObject private var composition: AppComposition
-    @State private var bpReadings: [BloodPressureReading] = []
-    @State private var hrSamples: [HeartRateSample] = []
+    @State private var stats = HistoryStats()
+    @State private var reportNarrative = ""
 
     var body: some View {
         ScrollView {
@@ -13,87 +13,59 @@ struct AnalyticsView: View {
                 VTScreenHeader(
                     eyebrow: "Analytics",
                     title: "Your trends",
-                    subtitle: "Charts from cuff and pulse logs you saved."
+                    subtitle: "Personalized patterns from pulse and cuff logs."
                 )
                 VTDisclaimerBanner(.insights)
                 VTDisclaimerBanner(.bloodPressure)
 
                 VTCard {
-                    VStack(alignment: .leading, spacing: 8) {
-                        VTSectionHeader("Blood pressure summary", subtitle: "From logged external sources only")
-                        Text(bpSummary)
-                            .font(VTTypography.body())
-                            .foregroundStyle(VTColors.textSecondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Weekly pulse")
+                            .font(VTTypography.title(18))
+                        if stats.weeklyBPMs.isEmpty {
+                            Text("No pulse data yet.")
+                                .font(VTTypography.caption())
+                                .foregroundStyle(VTColors.textSecondary)
+                        } else {
+                            ChartBars(values: stats.weeklyBPMs)
+                                .frame(height: 130)
+                        }
                     }
                 }
 
                 VTCard {
                     VStack(alignment: .leading, spacing: 8) {
-                        VTSectionHeader("Heart rate summary", subtitle: "PPG / Watch / Health / manual")
-                        Text(hrSummary)
-                            .font(VTTypography.body())
-                            .foregroundStyle(VTColors.textSecondary)
+                        Text("Personal records")
+                            .font(VTTypography.title(18))
+                        Text("Average \(stats.averageBPM.map { String(format: "%.0f BPM", $0) } ?? "—")")
+                        Text("Highest \(stats.highestBPM.map { String(format: "%.0f BPM", $0) } ?? "—")")
+                        Text("Lowest \(stats.lowestBPM.map { String(format: "%.0f BPM", $0) } ?? "—")")
+                        Text("Measurement streak \(stats.measurementStreak) days")
                     }
+                    .font(VTTypography.body())
+                    .foregroundStyle(VTColors.textSecondary)
                 }
 
-                simpleBars
+                if !reportNarrative.isEmpty {
+                    VTCard {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("AI weekly report")
+                                .font(VTTypography.title(18))
+                            Text(reportNarrative)
+                                .font(VTTypography.caption())
+                                .foregroundStyle(VTColors.textSecondary)
+                        }
+                    }
+                }
             }
             .padding(20)
         }
         .background(VTAtmosphere())
-        .task { await load() }
-    }
-
-    private var bpSummary: String {
-        guard !bpReadings.isEmpty else { return "No BP data yet." }
-        let sys = bpReadings.map(\.systolic)
-        let dia = bpReadings.map(\.diastolic)
-        let avgSys = sys.reduce(0, +) / sys.count
-        let avgDia = dia.reduce(0, +) / dia.count
-        return "Average \(avgSys)/\(avgDia) mmHg across \(bpReadings.count) readings. Categories are reference ranges, not diagnoses."
-    }
-
-    private var hrSummary: String {
-        guard !hrSamples.isEmpty else { return "No heart rate data yet." }
-        let avg = hrSamples.map(\.bpm).reduce(0, +) / Double(hrSamples.count)
-        return String(format: "Average %.0f BPM across %d samples.", avg, hrSamples.count)
-    }
-
-    private var simpleBars: some View {
-        VTCard {
-            VStack(alignment: .leading, spacing: 12) {
-                VTSectionHeader("Recent systolic")
-                ForEach(bpReadings.prefix(7)) { reading in
-                    HStack {
-                        Text(shortDate(reading.recordedAt))
-                            .font(VTTypography.caption())
-                            .frame(width: 70, alignment: .leading)
-                        GeometryReader { geo in
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(VTColors.brandPrimary.opacity(0.85))
-                                .frame(width: barWidth(systolic: reading.systolic, maxWidth: geo.size.width), height: 10)
-                        }
-                        .frame(height: 10)
-                        Text("\(reading.systolic)")
-                            .font(VTTypography.caption())
-                            .monospacedDigit()
-                    }
-                }
-            }
+        .task {
+            let context = (try? await composition.companionStore.companionContext()) ?? CompanionContext()
+            stats = await composition.scoreEngine.historyStats(from: context)
+            let score = await composition.scoreEngine.computeDailyScore(from: context)
+            reportNarrative = await composition.summaryEngine.weeklyReport(from: context, score: score).narrative
         }
-    }
-
-    private func barWidth(systolic: Int, maxWidth: CGFloat) -> CGFloat {
-        let clamped = min(max(systolic, 80), 200)
-        return maxWidth * CGFloat(clamped - 80) / 120.0
-    }
-
-    private func shortDate(_ date: Date) -> String {
-        date.formatted(date: .abbreviated, time: .omitted)
-    }
-
-    private func load() async {
-        bpReadings = (try? await composition.environment.bloodPressureRepository.fetchRecent(limit: 40)) ?? []
-        hrSamples = (try? await composition.environment.heartRateRepository.fetchRecent(limit: 40)) ?? []
     }
 }

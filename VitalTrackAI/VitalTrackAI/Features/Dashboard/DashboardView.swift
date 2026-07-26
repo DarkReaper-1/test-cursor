@@ -5,35 +5,61 @@ import VitalTrackDesignSystem
 struct DashboardView: View {
     @EnvironmentObject private var composition: AppComposition
     @EnvironmentObject private var session: SessionStore
+
+    @State private var score: DailyHealthScore?
+    @State private var summary: DailySummary?
+    @State private var streak: HealthStreak = HealthStreak()
+    @State private var insight: Insight?
     @State private var latestBP: BloodPressureReading?
     @State private var latestHR: HeartRateSample?
-    @State private var insights: [Insight] = []
+    @State private var todayCheckIn: CheckIn?
+    @State private var recentHR: [HeartRateSample] = []
+    @State private var recentBP: [BloodPressureReading] = []
     @State private var errorMessage: String?
+    @State private var showCheckIn = false
+    @State private var milestoneToast: String?
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 16) {
                     Text("VitalTrack AI")
                         .font(VTTypography.body().weight(.bold))
                         .foregroundStyle(VTColors.brandPrimary)
 
                     Text(greetingTitle)
-                        .font(VTTypography.display(36))
+                        .font(VTTypography.display(34))
                         .foregroundStyle(VTColors.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
 
                     Text(greetingSubtitle)
                         .font(VTTypography.body())
                         .foregroundStyle(VTColors.textSecondary)
 
                     VTDisclaimerBanner(.custom(
-                        "Blood pressure comes from your cuff. " + TrustCopy.shortBPBanner + " Camera measurements are heart rate only. Insights are informational only and are not medical advice."
+                        "This companion explains trends in plain English. Camera pulse checks are estimates. " + TrustCopy.shortBPBanner
                     ))
 
-                    ForEach(priorityCards) { card in
-                        cardView(card)
+                    if let score {
+                        scoreHero(score)
                     }
+
+                    quickActions
+
+                    if let insight {
+                        insightCard(insight)
+                    }
+
+                    if let summary {
+                        summaryCard(summary)
+                    }
+
+                    hydrationAndGoal
+
+                    streakCard
+
+                    measurementsRow
+
+                    recentCard
 
                     if let errorMessage {
                         Text(errorMessage)
@@ -51,31 +77,32 @@ struct DashboardView: View {
                         Task { await refresh() }
                     } label: {
                         Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 17, weight: .semibold))
                             .frame(width: 44, height: 44)
                     }
-                    .accessibilityLabel("Refresh dashboard")
+                    .accessibilityLabel("Refresh")
+                }
+            }
+            .sheet(isPresented: $showCheckIn) {
+                CheckInSheet()
+                    .environmentObject(composition)
+                    .onDisappear { Task { await refresh() } }
+            }
+            .overlay(alignment: .top) {
+                if let milestoneToast {
+                    Text(milestoneToast)
+                        .font(VTTypography.body().weight(.bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(VTColors.brandDeep)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .padding(.top, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
             .task { await refresh() }
             .refreshable { await refresh() }
         }
-    }
-
-    /// Prefer a calm, readable Home: BP, HR, tip, then remaining configured cards.
-    private var priorityCards: [DashboardCardKind] {
-        let preferred: [DashboardCardKind] = [
-            .latestBloodPressure,
-            .latestHeartRate,
-            .insightsPreview,
-            .weeklyBPTrend
-        ]
-        let configured = session.settings.dashboardCards
-        var ordered = preferred.filter { configured.contains($0) }
-        for card in configured where !ordered.contains(card) {
-            ordered.append(card)
-        }
-        return ordered
     }
 
     private var greetingTitle: String {
@@ -87,77 +114,107 @@ struct DashboardView: View {
 
     private var greetingSubtitle: String {
         if let name = session.settings.preferredName, !name.isEmpty {
-            return "Hello, \(name). Your numbers, clearly."
+            return "Hello, \(name). Here’s how your health looks today."
         }
-        return "Your numbers, clearly."
+        return "Here’s how your health looks today — clearly, calmly."
     }
 
-    @ViewBuilder
-    private func cardView(_ kind: DashboardCardKind) -> some View {
-        VTCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(kind.comfortTitle)
-                    .font(VTTypography.title(20))
-                    .foregroundStyle(VTColors.textPrimary)
-
-                switch kind {
-                case .latestBloodPressure:
-                    if let bp = latestBP {
-                        VTMetricHero(
-                            value: bp.displayValue,
-                            unit: "mmHg",
-                            caption: "\(bp.source.displayName) · \(bp.category.displayName)"
-                        )
-                    } else {
-                        Text("Tap BP below to enter numbers from your cuff.")
-                            .font(VTTypography.caption())
-                            .foregroundStyle(VTColors.textSecondary)
-                    }
-                case .latestHeartRate:
-                    if let hr = latestHR {
-                        VTMetricHero(
-                            value: hr.displayBPM,
-                            unit: "BPM",
-                            caption: "\(hr.source.displayName) · fingertip or Watch"
-                        )
-                    } else {
-                        Text("Use the Pulse tab for a fingertip heart-rate check.")
-                            .font(VTTypography.caption())
-                            .foregroundStyle(VTColors.textSecondary)
-                    }
-                case .insightsPreview:
-                    if let tip = insights.first {
-                        Text(tip.title)
-                            .font(VTTypography.body().weight(.bold))
+    private func scoreHero(_ score: DailyHealthScore) -> some View {
+        VTCard(emphasized: true) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Daily health score")
+                            .font(VTTypography.title(18))
+                        Text(score.displayValue)
+                            .font(VTTypography.metric(52))
                             .foregroundStyle(VTColors.textPrimary)
-                        Text(tip.body)
-                            .font(VTTypography.caption())
-                            .foregroundStyle(VTColors.textSecondary)
-                            .lineLimit(4)
-                    } else {
-                        Text("Save a cuff reading today. A few days of logs make trends easier to see. Informational only — not medical advice.")
-                            .font(VTTypography.caption())
-                            .foregroundStyle(VTColors.textSecondary)
+                        VTSourceChip(score.confidence.displayName)
                     }
-                case .weeklyBPTrend:
-                    WeeklyBarsView()
-                    Text("Bars show cuff readings you saved — not camera estimates.")
-                        .font(VTTypography.caption())
-                        .foregroundStyle(VTColors.textSecondary)
-                case .restingHRTrend:
-                    Text("Resting heart rate trends use Pulse / Health samples — never as blood pressure.")
-                        .font(VTTypography.caption())
-                        .foregroundStyle(VTColors.textSecondary)
-                case .devicesStatus:
-                    Text("Pair FDA-cleared Bluetooth cuffs in More → Devices.")
-                        .font(VTTypography.caption())
-                        .foregroundStyle(VTColors.textSecondary)
-                case .reminders:
-                    Text("Set logging reminders in Settings. Reminders never claim camera BP.")
-                        .font(VTTypography.caption())
-                        .foregroundStyle(VTColors.textSecondary)
-                case .hrvSnapshot:
-                    Text("HRV imports from Apple Health when enabled.")
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 8) {
+                        miniMetric(title: "Recovery", value: score.recovery.displayValue)
+                        miniMetric(title: "Stress", value: score.stress.label)
+                    }
+                }
+                Text(score.explanation)
+                    .font(VTTypography.caption())
+                    .foregroundStyle(VTColors.textSecondary)
+                Text("Inputs: \(score.inputsUsed.joined(separator: " · "))")
+                    .font(VTTypography.caption())
+                    .foregroundStyle(VTColors.textTertiary)
+            }
+        }
+    }
+
+    private func miniMetric(title: String, value: String) -> some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            Text(title)
+                .font(VTTypography.caption())
+                .foregroundStyle(VTColors.textSecondary)
+            Text(value)
+                .font(VTTypography.body().weight(.bold))
+                .foregroundStyle(VTColors.brandDeep)
+        }
+    }
+
+    private var quickActions: some View {
+        HStack(spacing: 12) {
+            Button {
+                session.selectedTab = .heart
+            } label: {
+                Label("Quick scan", systemImage: "waveform.path.ecg")
+                    .font(VTTypography.body().weight(.bold))
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .foregroundStyle(.white)
+                    .background(VTColors.brandPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showCheckIn = true
+            } label: {
+                Label("Check-in", systemImage: "drop.fill")
+                    .font(VTTypography.body().weight(.bold))
+                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .foregroundStyle(VTColors.brandDeep)
+                    .background(VTColors.subtle)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func insightCard(_ insight: Insight) -> some View {
+        VTCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("AI insight of the day")
+                    .font(VTTypography.title(18))
+                Text(insight.title)
+                    .font(VTTypography.body().weight(.bold))
+                Text(insight.body)
+                    .font(VTTypography.caption())
+                    .foregroundStyle(VTColors.textSecondary)
+                    .lineLimit(5)
+            }
+        }
+    }
+
+    private func summaryCard(_ summary: DailySummary) -> some View {
+        VTCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Today’s health summary")
+                    .font(VTTypography.title(18))
+                summaryRow("Recovery", summary.recoveryLabel)
+                summaryRow("Stress", summary.stressLabel)
+                summaryRow("Heart rate", summary.heartRateLabel)
+                summaryRow("Hydration", summary.hydrationLabel)
+                Text("Suggested action")
+                    .font(VTTypography.caption().weight(.bold))
+                    .padding(.top, 4)
+                ForEach(summary.suggestedActions, id: \.self) { action in
+                    Text("• \(action)")
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 }
@@ -165,56 +222,182 @@ struct DashboardView: View {
         }
     }
 
+    private func summaryRow(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title).font(VTTypography.caption()).foregroundStyle(VTColors.textSecondary)
+            Spacer()
+            Text(value).font(VTTypography.body().weight(.bold))
+        }
+    }
+
+    private var hydrationAndGoal: some View {
+        HStack(spacing: 12) {
+            VTCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Hydration")
+                        .font(VTTypography.title(18))
+                    Text("\(todayCheckIn?.waterGlasses ?? 0)/8")
+                        .font(VTTypography.metric(36))
+                    Text("glasses today")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                    ProgressView(value: min(1, Double(todayCheckIn?.waterGlasses ?? 0) / 8.0))
+                        .tint(VTColors.brandPrimary)
+                }
+            }
+            VTCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Today’s goal")
+                        .font(VTTypography.title(18))
+                    Text(goalTitle)
+                        .font(VTTypography.body().weight(.bold))
+                    Text(goalCaption)
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+            }
+        }
+    }
+
+    private var goalTitle: String {
+        if latestHR == nil { return "Take a pulse check" }
+        if (todayCheckIn?.waterGlasses ?? 0) < 4 { return "Log more water" }
+        if latestBP == nil { return "Add a cuff BP reading" }
+        return "Keep your streak"
+    }
+
+    private var goalCaption: String {
+        "Small daily actions beat perfect weeks."
+    }
+
+    private var streakCard: some View {
+        VTCard {
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Health streak")
+                        .font(VTTypography.title(18))
+                    Text("\(streak.currentDays) day\(streak.currentDays == 1 ? "" : "s")")
+                        .font(VTTypography.metric(36))
+                    Text("Best: \(streak.bestDays) days · Consistency \(score?.consistencyScore ?? 0)%")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(VTColors.brandPrimary)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+
+    private var measurementsRow: some View {
+        HStack(spacing: 12) {
+            VTCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Heart rate")
+                        .font(VTTypography.title(18))
+                    if let latestHR {
+                        VTMetricHero(value: latestHR.displayBPM, unit: "BPM", caption: latestHR.source.displayName, compact: true)
+                    } else {
+                        Text("No pulse yet")
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
+                }
+            }
+            VTCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Blood pressure")
+                        .font(VTTypography.title(18))
+                    if let latestBP {
+                        VTMetricHero(value: latestBP.displayValue, unit: "mmHg", caption: latestBP.source.displayName, compact: true)
+                    } else {
+                        Text("Log from your cuff")
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private var recentCard: some View {
+        VTCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Recent measurements")
+                    .font(VTTypography.title(18))
+                if recentHR.isEmpty && recentBP.isEmpty {
+                    Text("Your latest pulse and cuff readings will appear here.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+                ForEach(recentHR.prefix(3)) { sample in
+                    HStack {
+                        Text("\(sample.displayBPM) BPM")
+                            .font(VTTypography.body().weight(.bold))
+                        VTSourceChip("Pulse")
+                        Spacer()
+                        Text(sample.recordedAt.formatted(date: .omitted, time: .shortened))
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
+                }
+                ForEach(recentBP.prefix(2)) { reading in
+                    HStack {
+                        Text("\(reading.displayValue) mmHg")
+                            .font(VTTypography.body().weight(.bold))
+                        VTSourceChip("Cuff")
+                        Spacer()
+                        Text(reading.recordedAt.formatted(date: .omitted, time: .shortened))
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
+                }
+            }
+        }
+    }
+
     private func refresh() async {
         do {
-            latestBP = try await composition.readingStore.latestBloodPressure()
-            latestHR = try await composition.readingStore.latestHeartRate()
-            let context = try await composition.readingStore.insightContext()
-            insights = await composition.environment.insightEngine.generateInsights(from: context)
+            let context = try await composition.companionStore.companionContext()
+            let daily = await composition.scoreEngine.computeDailyScore(from: context)
+            let dailySummary = await composition.summaryEngine.dailySummary(from: context, score: daily)
+            let nextStreak = await composition.scoreEngine.computeStreak(from: context)
+            let insights = await composition.environment.insightEngine.generateInsights(from: context.insightContext)
+            let previous = streak.currentDays
+            score = daily
+            summary = dailySummary
+            streak = nextStreak
+            insight = insights.first
+            latestBP = context.bloodPressure.first
+            latestHR = context.heartRate.first
+            recentHR = Array(context.heartRate.prefix(5))
+            recentBP = Array(context.bloodPressure.prefix(5))
+            todayCheckIn = context.checkIns.first { Calendar.current.isDateInToday($0.date) }
             errorMessage = nil
+            if nextStreak.currentDays > 0, nextStreak.currentDays > previous, [3, 7, 14, 30].contains(nextStreak.currentDays) {
+                withAnimation {
+                    milestoneToast = "Milestone: \(nextStreak.currentDays)-day streak"
+                }
+                if !session.settings.reduceMotion {
+                    #if canImport(UIKit)
+                    let gen = UINotificationFeedbackGenerator()
+                    gen.notificationOccurred(.success)
+                    #endif
+                }
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                withAnimation { milestoneToast = nil }
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 }
 
-private extension DashboardCardKind {
-    var comfortTitle: String {
-        switch self {
-        case .latestBloodPressure: return "Latest blood pressure"
-        case .latestHeartRate: return "Today’s heart rate"
-        case .insightsPreview: return "Helpful tip"
-        case .weeklyBPTrend: return "This week"
-        case .restingHRTrend: return "Resting heart rate"
-        case .devicesStatus: return "Devices"
-        case .reminders: return "Reminders"
-        case .hrvSnapshot: return "Heart rate variability"
-        }
-    }
-}
-
-private struct WeeklyBarsView: View {
-    private let heights: [CGFloat] = [0.42, 0.55, 0.48, 0.62, 0.58, 0.70, 0.64]
-
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
-            ForEach(Array(heights.enumerated()), id: \.offset) { _, h in
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [VTColors.accentSoft, VTColors.brandPrimary],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 110 * h)
-            }
-        }
-        .frame(height: 120)
-        .accessibilityLabel("Weekly trend chart placeholder")
-    }
-}
+#if canImport(UIKit)
+import UIKit
+#endif
 
 #Preview {
     DashboardView()

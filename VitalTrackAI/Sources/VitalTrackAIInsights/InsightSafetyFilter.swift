@@ -41,6 +41,15 @@ public struct InsightSafetyFilter: Sendable {
         insights.map(sanitize)
     }
 
+    /// Sanitize free-form coach / summary text and append medical disclaimer once.
+    public func sanitizeText(_ text: String) -> String {
+        var body = rewrite(text)
+        if !body.lowercased().contains("not medical advice") && !body.lowercased().contains("informational only") {
+            body += "\n\n" + TrustPolicy.medicalDisclaimer
+        }
+        return body
+    }
+
     private func rewrite(_ text: String) -> String {
         var output = text
         for (regex, replacement) in bannedPatterns {

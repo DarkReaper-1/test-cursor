@@ -11,9 +11,9 @@ Modular SwiftUI app + Swift Package libraries for logging vital signs with **str
 
 Canonical copy lives in `VitalTrackCore.TrustPolicy` and `VitalTrackDesignSystem.TrustCopy`.
 
-## UI (comfort-first)
+## UI (comfort-first AI companion)
 
-SwiftUI screens use a calm teal health aesthetic with **large type**, **56pt tap targets**, monitor-style BP entry, pulse ring for HR, atmosphere backgrounds, and plain-language labels (Home · Pulse · BP · Tips · More). Design tokens and components live in `VitalTrackDesignSystem`.
+SwiftUI screens use a calm teal health aesthetic with **large type**, **56pt tap targets**, living Home scores, smarter pulse results, conversational **Coach**, monitor-style BP entry, and plain-language labels (Home · Pulse · BP · Coach · More). Design tokens live in `VitalTrackDesignSystem`. AI is offline-heuristic first and always informational — never diagnostic; camera never measures BP.
 
 ## Demo video (HTML walkthrough)
 

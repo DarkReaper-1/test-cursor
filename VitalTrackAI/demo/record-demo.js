@@ -56,17 +56,27 @@ async function main() {
   await page.waitForFunction(
     () => document.querySelector("#view-heart")?.classList.contains("active"),
     null,
-    { timeout: 30000 }
+    { timeout: 60000 }
   );
-  await sleep(2500);
+  await sleep(2000);
   await page.screenshot({
     path: path.join(SHOTS, "vitaltrack-demo-heart.png"),
   });
 
   await page.waitForFunction(
+    () => document.querySelector("#view-results")?.classList.contains("active"),
+    null,
+    { timeout: 60000 }
+  ).catch(() => {});
+  await sleep(1200);
+  await page.screenshot({
+    path: path.join(SHOTS, "vitaltrack-demo-results.png"),
+  });
+
+  await page.waitForFunction(
     () => document.querySelector("#view-bp")?.classList.contains("active"),
     null,
-    { timeout: 30000 }
+    { timeout: 60000 }
   );
   await sleep(1800);
   await page.screenshot({

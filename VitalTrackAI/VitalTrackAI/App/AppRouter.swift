@@ -44,7 +44,7 @@ struct MainTabView: View {
                 .tag(AppTab.bloodPressure)
 
             AIAssistantView()
-                .tabItem { Label("Tips", systemImage: "lightbulb.fill") }
+                .tabItem { Label("Coach", systemImage: "bubble.left.and.bubble.right.fill") }
                 .tag(AppTab.insights)
 
             MoreView()

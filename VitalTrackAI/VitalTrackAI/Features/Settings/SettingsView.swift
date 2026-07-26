@@ -25,8 +25,8 @@ struct SettingsView: View {
                 Toggle("Reduce motion", isOn: comfortBinding(\.reduceMotion))
             }
 
-            Section("Dashboard cards") {
-                ForEach(DashboardCardKind.allCases) { card in
+            Section("Home cards") {
+                ForEach(DashboardCardKind.companionDefaults) { card in
                     Toggle(card.title, isOn: binding(for: card))
                 }
             }

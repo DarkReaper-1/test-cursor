@@ -18,7 +18,7 @@ public struct UserSettings: Codable, Sendable, Equatable {
         hasCompletedOnboarding: Bool = false,
         preferredName: String? = nil,
         usesMetricUnits: Bool = true,
-        dashboardCards: [DashboardCardKind] = DashboardCardKind.allCases,
+        dashboardCards: [DashboardCardKind] = DashboardCardKind.companionDefaults,
         subscriptionTier: SubscriptionTier = .free,
         healthKitEnabled: Bool = false,
         notificationsEnabled: Bool = false,

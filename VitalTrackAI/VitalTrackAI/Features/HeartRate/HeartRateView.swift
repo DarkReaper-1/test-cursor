@@ -10,15 +10,17 @@ struct HeartRateView: View {
     @State private var manualBPM = "72"
     @State private var recentCount = 0
     @State private var ringSpinning = false
+    @State private var analysis: PulseAnalysis?
+    @State private var showResults = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     VTScreenHeader(
-                        eyebrow: "Heart rate",
+                        eyebrow: "Pulse",
                         title: "Check your pulse",
-                        subtitle: "Camera light senses your heartbeat."
+                        subtitle: "Your AI companion will explain what the number may mean."
                     )
 
                     VTDisclaimerBanner(.custom(
@@ -42,12 +44,10 @@ struct HeartRateView: View {
                     .disabled(isMeasuring)
 
                     VTCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            VTSectionHeader(
-                                "Simple explanation",
-                                subtitle: "Light from the camera senses your pulse. You get heart rate (BPM), not blood pressure."
-                            )
-                        }
+                        VTSectionHeader(
+                            "Simple explanation",
+                            subtitle: "Light from the camera senses your pulse. You get heart rate (BPM), not blood pressure. After each check you’ll see comparisons and calm next steps."
+                        )
                     }
 
                     VTCard {
@@ -85,6 +85,13 @@ struct HeartRateView: View {
                 .padding(20)
             }
             .background(VTAtmosphere())
+            .sheet(isPresented: $showResults) {
+                if let analysis {
+                    PulseResultsView(analysis: analysis) {
+                        showResults = false
+                    }
+                }
+            }
             .task { await refresh() }
         }
     }
@@ -97,6 +104,14 @@ struct HeartRateView: View {
         let recent = (try? await composition.environment.heartRateRepository.fetchRecent(limit: 20)) ?? []
         recentCount = recent.count
         currentBPM = recent.first?.bpm
+    }
+
+    private func presentAnalysis(for sample: HeartRateSample, quality: String) async {
+        if let context = try? await composition.companionStore.companionContext() {
+            let result = await composition.scoreEngine.analyzePulse(sample, context: context, qualityHint: quality)
+            analysis = result
+            showResults = true
+        }
     }
 
     private func runPPG() async {
@@ -116,6 +131,7 @@ struct HeartRateView: View {
         isMeasuring = false
         ringSpinning = false
         await refresh()
+        await presentAnalysis(for: sample, quality: "Good fingertip signal estimate")
     }
 
     private func importHealth() async {
@@ -127,6 +143,9 @@ struct HeartRateView: View {
             }
             status = "Imported \(min(samples.count, 20)) heart rate samples from Apple Health."
             await refresh()
+            if let first = samples.first {
+                await presentAnalysis(for: first, quality: "Imported from Apple Health")
+            }
         } catch {
             status = error.localizedDescription
         }
@@ -134,11 +153,11 @@ struct HeartRateView: View {
 
     private func saveManual() async {
         guard let value = Double(manualBPM) else { return }
-        try? await composition.environment.heartRateRepository.save(
-            HeartRateSample(bpm: value, source: .manual)
-        )
+        let sample = HeartRateSample(bpm: value, source: .manual, isResting: true)
+        try? await composition.environment.heartRateRepository.save(sample)
         status = "Saved manual heart rate."
         await refresh()
+        await presentAnalysis(for: sample, quality: "Manual entry")
     }
 }
 
@@ -168,9 +187,7 @@ private struct PulseRingView: View {
             Circle()
                 .fill(VTColors.elevated)
                 .frame(width: 164, height: 164)
-                .overlay(
-                    Circle().stroke(VTColors.stroke, lineWidth: 2)
-                )
+                .overlay(Circle().stroke(VTColors.stroke, lineWidth: 2))
 
             VStack(spacing: 4) {
                 Text(bpmText)
@@ -188,9 +205,7 @@ private struct PulseRingView: View {
                     rotation = 360
                 }
             } else {
-                withAnimation(.easeOut(duration: 0.4)) {
-                    rotation = 0
-                }
+                withAnimation(.easeOut(duration: 0.4)) { rotation = 0 }
             }
         }
         .accessibilityElement(children: .ignore)

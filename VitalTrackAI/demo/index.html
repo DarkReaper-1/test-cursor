@@ -461,8 +461,8 @@
     <div class="chrome">
       <div class="demo-title">
         <h1>VitalTrack AI</h1>
-        <p>Clear, calm tracking for every age — large text, honest limits.</p>
-        <div class="comfort-badge">Comfort mode · Large text · Big buttons</div>
+        <p>Your AI health companion — pulse, cuff BP, and plain-English coaching.</p>
+        <div class="comfort-badge">AI Coach · Daily scores · Comfort mode</div>
       </div>
       <div class="phone" id="device-frame">
         <div class="phone-notch" aria-hidden="true"></div>
@@ -477,7 +477,7 @@
                 <svg viewBox="0 0 48 48" fill="none"><path d="M8 28c8-14 12-14 16 0s12 14 16 0" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
               </div>
               <p class="brand" style="font-size:2.1rem;margin:10px 0 8px;">VitalTrack AI</p>
-              <p class="lead" style="font-size:1.25rem;">Honest heart rate.<br />Real cuff blood pressure.<br />Easy to read.</p>
+              <p class="lead" style="font-size:1.25rem;">Not just a pulse scanner.<br />An AI coach that understands<br />your health trends.</p>
             </div>
           </section>
 
@@ -500,32 +500,64 @@
             <div class="content">
               <p class="brand" style="font-size:1.25rem;margin:0;">VitalTrack AI</p>
               <h2 class="display">Good morning</h2>
-              <p class="lead" style="margin-top:-6px;">Your numbers, clearly.</p>
+              <p class="lead" style="margin-top:-6px;">Here’s how your health looks today.</p>
               <div class="banner"><span class="ico">ⓘ</span>
-                <span><strong>Blood pressure comes from your cuff.</strong> This app tracks readings from an FDA-cleared blood pressure monitor. The camera only measures heart rate. Not medical advice.</span>
+                <span>Camera pulse checks are estimates. Blood pressure comes from an FDA-cleared cuff. Coaching is informational only — not medical advice.</span>
+              </div>
+              <div class="card" style="border-color:var(--brand);">
+                <h3>Daily health score</h3>
+                <div class="metric" id="dash-score">72<span>/100</span></div>
+                <div class="caption" id="dash-score-cap">Recovery 78 · Stress Steady · Consistency 71%</div>
+              </div>
+              <div class="card">
+                <h3>AI insight of the day</h3>
+                <div class="insight" id="dash-insight">
+                  <strong>Keep logging consistently</strong>
+                  <span class="caption">Add a pulse check and cuff reading so your coach can explain personal trends. Informational only.</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-primary" id="btn-quick-scan" style="margin-bottom:12px;">Quick scan</button>
+              <div class="card">
+                <h3>Today’s heart rate</h3>
+                <div class="metric" id="dash-hr">—<span>BPM</span></div>
+                <div class="caption" id="dash-hr-cap">Use Pulse for a fingertip check.</div>
               </div>
               <div class="card">
                 <h3>Latest blood pressure</h3>
                 <div class="metric" id="dash-bp">—<span>mmHg</span></div>
-                <div class="caption" id="dash-bp-cap">Tap BP below to enter numbers from your cuff.</div>
+                <div class="caption" id="dash-bp-cap">Log numbers from your FDA-cleared cuff.</div>
               </div>
               <div class="card">
-                <h3>Today’s heart rate</h3>
-                <div class="metric" id="dash-hr">—<span>BPM</span></div>
-                <div class="caption" id="dash-hr-cap">Use the Heart tab for a fingertip check.</div>
+                <h3>Hydration · Streak</h3>
+                <div class="caption" id="dash-habit">0/8 glasses · 1-day streak · Goal: take a pulse check</div>
               </div>
               <div class="card">
                 <h3>This week</h3>
                 <div class="chart" id="dash-chart" aria-hidden="true"></div>
-                <div class="caption">Bars show cuff readings you saved — not camera estimates.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PULSE RESULTS -->
+          <section class="view" id="view-results" data-view="results">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="content no-dock">
+              <p class="brand" style="font-size:1.15rem;">Pulse results</p>
+              <h2 class="display" style="font-size:1.85rem;" id="res-bpm">72 BPM</h2>
+              <div class="banner"><span class="ico">ⓘ</span><span>Camera PPG estimate — heart rate only, not blood pressure.</span></div>
+              <div class="card">
+                <h3>Compared with you</h3>
+                <div class="caption" id="res-compare">vs yesterday +2 · vs week +6 · vs month +4</div>
               </div>
               <div class="card">
-                <h3>Helpful tip</h3>
-                <div class="insight" id="dash-insight">
-                  <strong>Save a cuff reading today</strong>
-                  <span class="caption">A few days of logs make trends easier to see. Informational only — not medical advice.</span>
-                </div>
+                <h3>AI explanation</h3>
+                <p class="caption" id="res-explain">Your pulse is higher than your weekly average. This can happen after poor sleep, stress, or dehydration. Consider water, rest, and measuring again tomorrow. Informational only — not medical advice.</p>
               </div>
+              <div class="card">
+                <h3>Next steps</h3>
+                <p class="caption">• Drink a glass of water<br />• Sit quietly for 2 minutes<br />• Recheck tomorrow at the same time</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="btn-results-done">Done</button>
             </div>
           </section>
 
@@ -572,7 +604,7 @@
                   </div>
                   <div style="text-align:right;">
                     <div class="label">Pulse</div>
-                    <div style="font-size:1.4rem;font-family:Fraunces,Georgia,serif;font-weight:700;"><span id="mon-pulse">72</span></div>
+                    <div style="font-size:1.4rem;font-family:'VT Serif',Georgia,serif;font-weight:700;"><span id="mon-pulse">72</span></div>
                     <span class="pill ok" id="mon-cat">Normal</span>
                   </div>
                 </div>
@@ -598,14 +630,17 @@
             </div>
           </section>
 
-          <!-- INSIGHTS -->
+          <!-- COACH -->
           <section class="view" id="view-insights" data-view="insights">
             <div class="status-bar"><span>9:41</span><span>●●●</span></div>
             <div class="content">
-              <p class="brand" style="font-size:1.15rem;">Insights</p>
-              <h2 class="display" style="font-size:1.85rem;">Plain-language tips</h2>
+              <p class="brand" style="font-size:1.15rem;">Coach</p>
+              <h2 class="display" style="font-size:1.85rem;">AI health coach</h2>
               <div class="banner"><span class="ico">ⓘ</span>
-                <span><strong>Not a diagnosis.</strong> These tips are informational only and are not medical advice. Ask your clinician about your health.</span>
+                <span><strong>Not a diagnosis.</strong> Coaching is informational only. Camera ≠ blood pressure.</span>
+              </div>
+              <div class="card" id="coach-thread">
+                <div class="insight"><strong>Coach</strong><span class="caption">Hi — ask about pulse trends, recovery, hydration, or when to talk with a clinician.</span></div>
               </div>
               <div class="card" id="insights-list"></div>
             </div>
@@ -642,7 +677,7 @@
             <button type="button" data-tab="home" class="active"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z"/></svg></span>Home</button>
             <button type="button" data-tab="heart"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M3 12h3l2-5 3 10 2-6 2 3h6"/></svg></span>Pulse</button>
             <button type="button" data-tab="bp"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M6 4h12v4H6V4Zm2 6h8a4 4 0 0 1 4 4v6H4v-6a4 4 0 0 1 4-4Z"/></svg></span>BP</button>
-            <button type="button" data-tab="insights"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 1 7 7c0 3-2 5-4 6v2H9v-2c-2-1-4-3-4-6a7 7 0 0 1 7-7Zm-2 16h4v2h-4v-2Z"/></svg></span>Tips</button>
+            <button type="button" data-tab="insights"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 1 7 7c0 3-2 5-4 6v2H9v-2c-2-1-4-3-4-6a7 7 0 0 1 7-7Zm-2 16h4v2h-4v-2Z"/></svg></span>Coach</button>
             <button type="button" data-tab="more"><span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M5 7h14v2H5V7Zm0 5h14v2H5v-2Zm0 5h14v2H5v-2Z"/></svg></span>More</button>
           </nav>
         </div>
@@ -763,14 +798,15 @@
       if (state.hr) {
         $("#dash-hr").innerHTML = `${state.hr}<span>BPM</span>`;
         $("#dash-hr-cap").textContent = "Camera PPG · resting estimate";
+        $("#dash-score").innerHTML = `78<span>/100</span>`;
+        $("#dash-score-cap").textContent = "Recovery 82 · Stress Steady · Consistency 86%";
+        $("#dash-habit").textContent = "3/8 glasses · 2-day streak · Goal: keep your streak";
+        $("#dash-insight").innerHTML = `
+          <strong>Pulse a bit above your week</strong>
+          <span class="caption">Your latest check is a few BPM higher than your recent average. Sleep, stress, or dehydration can do that. Drink water and recheck tomorrow. Informational only — not medical advice.</span>`;
       }
       const heights = [40, 55, 48, 62, 58, 70, 64];
       $("#dash-chart").innerHTML = heights.map((h) => `<i style="height:${h}%"></i>`).join("");
-      if (state.readings.length >= 1 && state.hr) {
-        $("#dash-insight").innerHTML = `
-          <strong>Evening logging pattern</strong>
-          <span class="caption">You logged a cuff reading successfully. Keep capturing morning and evening values from your FDA-cleared monitor for clearer trends. Informational only — not medical advice.</span>`;
-      }
     }
 
     function renderHistory() {
@@ -790,33 +826,16 @@
     }
 
     function renderInsights() {
-      const items = [];
-      if (!state.readings.length) {
-        items.push({
-          t: "Start with a cuff reading",
-          b: "Add blood pressure from an FDA-cleared monitor to unlock trend insights. Insights are informational only.",
-        });
-      } else {
-        items.push({
-          t: "Cuff logging underway",
-          b: "Your latest BP was " + state.readings[0].sys + "/" + state.readings[0].dia + " mmHg from manual cuff entry. Continue using FDA-cleared external monitors. Informational only — not medical advice.",
-        });
-      }
-      if (state.hr) {
-        items.push({
-          t: "Heart rate sample captured",
-          b: "Camera PPG recorded about " + state.hr + " BPM. PPG measures pulse, not blood pressure. Informational only — not medical advice.",
-        });
-      }
-      items.push({
-        t: "Missed-reading reminder tip",
-        b: "You haven’t set adaptive reminders yet. Morning BP reminders never claim the phone can measure blood pressure. Informational only — not medical advice.",
-      });
-      $("#insights-list").innerHTML = items.map((i) => `
-        <div class="insight" style="margin-bottom:16px;">
-          <strong>${i.t}</strong>
-          <span class="caption">${i.b}</span>
-        </div>`).join("");
+      const q = "Why is my heart rate higher today?";
+      const a = state.hr
+        ? `Your latest pulse is about ${state.hr} BPM. Compared with a typical personal week, a few BPM higher can follow poor sleep, stress, or dehydration. Why: those factors often raise pulse temporarily. Drink water, rest, and recheck tomorrow. Camera PPG is heart rate only — not blood pressure. Informational only — not medical advice.`
+        : `Take a pulse check first so I can compare today with your personal average. Why: trends beat single numbers. Informational only — not medical advice.`;
+      $("#coach-thread").innerHTML = `
+        <div class="insight"><strong>You</strong><span class="caption">${q}</span></div>
+        <div class="insight"><strong>Coach</strong><span class="caption">${a}</span></div>`;
+      $("#insights-list").innerHTML = `
+        <div class="insight"><strong>Weekly report</strong>
+        <span class="caption">Consistency improving. Keep cuff BP logs from your FDA-cleared monitor and daily pulse checks. Informational only — not medical advice.</span></div>`;
     }
 
     function saveBP() {
@@ -862,7 +881,11 @@
       renderDash();
       renderHistory();
       renderInsights();
+      $("#res-bpm").textContent = target + " BPM";
+      $("#res-compare").textContent = "vs yesterday +2 · vs week +6 · vs month +4";
+      $("#res-explain").textContent = `Your pulse is ${target} BPM — about 6 BPM higher than your 7-day average. This can happen after poor sleep, stress, dehydration, or recent activity. Consider drinking water, resting, and measuring again tomorrow. Camera PPG estimates heart rate only — not blood pressure. Informational only — not medical advice.`;
       toast("Heart rate saved");
+      showView("results");
     }
 
     // Wire UI
@@ -899,6 +922,8 @@
     $("#dia").addEventListener("input", syncMonitor);
     $("#btn-save-bp").addEventListener("click", saveBP);
     $("#btn-hr").addEventListener("click", () => measureHR());
+    $("#btn-quick-scan")?.addEventListener("click", () => showView("heart"));
+    $("#btn-results-done")?.addEventListener("click", () => { showView("home"); renderDash(); });
 
     // Boot
     renderOb();
@@ -909,41 +934,43 @@
     async function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
     async function runDemoTour() {
-      await sleep(1800);
+      await sleep(1600);
       showView("onboarding");
       renderOb();
       for (let i = 0; i < steps.length; i++) {
         state.ob = i;
         renderOb();
-        // Extra dwell so larger text is readable on video
-        await sleep(i === 2 ? 2800 : 1900);
+        await sleep(i === 2 ? 2400 : 1600);
       }
-      await sleep(700);
+      await sleep(600);
       showView("home");
       renderDash();
-      await sleep(2200);
+      await sleep(2000);
 
       showView("heart");
-      await sleep(1100);
+      await sleep(900);
       await measureHR();
-      await sleep(1600);
+      await sleep(2200);
+      showView("home");
+      renderDash();
+      await sleep(1400);
 
       showView("bp");
-      await sleep(900);
-      for (const [v, pause] of [[118, 400], [116, 400], [118, 450]]) {
+      await sleep(800);
+      for (const [v, pause] of [[118, 350], [116, 350], [118, 400]]) {
         $("#sys").value = v;
         syncMonitor();
         await sleep(pause);
       }
       $("#dia").value = 76;
       syncMonitor();
-      await sleep(600);
+      await sleep(500);
       saveBP();
-      await sleep(1400);
+      await sleep(1200);
 
       showView("home");
       renderDash();
-      await sleep(2000);
+      await sleep(1800);
 
       showView("insights");
       renderInsights();
@@ -951,10 +978,10 @@
 
       showView("more");
       renderHistory();
-      await sleep(2400);
+      await sleep(2000);
 
       showView("home");
-      await sleep(1400);
+      await sleep(1200);
     }
 
     if (DEMO) {
