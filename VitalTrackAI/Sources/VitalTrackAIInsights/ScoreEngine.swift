@@ -60,6 +60,9 @@ public struct ScoreEngine: ScoreComputing {
         for reading in context.bloodPressure {
             days.insert(calendar.startOfDay(for: reading.recordedAt))
         }
+        for check in context.stressChecks {
+            days.insert(calendar.startOfDay(for: check.recordedAt))
+        }
         for checkIn in context.checkIns where checkIn.waterGlasses > 0 || checkIn.mood != nil || checkIn.sleepHours != nil {
             days.insert(calendar.startOfDay(for: checkIn.date))
         }
@@ -252,21 +255,50 @@ public struct ScoreEngine: ScoreComputing {
     }
 
     private func stressEstimate(_ context: CompanionContext) -> StressEstimate {
+        let todayStress = context.stressChecks.first { calendar.isDateInToday($0.recordedAt) }
+            ?? context.stressChecks.first
+        if let check = todayStress {
+            let level: Int
+            switch check.intensityBand {
+            case .calm: level = 0
+            case .mild: level = 1
+            case .moderate: level = 2
+            case .high: level = 3
+            }
+            return StressEstimate(
+                label: "\(check.intensityBand.displayName) (self-report)",
+                level: level,
+                confidence: .high,
+                explanation: "Based on your stress \(check.stressScore)/10 and anxiety \(check.anxietyScore)/10 self-check. This is a wellness log, not a clinical anxiety assessment."
+            )
+        }
+
         let week = average(context.heartRate.filter { $0.recordedAt >= daysAgo(7) }.map(\.bpm))
         let latest = context.heartRate.first?.bpm
         let today = context.checkIns.first { calendar.isDateInToday($0.date) }
         var level = 1
         var label = "Moderate"
         if let week, let latest, latest - week >= 8 { level = 3; label = "Higher than usual" }
-        else if today?.mood == .stressed { level = 2; label = "Mood suggests stress" }
+        else if today?.stressLevel == .high || today?.mood == .stressed { level = 2; label = "Mood suggests stress" }
+        else if let stress = today?.stressLevel {
+            label = stress.displayName
+            level = max(0, stress.rawValue - 1)
+        }
         else if let week, let latest, latest - week <= -4 { level = 0; label = "Calm" }
         else if latest != nil { level = 1; label = "Steady" }
-        else { return StressEstimate(label: "Unknown", level: 1, confidence: .incomplete, explanation: "Add a pulse check or mood tag for a stress estimate.") }
+        else {
+            return StressEstimate(
+                label: "Unknown",
+                level: 1,
+                confidence: .incomplete,
+                explanation: "Log a stress & anxiety check (or a pulse/mood tag) for a clearer estimate. Wellness cue only — not a diagnosis."
+            )
+        }
         return StressEstimate(
             label: label,
             level: level,
             confidence: latest == nil ? .low : .medium,
-            explanation: "Stress estimate compares today’s pulse and mood tags to your recent average. It is a wellness cue, not a clinical assessment."
+            explanation: "Stress estimate uses pulse trends and check-in tags when a dedicated stress check is not logged. Wellness cue only — not a clinical assessment."
         )
     }
 
@@ -277,7 +309,8 @@ public struct ScoreEngine: ScoreComputing {
             let hasHR = context.heartRate.contains { calendar.isDate($0.recordedAt, inSameDayAs: day) }
             let hasBP = context.bloodPressure.contains { calendar.isDate($0.recordedAt, inSameDayAs: day) }
             let hasCI = context.checkIns.contains { calendar.isDate($0.date, inSameDayAs: day) }
-            if hasHR || hasBP || hasCI { hits += 1 }
+            let hasStress = context.stressChecks.contains { calendar.isDate($0.recordedAt, inSameDayAs: day) }
+            if hasHR || hasBP || hasCI || hasStress { hits += 1 }
         }
         return Int((Double(hits) / 7.0) * 100)
     }

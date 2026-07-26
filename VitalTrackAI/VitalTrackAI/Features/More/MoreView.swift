@@ -15,6 +15,7 @@ struct MoreView: View {
                     VTDisclaimerBanner(.bloodPressure)
 
                     moreSection(title: "Your health") {
+                        MoreLinkRow(title: "Measure stress", subtitle: "Stress & anxiety self-check", systemImage: "brain.head.profile", destination: StressMeasureView())
                         MoreLinkRow(title: "Medications", subtitle: "Doses, reminders, refill notes", systemImage: "pills.fill", destination: MedicationsView())
                         MoreLinkRow(title: "Learning center", subtitle: "Plain-language heart health", systemImage: "book.fill", destination: LearningCenterView())
                         MoreLinkRow(title: "Family care", subtitle: "Opt-in caregiver sharing", systemImage: "person.3.fill", destination: FamilyCareView())

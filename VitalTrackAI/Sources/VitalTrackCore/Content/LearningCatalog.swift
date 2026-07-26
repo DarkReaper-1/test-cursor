@@ -88,6 +88,19 @@ public enum LearningCatalog {
             minutesToRead: 2
         ),
         LearningArticle(
+            topic: .stress,
+            title: "What stress & anxiety scores mean",
+            summary: "1–10 self-ratings for patterns — not a diagnosis.",
+            body: """
+            VitalTrack AI’s Measure stress screen asks how stressed and how anxious you feel right now, each from 1 to 10.
+
+            These numbers are your words in number form. They help you notice patterns with sleep, pulse, and blood pressure. They are not a clinical anxiety test and do not diagnose an anxiety disorder.
+
+            If scores stay high, panic feels overwhelming, or daily life is hard, talk with a clinician or counselor. Use emergency services for thoughts of self-harm or a medical emergency.
+            """,
+            minutesToRead: 2
+        ),
+        LearningArticle(
             topic: .sleep,
             title: "Sleep and blood pressure",
             summary: "Rest supports healthier day-to-day readings for many people.",

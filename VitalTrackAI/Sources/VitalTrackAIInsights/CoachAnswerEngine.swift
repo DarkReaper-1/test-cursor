@@ -13,10 +13,10 @@ public struct CoachAnswerEngine: CoachAnswering {
             "What does 145/92 mean?",
             "Why was my blood pressure higher today?",
             "Am I improving?",
+            "How can I lower my stress?",
+            "What does my anxiety score mean?",
             "What should I eat?",
-            "What does 82 BPM mean?",
             "How does sleep affect blood pressure?",
-            "When should I see a doctor?",
             "Can the camera measure blood pressure?"
         ]
     }
@@ -157,6 +157,44 @@ public struct CoachAnswerEngine: CoachAnswering {
 
             Why: fluid balance affects how hard the heart works for some individuals. Sip water through the day and recheck later if you feel off. Informational only.
             """
+        } else if q.contains("anxiety") || q.contains("stress") || q.contains("worried") || q.contains("calm") {
+            let latest = context.stressChecks.first
+            let week = context.stressChecks.filter { $0.recordedAt >= daysAgo(7) }
+            let weekAvg = average(week.map(\.combinedScore))
+            if q.contains("mean") || q.contains("score") {
+                if let latest {
+                    text = """
+                    Your latest check was stress \(latest.stressScore)/10 and anxiety \(latest.anxietyScore)/10 — a “\(latest.intensityBand.displayName)” band in VitalTrack AI.
+
+                    Why: these are your self-ratings of how you feel right now. They are not a diagnosis of an anxiety disorder. If worry or panic is lasting or hard to manage, a clinician or counselor can help.
+                    """
+                } else {
+                    text = """
+                    Stress and anxiety scores are simple 1–10 self-ratings you log in Measure stress. They help spot patterns with blood pressure — they do not diagnose anxiety.
+
+                    Next step: open Measure stress and answer how you feel today. Informational only.
+                    """
+                }
+            } else if q.contains("lower") || q.contains("reduce") || q.contains("calm") || q.contains("help") {
+                text = """
+                Gentle steps that help many adults feel steadier: slow breathing (in for 4, out for 6), a short walk, less late caffeine, and a regular bedtime.
+
+                Why: these support the body’s calm response for many people — results vary. If anxiety is intense, frequent, or includes panic symptoms, please talk with a clinician. Not medical advice.
+                """
+            } else if let latest, let weekAvg {
+                let delta = latest.combinedScore - weekAvg
+                text = """
+                Your latest stress/anxiety check averages \(String(format: "%.1f", latest.combinedScore))/10 versus about \(String(format: "%.1f", weekAvg))/10 this week (\(delta >= 0 ? "a bit higher" : "a bit calmer") today).
+
+                Why we compare to you: personal trends matter more than one number. Log again tomorrow at a similar time. Wellness context only — not a diagnosis.
+                """
+            } else {
+                text = """
+                Log a stress & anxiety check to personalize this answer. Large buttons make it easy — about one minute.
+
+                Why: self-reports help explain blood pressure patterns without guessing. Informational only.
+                """
+            }
         } else if q.contains("medication") || q.contains("medicine") || q.contains("pill") {
             let active = context.medications.filter(\.isActive)
             let todayDoses = context.doses.filter { calendar.isDateInToday($0.takenAt) }
@@ -201,7 +239,12 @@ public struct CoachAnswerEngine: CoachAnswering {
         var bits: [String] = []
         if let sleep = today?.sleepHours, sleep < 6 { bits.append("shorter sleep last night") }
         if let sodium = today?.sodiumMg, sodium >= 2300 { bits.append("higher sodium today") }
-        if today?.mood == .stressed || today?.stressLevel == .high { bits.append("higher stress") }
+        if let stress = context.stressChecks.first(where: { calendar.isDateInToday($0.recordedAt) }),
+           stress.combinedScore >= 7 {
+            bits.append("higher stress/anxiety self-check")
+        } else if today?.mood == .stressed || today?.stressLevel == .high {
+            bits.append("higher stress")
+        }
         if let caffeine = today?.caffeineCups, caffeine >= 3 { bits.append("more caffeine") }
         if bits.isEmpty {
             return "sleep, stress, sodium, caffeine, recent activity, or measuring technique."

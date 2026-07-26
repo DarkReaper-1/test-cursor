@@ -130,7 +130,7 @@ struct CheckInSheet: View {
                                         .frame(minHeight: 48)
                                 }
 
-                                Toggle("Stress level", isOn: $includeStress)
+                                Toggle("Quick stress tag", isOn: $includeStress)
                                 if includeStress {
                                     Picker("Stress", selection: $stressLevel) {
                                         ForEach(StressLevel.allCases) { level in
@@ -139,6 +139,9 @@ struct CheckInSheet: View {
                                     }
                                     .pickerStyle(.segmented)
                                     .frame(minHeight: 44)
+                                    Text("For a full stress & anxiety score (1–10), use Measure stress on Home.")
+                                        .font(VTTypography.caption())
+                                        .foregroundStyle(VTColors.textTertiary)
                                 }
                             }
                         }

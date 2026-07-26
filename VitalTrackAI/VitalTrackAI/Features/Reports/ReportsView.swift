@@ -6,7 +6,7 @@ struct ReportsView: View {
     @EnvironmentObject private var composition: AppComposition
     @EnvironmentObject private var session: SessionStore
     @State private var summary = ""
-    @State private var exportNote = "Exports include source labels, medications, lifestyle, and trust disclaimers."
+    @State private var exportNote = "Exports include source labels, medications, stress/anxiety, lifestyle, and trust disclaimers."
     @State private var shareCSV: Data?
 
     var body: some View {
@@ -15,7 +15,7 @@ struct ReportsView: View {
                 VTScreenHeader(
                     eyebrow: "Reports",
                     title: "Share with your doctor",
-                    subtitle: "Beautiful clinician summaries with charts context, meds, and lifestyle."
+                    subtitle: "Clinician summaries with BP, meds, stress checks, and lifestyle."
                 )
                 VTDisclaimerBanner(.custom(TrustCopy.medicalDisclaimer))
                 VTDisclaimerBanner(.bloodPressure)
@@ -25,6 +25,9 @@ struct ReportsView: View {
                 }
                 VTPrimaryButton("Export BP CSV") {
                     Task { await exportCSV() }
+                }
+                VTPrimaryButton("Export stress & anxiety CSV") {
+                    Task { await exportStressCSV() }
                 }
                 VTPrimaryButton("Build PDF report") {
                     Task { await buildPDF() }
@@ -55,12 +58,14 @@ struct ReportsView: View {
         let meds = (try? await composition.medicationRepository.fetchAll()) ?? []
         let doses = (try? await composition.medicationRepository.fetchDoses(limit: 40)) ?? []
         let checkIns = (try? await composition.checkInRepository.fetchAll()) ?? []
+        let stress = (try? await composition.stressCheckRepository.fetchAll()) ?? []
         let input = DoctorReportInput(
             bloodPressure: bp,
             heartRate: hr,
             medications: meds,
             doses: doses,
             checkIns: checkIns,
+            stressChecks: stress,
             patientLabel: session.settings.preferredName
         )
         summary = (try? await composition.environment.doctorReportFormatter.formatRichSummary(input))
@@ -75,13 +80,21 @@ struct ReportsView: View {
         }
     }
 
+    private func exportStressCSV() async {
+        let checks = (try? await composition.stressCheckRepository.fetchAll()) ?? []
+        if let data = try? await composition.environment.exporter.exportStressCheckCSV(checks) {
+            shareCSV = data
+            exportNote = "Stress/anxiety CSV ready (\(data.count) bytes). Self-reports only — not a clinical assessment."
+        }
+    }
+
     private func buildPDF() async {
         await buildSummary()
         if let data = try? await composition.environment.pdfBuilder.buildReportPDF(
             title: "VitalTrack AI Clinician Report",
             body: summary
         ) {
-            exportNote = "PDF ready (\(data.count) bytes) with meds, lifestyle, and embedded disclaimers."
+            exportNote = "PDF ready (\(data.count) bytes) with meds, stress checks, lifestyle, and disclaimers."
         }
     }
 }

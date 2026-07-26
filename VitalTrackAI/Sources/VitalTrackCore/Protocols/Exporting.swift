@@ -3,6 +3,7 @@ import Foundation
 public protocol Exporting: Sendable {
     func exportBloodPressureCSV(_ readings: [BloodPressureReading]) async throws -> Data
     func exportHeartRateCSV(_ samples: [HeartRateSample]) async throws -> Data
+    func exportStressCheckCSV(_ checks: [StressCheck]) async throws -> Data
 }
 
 public struct DoctorReportInput: Sendable {
@@ -11,6 +12,7 @@ public struct DoctorReportInput: Sendable {
     public var medications: [Medication]
     public var doses: [MedicationDose]
     public var checkIns: [CheckIn]
+    public var stressChecks: [StressCheck]
     public var patientLabel: String?
 
     public init(
@@ -19,6 +21,7 @@ public struct DoctorReportInput: Sendable {
         medications: [Medication] = [],
         doses: [MedicationDose] = [],
         checkIns: [CheckIn] = [],
+        stressChecks: [StressCheck] = [],
         patientLabel: String? = nil
     ) {
         self.bloodPressure = bloodPressure
@@ -26,6 +29,7 @@ public struct DoctorReportInput: Sendable {
         self.medications = medications
         self.doses = doses
         self.checkIns = checkIns
+        self.stressChecks = stressChecks
         self.patientLabel = patientLabel
     }
 }

@@ -76,6 +76,8 @@ public final class ReminderScheduler: @unchecked Sendable {
             return "You’re doing great. Optional pulse check via Watch, Health, or camera PPG (heart rate only — not blood pressure)."
         case .medication:
             return reminder.notes ?? "Friendly reminder for your medication. Follow your clinician’s instructions."
+        case .stressCheck:
+            return "Ready for a one-minute stress & anxiety check? Large buttons, no judgment — wellness logging only."
         case .custom:
             return reminder.notes ?? "We’re here when you’re ready. Small steps count."
         }

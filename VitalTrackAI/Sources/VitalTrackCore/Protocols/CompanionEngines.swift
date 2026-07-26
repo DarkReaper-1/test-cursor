@@ -7,6 +7,7 @@ public struct CompanionContext: Sendable {
     public var checkIns: [CheckIn]
     public var medications: [Medication]
     public var doses: [MedicationDose]
+    public var stressChecks: [StressCheck]
     public var waterGoalGlasses: Int
     public var lastLogDate: Date?
 
@@ -17,6 +18,7 @@ public struct CompanionContext: Sendable {
         checkIns: [CheckIn] = [],
         medications: [Medication] = [],
         doses: [MedicationDose] = [],
+        stressChecks: [StressCheck] = [],
         waterGoalGlasses: Int = 8,
         lastLogDate: Date? = nil
     ) {
@@ -26,6 +28,7 @@ public struct CompanionContext: Sendable {
         self.checkIns = checkIns
         self.medications = medications
         self.doses = doses
+        self.stressChecks = stressChecks
         self.waterGoalGlasses = waterGoalGlasses
         self.lastLogDate = lastLogDate
     }
@@ -38,6 +41,7 @@ public struct CompanionContext: Sendable {
             checkIns: checkIns,
             medications: medications,
             doses: doses,
+            stressChecks: stressChecks,
             lastLogDate: lastLogDate
         )
     }

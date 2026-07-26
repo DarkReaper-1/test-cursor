@@ -7,6 +7,7 @@ public struct InsightContext: Sendable {
     public var checkIns: [CheckIn]
     public var medications: [Medication]
     public var doses: [MedicationDose]
+    public var stressChecks: [StressCheck]
     public var lastLogDate: Date?
 
     public init(
@@ -16,6 +17,7 @@ public struct InsightContext: Sendable {
         checkIns: [CheckIn] = [],
         medications: [Medication] = [],
         doses: [MedicationDose] = [],
+        stressChecks: [StressCheck] = [],
         lastLogDate: Date? = nil
     ) {
         self.bloodPressure = bloodPressure
@@ -24,6 +26,7 @@ public struct InsightContext: Sendable {
         self.checkIns = checkIns
         self.medications = medications
         self.doses = doses
+        self.stressChecks = stressChecks
         self.lastLogDate = lastLogDate
     }
 }

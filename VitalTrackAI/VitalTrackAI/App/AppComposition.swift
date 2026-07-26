@@ -14,6 +14,7 @@ final class AppComposition: ObservableObject {
     let companionStore: CompanionStore
     let checkInRepository: InMemoryCheckInRepository
     let medicationRepository: InMemoryMedicationRepository
+    let stressCheckRepository: InMemoryStressCheckRepository
     let careProfileRepository: InMemoryCareProfileRepository
     let settingsStore: UserSettingsStore
     let reminderScheduler: ReminderScheduler
@@ -31,6 +32,7 @@ final class AppComposition: ObservableObject {
         let deviceRepo = InMemoryDeviceRepository()
         let checkIns = InMemoryCheckInRepository()
         let medications = InMemoryMedicationRepository()
+        let stressChecks = InMemoryStressCheckRepository()
         let careProfiles = InMemoryCareProfileRepository()
         let healthKit = HealthKitService()
         let bluetooth = BluetoothManager()
@@ -61,10 +63,12 @@ final class AppComposition: ObservableObject {
             heartRate: hrRepo,
             hrv: hrvRepo,
             checkIns: checkIns,
-            medications: medications
+            medications: medications,
+            stressChecks: stressChecks
         )
         self.checkInRepository = checkIns
         self.medicationRepository = medications
+        self.stressCheckRepository = stressChecks
         self.careProfileRepository = careProfiles
         self.settingsStore = UserSettingsStore()
         self.reminderScheduler = ReminderScheduler()

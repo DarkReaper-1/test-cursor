@@ -17,6 +17,8 @@ public struct HeuristicInsightEngine: InsightEngine {
         if let walk = walkingLinkedBP(context) { raw.append(walk) }
         if let sodium = sodiumLinkedBP(context) { raw.append(sodium) }
         if let med = medicationTimingPattern(context.bloodPressure) { raw.append(med) }
+        if let stressBP = stressLinkedBP(context) { raw.append(stressBP) }
+        if let stressTrend = stressAnxietyTrend(context.stressChecks) { raw.append(stressTrend) }
         if let refill = refillReminder(context.medications) { raw.append(refill) }
         if let missed = missedLogging(context) { raw.append(missed) }
         if let hrv = hrvImprovement(context.hrv) { raw.append(hrv) }
@@ -162,6 +164,67 @@ public struct HeuristicInsightEngine: InsightEngine {
             ),
             severity: .suggestion,
             relatedMetric: "sodium"
+        )
+    }
+
+    private func stressLinkedBP(_ context: InsightContext) -> Insight? {
+        guard context.stressChecks.count >= 3, context.bloodPressure.count >= 3 else { return nil }
+        var highDays: [Double] = []
+        var calmDays: [Double] = []
+        for check in context.stressChecks {
+            let dayBP = context.bloodPressure.filter { calendar.isDate($0.recordedAt, inSameDayAs: check.recordedAt) }
+            guard !dayBP.isEmpty else { continue }
+            let sys = Double(dayBP.map(\.systolic).reduce(0, +)) / Double(dayBP.count)
+            if check.combinedScore >= 7 {
+                highDays.append(sys)
+            } else if check.combinedScore <= 4 {
+                calmDays.append(sys)
+            }
+        }
+        guard highDays.count >= 2, calmDays.count >= 2 else { return nil }
+        let highAvg = highDays.reduce(0, +) / Double(highDays.count)
+        let calmAvg = calmDays.reduce(0, +) / Double(calmDays.count)
+        guard highAvg - calmAvg >= 4 else { return nil }
+        return Insight(
+            title: "Stress and blood pressure",
+            body: String(
+                format: "On higher stress/anxiety check days, systolic readings averaged about %.0f mmHg higher than calmer days in your log. This is a pattern observation — not proof of cause, and not a diagnosis.",
+                highAvg - calmAvg
+            ),
+            severity: .suggestion,
+            relatedMetric: "stress"
+        )
+    }
+
+    private func stressAnxietyTrend(_ checks: [StressCheck]) -> Insight? {
+        let sorted = checks.sorted { $0.recordedAt < $1.recordedAt }
+        guard sorted.count >= 4 else { return nil }
+        let mid = sorted.count / 2
+        let earlier = sorted.prefix(mid)
+        let later = sorted.suffix(sorted.count - mid)
+        let earlierAvg = earlier.map(\.combinedScore).reduce(0, +) / Double(earlier.count)
+        let laterAvg = later.map(\.combinedScore).reduce(0, +) / Double(later.count)
+        let delta = earlierAvg - laterAvg
+        guard abs(delta) >= 1.2 else { return nil }
+        if delta > 0 {
+            return Insight(
+                title: "Stress checks trending calmer",
+                body: String(
+                    format: "Your recent stress/anxiety self-checks average about %.1f points calmer than earlier logs. Keep habits that help you feel steady. This is not a clinical assessment.",
+                    delta
+                ),
+                severity: .info,
+                relatedMetric: "stress"
+            )
+        }
+        return Insight(
+            title: "Stress checks a bit higher lately",
+            body: String(
+                format: "Recent stress/anxiety self-checks average about %.1f points higher than earlier. Short walks, slower breathing, and sleep often help — and lasting worry deserves a conversation with a clinician or counselor. Informational only.",
+                abs(delta)
+            ),
+            severity: .suggestion,
+            relatedMetric: "stress"
         )
     }
 

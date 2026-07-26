@@ -54,12 +54,25 @@ final class CSVExporterTests: XCTestCase {
                 medications: [med],
                 doses: [MedicationDose(medicationId: med.id, medicationName: med.name, status: .taken)],
                 checkIns: [CheckIn(waterGlasses: 5, sleepHours: 7, sodiumMg: 1600, exerciseMinutes: 35)],
+                stressChecks: [StressCheck(stressScore: 6, anxietyScore: 5)],
                 patientLabel: "Alex"
             )
         )
         XCTAssertTrue(text.contains("Lisinopril"))
         XCTAssertTrue(text.contains("MEDICATIONS"))
         XCTAssertTrue(text.contains("LIFESTYLE"))
+        XCTAssertTrue(text.contains("STRESS") || text.contains("ANXIETY") || text.contains("stress"))
         XCTAssertTrue(text.contains("Before medication") || text.contains("before"))
+    }
+
+    func testStressCheckCSVFormat() async throws {
+        let exporter = CSVExporter()
+        let data = try await exporter.exportStressCheckCSV([
+            StressCheck(stressScore: 4, anxietyScore: 5, bodySignals: [.tenseMuscles], notes: "after meeting")
+        ])
+        let text = String(data: data, encoding: .utf8)!
+        XCTAssertTrue(text.contains("stressScore,anxietyScore"))
+        XCTAssertTrue(text.contains("4,5"))
+        XCTAssertTrue(text.contains("tenseMuscles"))
     }
 }

@@ -9,6 +9,9 @@ struct AnalyticsView: View {
     @State private var range = 0 // 0 week, 1 month, 2 year
     @State private var filter = 0 // 0 all, 1 morning, 2 evening, 3 before med, 4 after med
     @State private var bp: [BloodPressureReading] = []
+    @State private var stressScores: [Double] = []
+    @State private var anxietyAvg: String = "—"
+    @State private var stressAvg: String = "—"
 
     var body: some View {
         ScrollView {

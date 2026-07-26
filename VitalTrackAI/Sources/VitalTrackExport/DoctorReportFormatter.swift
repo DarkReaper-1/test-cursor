@@ -39,11 +39,38 @@ public struct DoctorReportFormatter: DoctorReportFormatting {
         lines.append("")
         appendMedicationSection(&lines, medications: input.medications, doses: input.doses)
         lines.append("")
+        appendStressSection(&lines, input.stressChecks)
+        lines.append("")
         appendLifestyleSection(&lines, input.checkIns)
         lines.append("")
         lines.append("Category labels are AHA-style reference ranges only and are not a diagnosis.")
+        lines.append("Stress and anxiety scores are patient self-reports for wellness context — not a clinical assessment.")
         lines.append("This report is generated from patient-entered and device-imported data for clinical conversation support.")
         return lines.joined(separator: "\n")
+    }
+
+    private func appendStressSection(_ lines: inout [String], _ checks: [StressCheck]) {
+        let recent = checks.sorted { $0.recordedAt > $1.recordedAt }.prefix(14)
+        lines.append("STRESS & ANXIETY SELF-REPORTS (\(recent.count) recent)")
+        if recent.isEmpty {
+            lines.append("No stress/anxiety checks on file.")
+            return
+        }
+        let stressVals = recent.map(\.stressScore)
+        let anxietyVals = recent.map(\.anxietyScore)
+        lines.append(String(
+            format: "Recent stress avg: %.1f/10 · anxiety avg: %.1f/10",
+            avg(Array(stressVals)), avg(Array(anxietyVals))
+        ))
+        for check in recent {
+            var line = "- \(ISO8601DateFormatter().string(from: check.recordedAt)): \(check.displaySummary) (\(check.intensityBand.displayName))"
+            if !check.bodySignals.isEmpty {
+                line += " · " + check.bodySignals.map(\.displayName).joined(separator: ", ")
+            }
+            if check.completedBreathing { line += " · Breathing practice logged" }
+            if let notes = check.notes, !notes.isEmpty { line += " · Note: \(notes)" }
+            lines.append(line)
+        }
     }
 
     private func appendBloodPressureSection(_ lines: inout [String], _ bloodPressure: [BloodPressureReading]) {

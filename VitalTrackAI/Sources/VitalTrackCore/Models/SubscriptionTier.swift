@@ -20,6 +20,7 @@ public enum SubscriptionTier: String, Codable, Sendable, CaseIterable, Identifia
                 "Manual blood pressure logging from your cuff",
                 "Medication reminders and dose history",
                 "Lifestyle check-ins (sleep, water, sodium, movement)",
+                "Stress & anxiety self-checks with calm breathing guide",
                 "Camera PPG heart rate (not blood pressure)",
                 "Basic history, charts, and calm crisis guidance",
                 "Learning center and local AI coach (informational)"

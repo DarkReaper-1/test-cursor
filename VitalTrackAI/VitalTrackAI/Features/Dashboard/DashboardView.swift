@@ -20,8 +20,10 @@ struct DashboardView: View {
     @State private var weekAvgSys: Double?
     @State private var monthAvgSys: Double?
     @State private var bpPlainInsight: String?
+    @State private var todayStress: StressCheck?
     @State private var errorMessage: String?
     @State private var showCheckIn = false
+    @State private var showStress = false
     @State private var milestoneToast: String?
 
     var body: some View {
@@ -62,6 +64,8 @@ struct DashboardView: View {
 
                     medicationStatusCard
 
+                    stressAnxietyCard
+
                     hydrationAndGoal
 
                     lifestyleRow
@@ -97,6 +101,13 @@ struct DashboardView: View {
                 CheckInSheet()
                     .environmentObject(composition)
                     .onDisappear { Task { await refresh() } }
+            }
+            .sheet(isPresented: $showStress) {
+                NavigationStack {
+                    StressMeasureView(presentedAsSheet: true)
+                        .environmentObject(composition)
+                }
+                .onDisappear { Task { await refresh() } }
             }
             .overlay(alignment: .top) {
                 if let milestoneToast {
@@ -170,23 +181,37 @@ struct DashboardView: View {
     }
 
     private var quickActions: some View {
-        HStack(spacing: 12) {
-            Button {
-                session.selectedTab = .heart
-            } label: {
-                Label("Quick scan", systemImage: "waveform.path.ecg")
-                    .font(VTTypography.body().weight(.bold))
-                    .frame(maxWidth: .infinity, minHeight: 56)
-                    .foregroundStyle(.white)
-                    .background(VTColors.brandPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Button {
+                    session.selectedTab = .heart
+                } label: {
+                    Label("Quick scan", systemImage: "waveform.path.ecg")
+                        .font(VTTypography.body().weight(.bold))
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .foregroundStyle(.white)
+                        .background(VTColors.brandPrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showCheckIn = true
+                } label: {
+                    Label("Check-in", systemImage: "drop.fill")
+                        .font(VTTypography.body().weight(.bold))
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .foregroundStyle(VTColors.brandDeep)
+                        .background(VTColors.subtle)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Button {
-                showCheckIn = true
+                showStress = true
             } label: {
-                Label("Check-in", systemImage: "drop.fill")
+                Label("Measure stress", systemImage: "brain.head.profile")
                     .font(VTTypography.body().weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 56)
                     .foregroundStyle(VTColors.brandDeep)
@@ -194,6 +219,36 @@ struct DashboardView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Opens stress and anxiety self-check")
+        }
+    }
+
+    private var stressAnxietyCard: some View {
+        VTCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Stress & anxiety")
+                    .font(VTTypography.title(18))
+                if let todayStress {
+                    Text(todayStress.displaySummary)
+                        .font(VTTypography.body().weight(.bold))
+                    Text("Feeling: \(todayStress.intensityBand.displayName). Self-report only — not a diagnosis.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                } else {
+                    Text("No stress check yet today")
+                        .font(VTTypography.body().weight(.bold))
+                    Text("Next step: tap Measure stress. Large buttons — about one minute.")
+                        .font(VTTypography.caption())
+                        .foregroundStyle(VTColors.textSecondary)
+                }
+                Button("Log how you feel") { showStress = true }
+                    .font(VTTypography.body().weight(.bold))
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .foregroundStyle(.white)
+                    .background(VTColors.brandSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .buttonStyle(.plain)
+            }
         }
     }
 
@@ -291,7 +346,7 @@ struct DashboardView: View {
                         .font(VTTypography.title(18))
                     Text(todayCheckIn?.weightKg.map { String(format: "%.1f kg", $0) } ?? "—")
                         .font(VTTypography.metric(28))
-                    Text(todayCheckIn?.stressLevel.map(\.displayName) ?? "Stress optional")
+                    Text(todayStress.map { $0.intensityBand.displayName } ?? todayCheckIn?.stressLevel.map(\.displayName) ?? "Log stress check")
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 }
@@ -476,6 +531,8 @@ struct DashboardView: View {
             todayCheckIn = context.checkIns.first { Calendar.current.isDateInToday($0.date) }
             activeMeds = context.medications.filter(\.isActive)
             todayDoses = context.doses.filter { Calendar.current.isDateInToday($0.takenAt) }
+            todayStress = context.stressChecks.first { Calendar.current.isDateInToday($0.recordedAt) }
+                ?? context.stressChecks.first
             weekAvgSys = stats.weekAvgSys
             monthAvgSys = stats.monthAvgSys
             bpPlainInsight = plainBPInsight(latest: context.bloodPressure.first, week: stats.weekAvgSys, month: stats.monthAvgSys, insights: insights)

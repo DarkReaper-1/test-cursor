@@ -4,6 +4,7 @@ public enum ReminderKind: String, Codable, Sendable, CaseIterable {
     case bloodPressureLog
     case heartRateCheck
     case medication
+    case stressCheck
     case custom
 }
 
