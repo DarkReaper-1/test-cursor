@@ -13,19 +13,25 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 18) {
                     Text("VitalTrack AI")
-                        .font(VTTypography.display(34))
+                        .font(VTTypography.body().weight(.bold))
                         .foregroundStyle(VTColors.brandPrimary)
+
+                    Text(greetingTitle)
+                        .font(VTTypography.display(36))
+                        .foregroundStyle(VTColors.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
-                    Text(greeting)
+                    Text(greetingSubtitle)
                         .font(VTTypography.body())
                         .foregroundStyle(VTColors.textSecondary)
 
-                    VTDisclaimerBanner(.custom(TrustCopy.firstLaunchBanner + " " + TrustCopy.insightsBanner))
+                    VTDisclaimerBanner(.custom(
+                        "Blood pressure comes from your cuff. " + TrustCopy.shortBPBanner + " Camera measurements are heart rate only. Insights are informational only and are not medical advice."
+                    ))
 
-                    ForEach(session.settings.dashboardCards) { card in
+                    ForEach(priorityCards) { card in
                         cardView(card)
                     }
 
@@ -35,9 +41,9 @@ struct DashboardView: View {
                             .foregroundStyle(VTColors.danger)
                     }
                 }
-                .padding()
+                .padding(20)
             }
-            .background(VTColors.canvasGradient.ignoresSafeArea())
+            .background(VTAtmosphere())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -45,6 +51,8 @@ struct DashboardView: View {
                         Task { await refresh() }
                     } label: {
                         Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 17, weight: .semibold))
+                            .frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("Refresh dashboard")
                 }
@@ -54,18 +62,44 @@ struct DashboardView: View {
         }
     }
 
-    private var greeting: String {
-        if let name = session.settings.preferredName, !name.isEmpty {
-            return "Hello, \(name)"
+    /// Prefer a calm, readable Home: BP, HR, tip, then remaining configured cards.
+    private var priorityCards: [DashboardCardKind] {
+        let preferred: [DashboardCardKind] = [
+            .latestBloodPressure,
+            .latestHeartRate,
+            .insightsPreview,
+            .weeklyBPTrend
+        ]
+        let configured = session.settings.dashboardCards
+        var ordered = preferred.filter { configured.contains($0) }
+        for card in configured where !ordered.contains(card) {
+            ordered.append(card)
         }
-        return "Your vitals at a glance"
+        return ordered
+    }
+
+    private var greetingTitle: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 { return "Good morning" }
+        if hour < 18 { return "Good afternoon" }
+        return "Good evening"
+    }
+
+    private var greetingSubtitle: String {
+        if let name = session.settings.preferredName, !name.isEmpty {
+            return "Hello, \(name). Your numbers, clearly."
+        }
+        return "Your numbers, clearly."
     }
 
     @ViewBuilder
     private func cardView(_ kind: DashboardCardKind) -> some View {
         VTCard {
-            VStack(alignment: .leading, spacing: 10) {
-                VTSectionHeader(kind.title)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(kind.comfortTitle)
+                    .font(VTTypography.title(20))
+                    .foregroundStyle(VTColors.textPrimary)
+
                 switch kind {
                 case .latestBloodPressure:
                     if let bp = latestBP {
@@ -75,43 +109,47 @@ struct DashboardView: View {
                             caption: "\(bp.source.displayName) · \(bp.category.displayName)"
                         )
                     } else {
-                        Text("No BP yet. Log from an FDA-cleared monitor.")
+                        Text("Tap BP below to enter numbers from your cuff.")
                             .font(VTTypography.caption())
                             .foregroundStyle(VTColors.textSecondary)
                     }
                 case .latestHeartRate:
                     if let hr = latestHR {
-                        VTMetricHero(value: hr.displayBPM, unit: "BPM", caption: hr.source.displayName)
+                        VTMetricHero(
+                            value: hr.displayBPM,
+                            unit: "BPM",
+                            caption: "\(hr.source.displayName) · fingertip or Watch"
+                        )
                     } else {
-                        Text("No heart rate yet. Use camera PPG, Watch, or Health.")
+                        Text("Use the Pulse tab for a fingertip heart-rate check.")
                             .font(VTTypography.caption())
                             .foregroundStyle(VTColors.textSecondary)
                     }
                 case .insightsPreview:
-                    if insights.isEmpty {
-                        Text("Insights appear after you log a few measurements.")
+                    if let tip = insights.first {
+                        Text(tip.title)
+                            .font(VTTypography.body().weight(.bold))
+                            .foregroundStyle(VTColors.textPrimary)
+                        Text(tip.body)
                             .font(VTTypography.caption())
                             .foregroundStyle(VTColors.textSecondary)
+                            .lineLimit(4)
                     } else {
-                        ForEach(insights.prefix(2)) { insight in
-                            Text(insight.title)
-                                .font(VTTypography.body().weight(.semibold))
-                            Text(insight.body)
-                                .font(VTTypography.caption())
-                                .foregroundStyle(VTColors.textSecondary)
-                                .lineLimit(3)
-                        }
+                        Text("Save a cuff reading today. A few days of logs make trends easier to see. Informational only — not medical advice.")
+                            .font(VTTypography.caption())
+                            .foregroundStyle(VTColors.textSecondary)
                     }
                 case .weeklyBPTrend:
-                    Text("See Analytics for weekly blood pressure charts from logged cuff/Health/CSV data.")
+                    WeeklyBarsView()
+                    Text("Bars show cuff readings you saved — not camera estimates.")
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 case .restingHRTrend:
-                    Text("Resting heart rate trends use PPG/Health samples — never as blood pressure.")
+                    Text("Resting heart rate trends use Pulse / Health samples — never as blood pressure.")
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 case .devicesStatus:
-                    Text("Pair FDA-cleared Bluetooth cuffs in Devices.")
+                    Text("Pair FDA-cleared Bluetooth cuffs in More → Devices.")
                         .font(VTTypography.caption())
                         .foregroundStyle(VTColors.textSecondary)
                 case .reminders:
@@ -137,6 +175,44 @@ struct DashboardView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+private extension DashboardCardKind {
+    var comfortTitle: String {
+        switch self {
+        case .latestBloodPressure: return "Latest blood pressure"
+        case .latestHeartRate: return "Today’s heart rate"
+        case .insightsPreview: return "Helpful tip"
+        case .weeklyBPTrend: return "This week"
+        case .restingHRTrend: return "Resting heart rate"
+        case .devicesStatus: return "Devices"
+        case .reminders: return "Reminders"
+        case .hrvSnapshot: return "Heart rate variability"
+        }
+    }
+}
+
+private struct WeeklyBarsView: View {
+    private let heights: [CGFloat] = [0.42, 0.55, 0.48, 0.62, 0.58, 0.70, 0.64]
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            ForEach(Array(heights.enumerated()), id: \.offset) { _, h in
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [VTColors.accentSoft, VTColors.brandPrimary],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 110 * h)
+            }
+        }
+        .frame(height: 120)
+        .accessibilityLabel("Weekly trend chart placeholder")
     }
 }
 

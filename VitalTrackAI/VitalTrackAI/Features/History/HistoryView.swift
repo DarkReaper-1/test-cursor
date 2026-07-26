@@ -9,55 +9,73 @@ struct HistoryView: View {
     @State private var hr: [HeartRateSample] = []
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 12) {
             Picker("History", selection: $segment) {
                 Text("Blood pressure").tag(0)
                 Text("Heart rate").tag(1)
             }
             .pickerStyle(.segmented)
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
 
             if segment == 0 {
                 VTDisclaimerBanner(.bloodPressure)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
             } else {
                 VTDisclaimerBanner(.heartRate)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
             }
 
             List {
                 if segment == 0 {
+                    if bp.isEmpty {
+                        Text("No cuff readings yet.")
+                            .font(VTTypography.body())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
                     ForEach(bp) { reading in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("\(reading.displayValue) mmHg")
-                                .font(VTTypography.body().weight(.semibold))
-                            Text("\(reading.source.displayName) · \(reading.category.displayName)")
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text("\(reading.displayValue) mmHg")
+                                    .font(VTTypography.title(20))
+                                Spacer()
+                                VTSourceChip(reading.source.displayName)
+                            }
+                            Text(reading.category.displayName)
                                 .font(VTTypography.caption())
                                 .foregroundStyle(VTColors.textSecondary)
                             Text(reading.recordedAt.formatted(date: .abbreviated, time: .shortened))
                                 .font(VTTypography.caption())
-                                .foregroundStyle(VTColors.textTertiary)
+                                .foregroundStyle(VTColors.textSecondary)
                         }
+                        .padding(.vertical, 4)
                     }
                     .onDelete(perform: deleteBP)
                 } else {
+                    if hr.isEmpty {
+                        Text("No heart-rate samples yet.")
+                            .font(VTTypography.body())
+                            .foregroundStyle(VTColors.textSecondary)
+                    }
                     ForEach(hr) { sample in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("\(sample.displayBPM) BPM")
-                                .font(VTTypography.body().weight(.semibold))
-                            Text(sample.source.displayName)
-                                .font(VTTypography.caption())
-                                .foregroundStyle(VTColors.textSecondary)
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text("\(sample.displayBPM) BPM")
+                                    .font(VTTypography.title(20))
+                                Spacer()
+                                VTSourceChip(sample.source.displayName)
+                            }
                             Text(sample.recordedAt.formatted(date: .abbreviated, time: .shortened))
                                 .font(VTTypography.caption())
-                                .foregroundStyle(VTColors.textTertiary)
+                                .foregroundStyle(VTColors.textSecondary)
                         }
+                        .padding(.vertical, 4)
                     }
                 }
             }
             .scrollContentBackground(.hidden)
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("History")
         .task { await load() }
     }

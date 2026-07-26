@@ -11,6 +11,10 @@ Modular SwiftUI app + Swift Package libraries for logging vital signs with **str
 
 Canonical copy lives in `VitalTrackCore.TrustPolicy` and `VitalTrackDesignSystem.TrustCopy`.
 
+## UI (comfort-first)
+
+SwiftUI screens use a calm teal health aesthetic with **large type**, **56pt tap targets**, monitor-style BP entry, pulse ring for HR, atmosphere backgrounds, and plain-language labels (Home · Pulse · BP · Tips · More). Design tokens and components live in `VitalTrackDesignSystem`.
+
 ## Demo video (HTML walkthrough)
 
 Interactive iPhone-framed UI that mirrors the SwiftUI trust flow (onboarding → PPG HR → cuff BP → insights):

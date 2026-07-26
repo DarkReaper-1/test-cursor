@@ -63,7 +63,7 @@ struct SettingsView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("Settings")
     }
 

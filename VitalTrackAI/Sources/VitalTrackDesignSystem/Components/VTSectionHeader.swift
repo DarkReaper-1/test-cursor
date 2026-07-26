@@ -10,17 +10,18 @@ public struct VTSectionHeader: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(VTTypography.title(20))
                 .foregroundStyle(VTColors.textPrimary)
-            if let subtitle {
+                .accessibilityAddTraits(.isHeader)
+            if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
                     .font(VTTypography.caption())
                     .foregroundStyle(VTColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
     }
 }

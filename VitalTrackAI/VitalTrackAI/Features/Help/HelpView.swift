@@ -19,7 +19,12 @@ struct HelpView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("Help")
+        .safeAreaInset(edge: .top) {
+            VTDisclaimerBanner(.bloodPressure)
+                .padding(.horizontal)
+                .padding(.top, 8)
+        }
     }
 }

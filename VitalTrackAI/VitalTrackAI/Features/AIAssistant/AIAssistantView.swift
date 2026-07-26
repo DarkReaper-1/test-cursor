@@ -10,48 +10,54 @@ struct AIAssistantView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Insights")
-                        .font(VTTypography.display(34))
-                        .foregroundStyle(VTColors.brandPrimary)
-                    Text("Offline heuristics that describe patterns in your logs. Not a diagnosis.")
-                        .font(VTTypography.body(15))
-                        .foregroundStyle(VTColors.textSecondary)
+                VStack(alignment: .leading, spacing: 18) {
+                    VTScreenHeader(
+                        eyebrow: "Insights",
+                        title: "Plain-language tips",
+                        subtitle: "Patterns from your logs — never a diagnosis."
+                    )
 
-                    VTDisclaimerBanner(.insights)
-                    VTDisclaimerBanner(.bloodPressure)
+                    VTDisclaimerBanner(.custom(
+                        "Not a diagnosis. These tips are informational only and are not medical advice. Ask your clinician about your health."
+                    ))
 
-                    VTPrimaryButton(isLoading ? "Refreshing…" : "Refresh insights") {
+                    VTPrimaryButton(isLoading ? "Refreshing…" : "Refresh tips") {
                         Task { await refresh() }
                     }
                     .disabled(isLoading)
 
                     if insights.isEmpty {
                         VTEmptyState(
-                            title: "No insights yet",
-                            message: "Log a few BP cuff readings and heart rate samples to see informational trends.",
-                            systemImage: "sparkles"
+                            title: "No tips yet",
+                            message: "Log a few cuff blood pressure readings and a heart-rate check to unlock helpful patterns.",
+                            systemImage: "lightbulb"
                         )
                     } else {
                         ForEach(insights) { insight in
                             VTCard {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(insight.title)
-                                        .font(VTTypography.title(18))
-                                    Text(insight.body)
-                                        .font(VTTypography.body(15))
-                                        .foregroundStyle(VTColors.textSecondary)
-                                    Text(insight.severity.rawValue.capitalized)
-                                        .font(VTTypography.caption())
-                                        .foregroundStyle(VTColors.textTertiary)
+                                HStack(alignment: .top, spacing: 14) {
+                                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                        .fill(VTColors.brandPrimary)
+                                        .frame(width: 4)
+                                        .padding(.vertical, 2)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text(insight.title)
+                                            .font(VTTypography.title(20))
+                                            .foregroundStyle(VTColors.textPrimary)
+                                        Text(insight.body)
+                                            .font(VTTypography.body())
+                                            .foregroundStyle(VTColors.textSecondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        VTSourceChip(insight.severity.rawValue.capitalized)
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                .padding()
+                .padding(20)
             }
-            .background(VTColors.canvasGradient.ignoresSafeArea())
+            .background(VTAtmosphere())
             .task { await refresh() }
         }
     }
@@ -63,4 +69,9 @@ struct AIAssistantView: View {
             insights = await composition.environment.insightEngine.generateInsights(from: context)
         }
     }
+}
+
+#Preview {
+    AIAssistantView()
+        .environmentObject(AppComposition())
 }

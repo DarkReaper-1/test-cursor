@@ -8,31 +8,33 @@ struct SubscriptionView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Subscription")
-                    .font(VTTypography.display(32))
-                    .foregroundStyle(VTColors.brandPrimary)
-                Text("Choose Free or Premium. You can use core logging without upgrading. No countdown tricks, no fake urgency.")
-                    .font(VTTypography.body(15))
-                    .foregroundStyle(VTColors.textSecondary)
+            VStack(alignment: .leading, spacing: 18) {
+                VTScreenHeader(
+                    eyebrow: "Subscription",
+                    title: "Clear pricing",
+                    subtitle: "Use core logging free. Upgrade only if you want extras. No hidden trials."
+                )
+
+                VTDisclaimerBanner(.custom(
+                    "Premium never unlocks camera blood pressure. " + TrustCopy.shortBPBanner
+                ))
 
                 ForEach(SubscriptionTier.allCases) { tier in
-                    VTCard {
-                        VStack(alignment: .leading, spacing: 10) {
+                    VTCard(emphasized: session.settings.subscriptionTier == tier) {
+                        VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text(tier.displayName)
-                                    .font(VTTypography.title(20))
+                                    .font(VTTypography.title(22))
                                 Spacer()
                                 if session.settings.subscriptionTier == tier {
-                                    Text("Current")
-                                        .font(VTTypography.caption())
-                                        .foregroundStyle(VTColors.brandPrimary)
+                                    VTSourceChip("Current")
                                 }
                             }
                             ForEach(tier.features, id: \.self) { feature in
-                                Label(feature, systemImage: "checkmark")
-                                    .font(VTTypography.caption())
+                                Label(feature, systemImage: "checkmark.circle.fill")
+                                    .font(VTTypography.body())
                                     .foregroundStyle(VTColors.textSecondary)
+                                    .labelStyle(.titleAndIcon)
                             }
                             if session.settings.subscriptionTier != tier {
                                 VTPrimaryButton(tier == .free ? "Stay on Free" : "Upgrade to Premium") {
@@ -43,13 +45,13 @@ struct SubscriptionView: View {
                     }
                 }
 
-                Text("Premium is optional. Cancel anytime in your Apple ID subscriptions. VitalTrack AI still never claims camera blood pressure measurement.")
+                Text("Cancel anytime in Settings → Apple ID → Subscriptions. VitalTrack AI still never claims camera blood pressure measurement.")
                     .font(VTTypography.caption())
-                    .foregroundStyle(VTColors.textTertiary)
+                    .foregroundStyle(VTColors.textSecondary)
             }
-            .padding()
+            .padding(20)
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("Subscription")
     }
 

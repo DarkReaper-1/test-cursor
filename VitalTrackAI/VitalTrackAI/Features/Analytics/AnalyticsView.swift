@@ -9,10 +9,12 @@ struct AnalyticsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Analytics")
-                    .font(VTTypography.display(32))
-                    .foregroundStyle(VTColors.brandPrimary)
+            VStack(alignment: .leading, spacing: 18) {
+                VTScreenHeader(
+                    eyebrow: "Analytics",
+                    title: "Your trends",
+                    subtitle: "Charts from cuff and pulse logs you saved."
+                )
                 VTDisclaimerBanner(.insights)
                 VTDisclaimerBanner(.bloodPressure)
 
@@ -36,9 +38,9 @@ struct AnalyticsView: View {
 
                 simpleBars
             }
-            .padding()
+            .padding(20)
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .task { await load() }
     }
 

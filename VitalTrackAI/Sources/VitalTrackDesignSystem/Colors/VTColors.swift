@@ -7,6 +7,7 @@ public enum VTColors {
     public static let subtle = Color(red: 0.894, green: 0.937, blue: 0.925) // #E4EFEC
     public static let brandPrimary = Color(red: 0.039, green: 0.373, blue: 0.345) // #0A5F58
     public static let brandPrimaryPressed = Color(red: 0.031, green: 0.298, blue: 0.275)
+    public static let brandDeep = Color(red: 0.031, green: 0.298, blue: 0.275) // #084C46
     public static let brandSecondary = Color(red: 0.086, green: 0.247, blue: 0.341) // #163F57
     public static let accentSoft = Color(red: 0.310, green: 0.839, blue: 0.761)
     public static let textPrimary = Color(red: 0.039, green: 0.094, blue: 0.086) // #0A1816

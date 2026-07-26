@@ -5,19 +5,24 @@ import VitalTrackDesignSystem
 struct DevicesView: View {
     @EnvironmentObject private var composition: AppComposition
     @State private var discovered: [Device] = []
-    @State private var status = "Pair FDA-cleared Bluetooth blood pressure monitors."
+    @State private var status = "Pair FDA-cleared Bluetooth blood pressure monitors. If a cuff disconnects, move closer, power it on, and tap Connect again."
     @State private var errorMessage: String?
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Devices")
-                    .font(VTTypography.display(32))
-                    .foregroundStyle(VTColors.brandPrimary)
+            VStack(alignment: .leading, spacing: 18) {
+                VTScreenHeader(
+                    eyebrow: "Devices",
+                    title: "Connect a cuff",
+                    subtitle: "Bluetooth imports readings from real monitors."
+                )
                 VTDisclaimerBanner(.bloodPressure)
+
                 Text(status)
-                    .font(VTTypography.body(15))
+                    .font(VTTypography.body())
                     .foregroundStyle(VTColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 if let errorMessage {
                     Text(errorMessage)
                         .font(VTTypography.caption())
@@ -28,43 +33,48 @@ struct DevicesView: View {
                     VTPrimaryButton("Scan for cuffs") {
                         Task { await scan() }
                     }
-                    Button("Stop") {
+                    VTGhostButton("Stop") {
                         Task { await composition.bluetoothManager.stopScanning() }
                     }
-                    .foregroundStyle(VTColors.brandSecondary)
                 }
 
-                ForEach(discovered) { device in
-                    VTCard {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(device.name)
-                                    .font(VTTypography.body().weight(.semibold))
-                                Text(device.kind.displayName)
-                                    .font(VTTypography.caption())
-                                    .foregroundStyle(VTColors.textSecondary)
+                if discovered.isEmpty {
+                    VTEmptyState(
+                        title: "No monitors found yet",
+                        message: "Turn on your cuff’s Bluetooth mode, stay nearby, then scan again.",
+                        systemImage: "wave.3.right.circle"
+                    )
+                } else {
+                    ForEach(discovered) { device in
+                        VTCard {
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(device.name)
+                                        .font(VTTypography.title(18))
+                                    Text(device.kind.displayName)
+                                        .font(VTTypography.caption())
+                                        .foregroundStyle(VTColors.textSecondary)
+                                }
+                                Spacer()
+                                VTPrimaryButton("Connect") {
+                                    Task { await connect(device) }
+                                }
+                                .frame(width: 120)
                             }
-                            Spacer()
-                            Button("Connect") {
-                                Task { await connect(device) }
-                            }
-                            .foregroundStyle(VTColors.brandPrimary)
                         }
                     }
                 }
 
                 VTCard {
-                    VStack(alignment: .leading, spacing: 8) {
-                        VTSectionHeader("Scales", subtitle: "Coming later")
-                        Text("Scale pairing is stubbed. Blood pressure requires a cuff — not a scale or camera.")
-                            .font(VTTypography.caption())
-                            .foregroundStyle(VTColors.textSecondary)
-                    }
+                    VTSectionHeader(
+                        "Scales",
+                        subtitle: "Coming later. Blood pressure requires a cuff — not a scale or camera."
+                    )
                 }
             }
-            .padding()
+            .padding(20)
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("Devices")
     }
 

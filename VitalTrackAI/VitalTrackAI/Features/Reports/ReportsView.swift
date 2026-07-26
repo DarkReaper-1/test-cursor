@@ -10,10 +10,12 @@ struct ReportsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Reports")
-                    .font(VTTypography.display(32))
-                    .foregroundStyle(VTColors.brandPrimary)
+            VStack(alignment: .leading, spacing: 18) {
+                VTScreenHeader(
+                    eyebrow: "Reports",
+                    title: "Share with your doctor",
+                    subtitle: "Exports include source labels and honest disclaimers."
+                )
                 VTDisclaimerBanner(.custom(TrustCopy.medicalDisclaimer))
                 VTDisclaimerBanner(.bloodPressure)
 
@@ -40,9 +42,9 @@ struct ReportsView: View {
                     }
                 }
             }
-            .padding()
+            .padding(20)
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
+        .background(VTAtmosphere())
         .navigationTitle("Reports")
     }
 

@@ -6,21 +6,23 @@ struct RootView: View {
     @EnvironmentObject private var composition: AppComposition
 
     var body: some View {
-        Group {
-            switch session.phase {
-            case .splash:
-                SplashView()
-                    .task {
-                        await session.bootstrap(settingsStore: composition.settingsStore)
-                    }
-            case .onboarding:
-                OnboardingFlowView()
-            case .main:
-                MainTabView()
+        ZStack {
+            VTAtmosphere()
+            Group {
+                switch session.phase {
+                case .splash:
+                    SplashView()
+                        .task {
+                            await session.bootstrap(settingsStore: composition.settingsStore)
+                        }
+                case .onboarding:
+                    OnboardingFlowView()
+                case .main:
+                    MainTabView()
+                }
             }
         }
-        .background(VTColors.canvasGradient.ignoresSafeArea())
-        .animation(.easeInOut(duration: 0.28), value: session.phase)
+        .animation(.easeInOut(duration: 0.32), value: session.phase)
     }
 }
 
@@ -34,19 +36,19 @@ struct MainTabView: View {
                 .tag(AppTab.home)
 
             HeartRateView()
-                .tabItem { Label("Heart", systemImage: "heart.fill") }
+                .tabItem { Label("Pulse", systemImage: "waveform.path.ecg") }
                 .tag(AppTab.heart)
 
             BloodPressureView()
-                .tabItem { Label("BP", systemImage: "waveform.path.ecg") }
+                .tabItem { Label("BP", systemImage: "heart.text.square.fill") }
                 .tag(AppTab.bloodPressure)
 
             AIAssistantView()
-                .tabItem { Label("Insights", systemImage: "sparkles") }
+                .tabItem { Label("Tips", systemImage: "lightbulb.fill") }
                 .tag(AppTab.insights)
 
             MoreView()
-                .tabItem { Label("More", systemImage: "ellipsis.circle.fill") }
+                .tabItem { Label("More", systemImage: "line.3.horizontal") }
                 .tag(AppTab.more)
         }
         .tint(VTColors.brandPrimary)
