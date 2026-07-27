@@ -7,6 +7,7 @@ This repository contains independent projects:
 3. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
 4. **[PulseCheck](#pulsecheck)** — Flutter fingertip-camera heart-rate & HRV wellness app (Android + iOS)
 5. **[VitalTrack](#vitaltrack)** — Native SwiftUI iOS rebuild: camera heart rate + real blood pressure device/Health/CSV integration, analytics, reminders, reports
+6. **[VitalTrack (web)](#vitaltrack-web)** — Real, deployable browser version: actual camera-based heart rate measurement, no build step, deploys to Vercel
 
 ---
 
@@ -160,3 +161,17 @@ this into an Xcode project and build it.
 This is the newer, native-iOS-only counterpart to PulseCheck above (which
 stays cross-platform via Flutter) — pick whichever fits the platform
 target you actually want.
+
+---
+
+## VitalTrack (web)
+
+The one you can actually run today without a Mac: a real browser-based
+version with genuine camera-based heart rate measurement (no simulation),
+manual blood pressure logging, trend charts, and on-device insights.
+Plain HTML/CSS/JS, no build step, no account, no server — deploys to
+Vercel as a static site straight from this folder. Verified end-to-end
+with a real headless-browser test run (fake camera device, zero console
+errors) before being pushed. See
+[vitaltrack-web/README.md](vitaltrack-web/README.md) for the Windows +
+Vercel deployment walkthrough.

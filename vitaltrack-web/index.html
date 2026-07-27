@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VitalTrack — Heart & Blood Pressure Tracker</title>
+  <meta name="description" content="Real camera-based heart rate measurement and blood pressure logging. No account, no ads, nothing leaves your browser." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>VitalTrack</h1>
+    <span class="badge">No account · No ads</span>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="screen active" id="screen-dashboard">
+      <div class="card reading-card">
+        <div class="icon" aria-hidden="true">&#9829;</div>
+        <div style="flex:1">
+          <div class="label">Heart rate</div>
+          <div class="value" id="dash-hr-value">—</div>
+          <div class="sub" id="dash-hr-sub"></div>
+        </div>
+      </div>
+      <div class="card reading-card">
+        <div class="icon bp" aria-hidden="true">&#9679;</div>
+        <div style="flex:1">
+          <div class="label">Blood pressure</div>
+          <div class="value" id="dash-bp-value">—</div>
+          <div class="sub" id="dash-bp-sub"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-open-measure">Measure heart rate (camera)</button>
+      <button class="btn btn-outline" id="btn-open-logbp">Log blood pressure</button>
+    </section>
+
+    <!-- MEASURE -->
+    <section class="screen" id="screen-measure">
+      <div class="card">
+        <div class="measure-stage" id="measure-idle">
+          <div style="font-size:44px;">&#9829;</div>
+          <h2 style="margin:0;">Check your pulse</h2>
+          <p style="margin:0; color:var(--muted); font-size:14px;">
+            Cover your camera lens gently with your fingertip and hold still for about 20 seconds.
+            This uses your real camera — nothing is simulated.
+          </p>
+          <button class="btn btn-primary" id="btn-start-measure" style="width:auto; padding-inline:26px;">Start</button>
+        </div>
+
+        <div class="measure-stage" id="measure-running" style="display:none;">
+          <div class="pill pill-neutral" id="quality-pill">Starting…</div>
+          <div class="bpm-display" id="bpm-num">--</div>
+          <div class="bpm-unit">beats per minute</div>
+          <canvas id="wave" width="600" height="180"></canvas>
+          <div class="torch-note" id="torch-note" style="display:none;"></div>
+          <div style="display:flex; gap:12px; width:100%;">
+            <button class="btn btn-outline" id="btn-cancel-measure">Cancel</button>
+            <button class="btn btn-primary" id="btn-finish-measure" style="display:none;">Done</button>
+          </div>
+        </div>
+
+        <div class="measure-stage" id="measure-error" style="display:none;">
+          <div style="font-size:38px;">&#9888;</div>
+          <p id="measure-error-text" style="margin:0; color:var(--muted); font-size:14px;"></p>
+          <button class="btn btn-primary" id="btn-retry-measure" style="width:auto; padding-inline:26px;">Try again</button>
+        </div>
+
+        <div class="measure-stage" id="measure-done" style="display:none;">
+          <div class="bpm-display" id="result-bpm"></div>
+          <div class="bpm-unit" id="result-label">beats per minute — saved</div>
+          <p id="result-hrv" style="margin:0; font-size:12.5px; color:var(--muted);"></p>
+          <button class="btn btn-primary" id="btn-back-dashboard" style="width:auto; padding-inline:26px;">Back to dashboard</button>
+          <button class="btn btn-text" id="btn-measure-again">Measure again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOG BP -->
+    <section class="screen" id="screen-logbp">
+      <div class="card" style="display:flex; flex-direction:column; gap:14px;">
+        <p style="margin:0; font-size:13px; color:var(--muted);">Enter the reading from your blood pressure cuff.</p>
+        <div class="field">
+          <label for="bp-systolic">Systolic (top number)</label>
+          <input id="bp-systolic" type="number" inputmode="numeric" placeholder="e.g. 118" />
+        </div>
+        <div class="field">
+          <label for="bp-diastolic">Diastolic (bottom number)</label>
+          <input id="bp-diastolic" type="number" inputmode="numeric" placeholder="e.g. 76" />
+        </div>
+        <div class="field">
+          <label for="bp-pulse">Pulse from cuff (optional)</label>
+          <input id="bp-pulse" type="number" inputmode="numeric" placeholder="e.g. 70" />
+        </div>
+        <div class="field-error" id="bp-error"></div>
+        <button class="btn btn-primary" id="btn-save-bp">Save reading</button>
+        <button class="btn btn-text" id="btn-cancel-bp">Cancel</button>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="screen" id="screen-history">
+      <div class="tabbar">
+        <button class="active" data-history-tab="hr">Heart rate</button>
+        <button data-history-tab="bp">Blood pressure</button>
+      </div>
+      <div class="card" id="history-list"></div>
+    </section>
+
+    <!-- TRENDS -->
+    <section class="screen" id="screen-trends">
+      <div class="segmented">
+        <button class="active" data-range="7">7d</button>
+        <button data-range="30">30d</button>
+        <button data-range="90">90d</button>
+      </div>
+      <div class="section-title">Heart rate</div>
+      <div class="card"><canvas id="chart-hr" width="640" height="220" style="width:100%; height:130px;"></canvas></div>
+      <div class="section-title">Blood pressure</div>
+      <div class="card">
+        <canvas id="chart-bp" width="640" height="220" style="width:100%; height:130px;"></canvas>
+        <div class="legend">
+          <div class="item"><span class="swatch" style="background:#6b74d6"></span>Systolic</div>
+          <div class="item"><span class="swatch" style="background:#b7bcf0"></span>Diastolic</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="screen" id="screen-insights">
+      <div class="card" style="background:var(--surface-2); border:none;">
+        <p style="margin:0; font-size:12.5px; color:var(--text);">Lifestyle observations generated on-device from your own logged readings — not medical advice or a diagnosis.</p>
+      </div>
+      <div id="insights-list"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="screen-settings">
+      <div class="section-title">Export</div>
+      <div class="card">
+        <button class="btn btn-outline" id="btn-export-csv">Export as CSV</button>
+      </div>
+      <div class="section-title">Data &amp; privacy</div>
+      <div class="card">
+        <div class="settings-item" style="cursor:pointer;" id="btn-show-about">
+          <div class="title">About &amp; disclaimer</div>
+          <span aria-hidden="true">&rsaquo;</span>
+        </div>
+        <div class="settings-item" style="cursor:pointer;" id="btn-clear-data">
+          <div class="title" style="color:var(--danger);">Delete all data</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-scrim hidden" id="modal-scrim">
+    <div class="modal-sheet">
+      <h3>Before you start</h3>
+      <p>VitalTrack is a wellness tool, not a medical device.</p>
+      <ul>
+        <li>Heart rate is measured for real, using your device's camera and (when your browser allows it) its flash — a technique called photoplethysmography (PPG).</li>
+        <li>It does <strong>not</strong> measure blood pressure. Log readings from a real cuff instead.</li>
+        <li>Flash/torch control isn't available in every browser — notably iOS Safari has no web API for it at all. Without it, hold your fingertip gently over the lens near a bright lamp instead of in the dark.</li>
+        <li>Everything you enter stays in this browser's local storage. Nothing is sent to a server. Exporting a CSV is the only way data leaves.</li>
+        <li>Don't use this to diagnose or manage a medical condition — see a doctor if you feel unwell.</li>
+      </ul>
+      <button class="btn btn-primary" id="btn-ack-disclaimer">I understand</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="dashboard">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-btn" data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      History
+    </button>
+    <button class="nav-btn" data-tab="trends">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.5 15.5 10 12l2.7 2.3L18 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Trends
+    </button>
+    <button class="nav-btn" data-tab="insights">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M8 14a5 5 0 1 1 8 0c-.8.9-1.3 1.5-1.3 2.5h-5.4c0-1-.5-1.6-1.3-2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Insights
+    </button>
+    <button class="nav-btn" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.4-2.4 1a7.7 7.7 0 0 0-1.7-1L14.9 3h-3.8l-.4 2.6a7.7 7.7 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-1c.5.4 1.1.75 1.7 1l.4 2.6h3.8l.4-2.6a7.7 7.7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <p class="footnote">
+    Not a medical device. No phone camera or fingerprint sensor measures blood pressure — VitalTrack
+    estimates heart rate via real fingertip PPG and logs cuff-measured blood pressure you type in
+    yourself. Runs entirely in your browser; nothing you enter is sent anywhere.
+  </p>
+
+  <script src="js/store.js"></script>
+  <script src="js/ppg.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
