@@ -36,6 +36,27 @@ halal-detector/
   docs/       # Architecture notes
 ```
 
+## Demo video / interactive demo
+
+Browser demo (phone mockup with auto-tour):
+
+```bash
+cd halal-detector/demo
+python3 -m http.server 8788 --directory ../..
+# open http://127.0.0.1:8788/halal-detector/demo/index.html?demo=1
+```
+
+Record a phone-sized MP4 (Playwright + ffmpeg):
+
+```bash
+cd halal-detector/demo
+npm install
+npx playwright install chromium
+npm start   # in one terminal
+npm run demo
+# writes /opt/cursor/artifacts/halal-detector-demo.mp4
+```
+
 ## Quick start
 
 ### Backend
