@@ -1,0 +1,3078 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2026-07-27",
+  "disclaimer": "Informational only. Not a religious ruling. Verify uncertain cases with manufacturers or trusted local scholars.",
+  "ingredients": [
+    {
+      "id": "gelatin",
+      "name": "Gelatin",
+      "aliases": [
+        "gelatine",
+        "e441",
+        "pork gelatin",
+        "beef gelatin",
+        "fish gelatin"
+      ],
+      "e_number": "E441",
+      "category": "gelling_agent",
+      "default_status": "doubtful",
+      "definition": "A protein used to thicken or set foods like marshmallows, gummies, and yogurt.",
+      "scientific": "Derived by hydrolyzing collagen from animal skin, bones, or connective tissue. Source may be porcine, bovine, fish, or rarely plant alternatives (agar, pectin).",
+      "found_in": [
+        "Marshmallows",
+        "Gummy candies",
+        "Capsule medicines",
+        "Some yogurts",
+        "Jelly desserts"
+      ],
+      "reason_templates": {
+        "haram": "Contains pork gelatin or unspecified animal gelatin likely from non-halal sources.",
+        "doubtful": "Gelatin source is unknown. May come from pork, non-halal beef, or fish.",
+        "halal": "Gelatin is from a halal-certified source (halal beef or fish) or a plant alternative is used."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Most scholars treat pork gelatin as haram. Bovine gelatin requires halal slaughter. Fish gelatin is generally accepted.",
+        "hanafi": "Porcine gelatin is haram. Bovine gelatin depends on slaughter method.",
+        "shafii": "Same general ruling; caution urged when source is unclear.",
+        "maliki": "Avoid when porcine origin is possible.",
+        "hanbali": "Avoid doubtful animal gelatin.",
+        "custom_strictest": "Treat all unspecified gelatin as haram unless certified plant or fish with documentation."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "e120",
+      "name": "Carmine",
+      "aliases": [
+        "cochineal",
+        "carminic acid",
+        "natural red 4",
+        "e120",
+        "crimson lake"
+      ],
+      "e_number": "E120",
+      "category": "colorant",
+      "default_status": "haram",
+      "definition": "A red color made from cochineal insects.",
+      "scientific": "Extracted from Dactylopius coccus insects. Used in foods, drinks, and cosmetics.",
+      "found_in": [
+        "Yogurts",
+        "Candies",
+        "Juice drinks",
+        "Lipstick",
+        "Blush"
+      ],
+      "reason_templates": {
+        "haram": "Made from insects (cochineal). Widely considered haram.",
+        "doubtful": "May contain carmine; confirm label.",
+        "halal": "Product uses a plant-based red alternative instead of carmine."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Majority view: insect-derived carmine is not permissible.",
+        "hanafi": "Generally impermissible.",
+        "shafii": "Generally impermissible.",
+        "maliki": "Generally impermissible.",
+        "hanbali": "Generally impermissible.",
+        "custom_strictest": "Always avoid carmine / E120."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "e471",
+      "name": "Mono- and Diglycerides",
+      "aliases": [
+        "mono diglycerides",
+        "monoglycerides",
+        "diglycerides",
+        "e471",
+        "glyceryl monostearate"
+      ],
+      "e_number": "E471",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Emulsifiers that keep oil and water mixed in processed foods.",
+      "scientific": "Can be produced from plant oils or animal fats. Origin is often not stated on labels.",
+      "found_in": [
+        "Bread",
+        "Ice cream",
+        "Margarine",
+        "Chocolate",
+        "Baked goods"
+      ],
+      "reason_templates": {
+        "haram": "Confirmed animal-fat source that is not halal.",
+        "doubtful": "May come from plant or animal fat. Manufacturer verification required.",
+        "halal": "Manufacturer confirms plant-derived or halal-certified source."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Permissible if plant-derived or from halal animals; doubtful if source unknown.",
+        "hanafi": "Source matters; unknown origin is mashbooh.",
+        "shafii": "Source matters; unknown origin is mashbooh.",
+        "maliki": "Prefer plant-sourced confirmation.",
+        "hanbali": "Avoid when animal origin is possible without certification.",
+        "custom_strictest": "Treat as haram unless plant origin is documented."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "alcohol",
+      "name": "Alcohol",
+      "aliases": [
+        "ethanol",
+        "ethyl alcohol",
+        "grain alcohol",
+        "alcohol denat",
+        "sd alcohol"
+      ],
+      "e_number": null,
+      "category": "solvent",
+      "default_status": "haram",
+      "definition": "Ethanol used in drinks, extracts, medicines, and some cosmetics.",
+      "scientific": "Fermented or synthetic ethanol. Intoxicating when consumed. May remain as residue in flavors or medicines.",
+      "found_in": [
+        "Vanilla extract",
+        "Some sauces",
+        "Perfume",
+        "Cough syrup",
+        "Mouthwash"
+      ],
+      "reason_templates": {
+        "haram": "Contains alcohol (ethanol) that is intoxicating when consumed.",
+        "doubtful": "Alcohol-related solvent listed; concentration and remaining residue unclear.",
+        "halal": "No ethanol present, or only non-intoxicating industrial residue confirmed acceptable under selected standard."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Drinking alcohol is haram. Tiny process residues and external cosmetic alcohol are debated.",
+        "hanafi": "Consumable ethanol is haram; some allow minute non-intoxicating residues in food processing — opinions differ.",
+        "shafii": "Consumable ethanol is haram.",
+        "maliki": "Consumable ethanol is haram.",
+        "hanbali": "Consumable ethanol is haram.",
+        "custom_strictest": "Avoid any product listing ethanol/alcohol for ingestion; avoid alcohol-based perfume if following strictest custom setting."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "rennet",
+      "name": "Rennet",
+      "aliases": [
+        "animal rennet",
+        "calf rennet",
+        "microbial rennet",
+        "chymosin",
+        "enzymes"
+      ],
+      "e_number": null,
+      "category": "enzyme",
+      "default_status": "doubtful",
+      "definition": "An enzyme used to curdle milk when making cheese.",
+      "scientific": "Traditional rennet comes from calf stomach. Modern cheese often uses microbial or fermentation-produced chymosin (FPC).",
+      "found_in": [
+        "Hard cheeses",
+        "Soft cheeses",
+        "Some desserts"
+      ],
+      "reason_templates": {
+        "haram": "Animal rennet from non-halal slaughtered calves.",
+        "doubtful": "Rennet/enzyme source not specified. Could be animal or microbial.",
+        "halal": "Microbial or fermentation-produced rennet, or halal-certified animal rennet."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Microbial rennet is widely accepted. Animal rennet requires halal slaughter.",
+        "hanafi": "Some classical views discuss rennet of lawful animals; modern caution still applies when source unknown.",
+        "shafii": "Animal rennet from non-halal slaughter is problematic; microbial preferred.",
+        "maliki": "Prefer confirmed microbial or halal source.",
+        "hanbali": "Prefer confirmed microbial or halal source.",
+        "custom_strictest": "Only accept explicitly microbial/FPC or certified halal rennet."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "shellac",
+      "name": "Shellac",
+      "aliases": [
+        "confectioners glaze",
+        "e904",
+        "resinous glaze",
+        "food glaze"
+      ],
+      "e_number": "E904",
+      "category": "glazing_agent",
+      "default_status": "doubtful",
+      "definition": "A glaze made from lac insect resin, used on candies and pills.",
+      "scientific": "Secreted by Kerria lacca insects, processed into food-grade shellac.",
+      "found_in": [
+        "Candy coatings",
+        "Chocolate lentils",
+        "Tablet coatings",
+        "Fruit coatings"
+      ],
+      "reason_templates": {
+        "haram": "Insect-derived glaze considered impermissible under selected strict standard.",
+        "doubtful": "Shellac is insect-derived; scholarly opinions differ on permissibility.",
+        "halal": "Accepted under selected school as a purified secretion, or a plant glaze alternative is used."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Opinions differ; some permit as a secretion, others avoid insect products.",
+        "hanafi": "Some contemporary scholars permit; others advise caution.",
+        "shafii": "Opinions differ.",
+        "maliki": "Opinions differ.",
+        "hanbali": "Opinions differ.",
+        "custom_strictest": "Avoid shellac / E904."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "lard",
+      "name": "Lard",
+      "aliases": [
+        "pork fat",
+        "pig fat",
+        "bacon fat"
+      ],
+      "e_number": null,
+      "category": "fat",
+      "default_status": "haram",
+      "definition": "Fat from pigs.",
+      "scientific": "Rendered porcine adipose tissue used in baking and frying.",
+      "found_in": [
+        "Some pie crusts",
+        "Refried beans",
+        "Pastries",
+        "Traditional lard soaps"
+      ],
+      "reason_templates": {
+        "haram": "Contains lard (pork fat).",
+        "doubtful": "May contain animal fat; pork risk not ruled out.",
+        "halal": "No lard; vegetable shortening or permitted fat used."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Pork and its derivatives are haram by consensus.",
+        "hanafi": "Haram.",
+        "shafii": "Haram.",
+        "maliki": "Haram.",
+        "hanbali": "Haram.",
+        "custom_strictest": "Haram."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "vanilla_extract",
+      "name": "Vanilla Extract",
+      "aliases": [
+        "pure vanilla extract",
+        "vanilla essence"
+      ],
+      "e_number": null,
+      "category": "flavor",
+      "default_status": "doubtful",
+      "definition": "Flavoring made by soaking vanilla beans, often in alcohol.",
+      "scientific": "US standards of identity for pure vanilla extract typically require ethanol. Alcohol-free vanilla flavorings also exist.",
+      "found_in": [
+        "Baked goods",
+        "Ice cream",
+        "Frosting",
+        "Beverages"
+      ],
+      "reason_templates": {
+        "haram": "Made with consumable alcohol and used as an alcoholic extract.",
+        "doubtful": "Vanilla extract often contains alcohol; remaining alcohol and scholarly view vary.",
+        "halal": "Alcohol-free vanilla flavoring or certified alcohol-free process."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Many advise alcohol-free vanilla. Some discuss cooked-off alcohol — opinions differ.",
+        "hanafi": "Opinions differ on residual alcohol in cooked foods.",
+        "shafii": "Caution recommended.",
+        "maliki": "Caution recommended.",
+        "hanbali": "Caution recommended.",
+        "custom_strictest": "Only accept alcohol-free vanilla."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "natural_flavors",
+      "name": "Natural Flavors",
+      "aliases": [
+        "natural flavour",
+        "natural flavouring",
+        "natural flavoring"
+      ],
+      "e_number": null,
+      "category": "flavor",
+      "default_status": "doubtful",
+      "definition": "A broad label for flavor compounds from plant or animal sources.",
+      "scientific": "US/EU regulations allow many natural sources, including animal derivatives and alcohol carriers, without detailing origin on the label.",
+      "found_in": [
+        "Snacks",
+        "Drinks",
+        "Candies",
+        "Cereals",
+        "Dairy products"
+      ],
+      "reason_templates": {
+        "haram": "Manufacturer confirmed animal or alcohol-based flavor that is not halal.",
+        "doubtful": "Natural flavors cannot be verified from the label alone.",
+        "halal": "Manufacturer or certification confirms halal-suitable natural flavors."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Unknown natural flavors are mashbooh until source is verified.",
+        "hanafi": "Verify source.",
+        "shafii": "Verify source.",
+        "maliki": "Verify source.",
+        "hanbali": "Verify source.",
+        "custom_strictest": "Treat unspecified natural flavors as avoid."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "pepsin",
+      "name": "Pepsin",
+      "aliases": [
+        "porcine pepsin",
+        "animal pepsin"
+      ],
+      "e_number": null,
+      "category": "enzyme",
+      "default_status": "doubtful",
+      "definition": "A digestive enzyme sometimes used in food processing or supplements.",
+      "scientific": "Often extracted from porcine stomach lining; microbial alternatives exist.",
+      "found_in": [
+        "Cheese processing",
+        "Supplements",
+        "Some protein hydrolysates"
+      ],
+      "reason_templates": {
+        "haram": "Porcine pepsin.",
+        "doubtful": "Pepsin source not stated.",
+        "halal": "Microbial or halal-certified pepsin."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Porcine enzymes are haram; source must be known.",
+        "hanafi": "Avoid porcine enzymes.",
+        "shafii": "Avoid porcine enzymes.",
+        "maliki": "Avoid porcine enzymes.",
+        "hanbali": "Avoid porcine enzymes.",
+        "custom_strictest": "Avoid unless microbial source documented."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "whey",
+      "name": "Whey",
+      "aliases": [
+        "whey protein",
+        "whey powder",
+        "sweet whey"
+      ],
+      "e_number": null,
+      "category": "dairy",
+      "default_status": "doubtful",
+      "definition": "The liquid part of milk left after cheese making.",
+      "scientific": "Halal status can depend on whether the cheese process used animal rennet from non-halal sources.",
+      "found_in": [
+        "Protein powders",
+        "Bread",
+        "Snacks",
+        "Infant formula"
+      ],
+      "reason_templates": {
+        "haram": "Whey from cheese made with non-halal animal rennet.",
+        "doubtful": "Whey origin/rennet process not specified.",
+        "halal": "Whey from microbial rennet process or halal-certified dairy."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Depends on rennet used in upstream cheese production.",
+        "hanafi": "Some classical nuance on rennet; modern practice still prefers clarity.",
+        "shafii": "Prefer verified source.",
+        "maliki": "Prefer verified source.",
+        "hanbali": "Prefer verified source.",
+        "custom_strictest": "Require halal-certified whey."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "l_cysteine",
+      "name": "L-Cysteine",
+      "aliases": [
+        "cysteine",
+        "e920",
+        "l cysteine"
+      ],
+      "e_number": "E920",
+      "category": "dough_conditioner",
+      "default_status": "doubtful",
+      "definition": "An amino acid used to soften dough in industrial baking.",
+      "scientific": "Historically sourced from human hair or animal feathers/bristles; today often produced by fermentation.",
+      "found_in": [
+        "Bread",
+        "Bagels",
+        "Pizza dough"
+      ],
+      "reason_templates": {
+        "haram": "Human-hair or non-halal animal sourced L-cysteine.",
+        "doubtful": "L-cysteine source not specified.",
+        "halal": "Fermentation-produced or plant/microbial certified L-cysteine."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Human-derived is rejected by most scholars; microbial preferred.",
+        "hanafi": "Avoid human-derived; verify source.",
+        "shafii": "Avoid human-derived; verify source.",
+        "maliki": "Avoid human-derived; verify source.",
+        "hanbali": "Avoid human-derived; verify source.",
+        "custom_strictest": "Only fermentation-certified L-cysteine."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "glycerin",
+      "name": "Glycerin",
+      "aliases": [
+        "glycerine",
+        "glycerol",
+        "e422",
+        "vegetable glycerin",
+        "animal glycerin"
+      ],
+      "e_number": "E422",
+      "category": "humectant",
+      "default_status": "doubtful",
+      "definition": "A sweet, moisture-holding liquid used in foods, medicines, and cosmetics.",
+      "scientific": "Can be made from plant oils or animal fats.",
+      "found_in": [
+        "Cake icing",
+        "Toothpaste",
+        "Soap",
+        "Cough syrup",
+        "Creams"
+      ],
+      "reason_templates": {
+        "haram": "Animal glycerin from non-halal source.",
+        "doubtful": "Glycerin source (plant vs animal) not specified.",
+        "halal": "Vegetable glycerin or halal-certified glycerin."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant glycerin is fine; animal glycerin needs halal source.",
+        "hanafi": "Source matters.",
+        "shafii": "Source matters.",
+        "maliki": "Source matters.",
+        "hanbali": "Source matters.",
+        "custom_strictest": "Require vegetable glycerin label."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "keratin",
+      "name": "Keratin",
+      "aliases": [
+        "hydrolyzed keratin",
+        "animal keratin"
+      ],
+      "e_number": null,
+      "category": "cosmetic_protein",
+      "default_status": "doubtful",
+      "definition": "A protein from hair, horns, or feathers used in hair and skin products.",
+      "scientific": "Usually animal-derived; used in shampoos and treatments.",
+      "found_in": [
+        "Shampoo",
+        "Hair masks",
+        "Nail hardeners"
+      ],
+      "reason_templates": {
+        "haram": "Keratin from impermissible animal source used in a way considered impure under selected view.",
+        "doubtful": "Animal keratin source unclear; external-use rulings can differ.",
+        "halal": "Plant/synthetic keratin alternative or accepted external-use ruling with known source."
+      },
+      "scholarly_notes": {
+        "general_sunni": "External cosmetic use may be treated differently from ingestion; source still matters to many users.",
+        "hanafi": "External use debated; prefer alternatives if source doubtful.",
+        "shafii": "External use debated.",
+        "maliki": "External use debated.",
+        "hanbali": "External use debated.",
+        "custom_strictest": "Avoid animal keratin."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "lanolin",
+      "name": "Lanolin",
+      "aliases": [
+        "wool wax",
+        "wool grease",
+        "wool alcohol"
+      ],
+      "e_number": null,
+      "category": "emollient",
+      "default_status": "doubtful",
+      "definition": "A wax from sheep wool used in creams and lip balms.",
+      "scientific": "Secreted by sheep sebaceous glands; refined for cosmetics and ointments.",
+      "found_in": [
+        "Lip balm",
+        "Nipple cream",
+        "Lotions",
+        "Some soaps"
+      ],
+      "reason_templates": {
+        "haram": "Rejected under selected strict custom setting.",
+        "doubtful": "Animal-derived wool grease; generally accepted by many but some prefer to avoid.",
+        "halal": "Widely treated as permissible wool derivative for external use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Often considered permissible as a wool secretion, not flesh.",
+        "hanafi": "Generally acceptable externally.",
+        "shafii": "Generally acceptable externally.",
+        "maliki": "Generally acceptable externally.",
+        "hanbali": "Generally acceptable externally.",
+        "custom_strictest": "Prefer plant emollients instead of lanolin."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "collagen",
+      "name": "Collagen",
+      "aliases": [
+        "animal collagen",
+        "marine collagen",
+        "bovine collagen",
+        "porcine collagen"
+      ],
+      "e_number": null,
+      "category": "protein",
+      "default_status": "doubtful",
+      "definition": "A structural protein used in supplements, drinks, and cosmetics.",
+      "scientific": "Commonly from cow hide, pig skin, or fish. Source determines status.",
+      "found_in": [
+        "Beauty drinks",
+        "Supplements",
+        "Creams",
+        "Gummies"
+      ],
+      "reason_templates": {
+        "haram": "Porcine collagen or non-halal bovine collagen.",
+        "doubtful": "Collagen source not specified.",
+        "halal": "Fish or certified-halal bovine collagen."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Pork collagen haram; bovine needs halal slaughter; fish generally accepted.",
+        "hanafi": "Source critical.",
+        "shafii": "Source critical.",
+        "maliki": "Source critical.",
+        "hanbali": "Source critical.",
+        "custom_strictest": "Only fish or certified collagen."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "citric_acid",
+      "name": "Citric Acid",
+      "aliases": [
+        "e330",
+        "citrate"
+      ],
+      "e_number": "E330",
+      "category": "acidulant",
+      "default_status": "halal",
+      "definition": "A souring and preservative agent, usually from fermenting sugars.",
+      "scientific": "Typically produced by Aspergillus niger fermentation of carbohydrate substrates.",
+      "found_in": [
+        "Soft drinks",
+        "Candies",
+        "Canned foods",
+        "Cosmetics"
+      ],
+      "reason_templates": {
+        "haram": "Rare non-standard process using impermissible medium — uncommon.",
+        "doubtful": "Production medium unverified in unusual specialty products.",
+        "halal": "Standard fermentation-derived citric acid is widely accepted as halal."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Generally halal.",
+        "hanafi": "Generally halal.",
+        "shafii": "Generally halal.",
+        "maliki": "Generally halal.",
+        "hanbali": "Generally halal.",
+        "custom_strictest": "Accept standard food-grade citric acid."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "sugar",
+      "name": "Sugar",
+      "aliases": [
+        "sucrose",
+        "cane sugar",
+        "beet sugar",
+        "white sugar"
+      ],
+      "e_number": null,
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Common sweetener from sugarcane or sugar beets.",
+      "scientific": "Bone char is sometimes used in cane sugar refining in some regions; beet sugar does not use bone char. This is a known point of caution for some consumers.",
+      "found_in": [
+        "Most packaged foods",
+        "Drinks",
+        "Desserts"
+      ],
+      "reason_templates": {
+        "haram": "Not typically classified haram; bone-char refining is a purification debate, not pork ingredient addition.",
+        "doubtful": "Cane sugar refining method unknown (bone char concern for some).",
+        "halal": "Sugar is generally halal; beet sugar or certified refining avoids bone-char concerns."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Sugar itself is halal. Bone-char filtering is a minority caution topic.",
+        "hanafi": "Generally accepted.",
+        "shafii": "Generally accepted.",
+        "maliki": "Generally accepted.",
+        "hanbali": "Generally accepted.",
+        "custom_strictest": "Prefer beet sugar or certified bone-char-free sugar."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "aliases": [
+        "aqua",
+        "purified water"
+      ],
+      "e_number": null,
+      "category": "base",
+      "default_status": "halal",
+      "definition": "Water.",
+      "scientific": "H2O.",
+      "found_in": [
+        "Almost all products"
+      ],
+      "reason_templates": {
+        "haram": "N/A",
+        "doubtful": "N/A",
+        "halal": "Water is halal."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Halal.",
+        "hanafi": "Halal.",
+        "shafii": "Halal.",
+        "maliki": "Halal.",
+        "hanbali": "Halal.",
+        "custom_strictest": "Halal."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "pork",
+      "name": "Pork",
+      "aliases": [
+        "pig",
+        "swine",
+        "bacon",
+        "ham",
+        "pork enzyme",
+        "porcine"
+      ],
+      "e_number": null,
+      "category": "meat",
+      "default_status": "haram",
+      "definition": "Meat or derivatives from pigs.",
+      "scientific": "Sus scrofa domesticus tissues and by-products.",
+      "found_in": [
+        "Meat products",
+        "Some enzymes",
+        "Some gelatin",
+        "Some flavorings"
+      ],
+      "reason_templates": {
+        "haram": "Contains pork or a pork derivative.",
+        "doubtful": "Possible pork derivative not confirmed.",
+        "halal": "No pork derivatives."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Pork is haram by clear textual consensus.",
+        "hanafi": "Haram.",
+        "shafii": "Haram.",
+        "maliki": "Haram.",
+        "hanbali": "Haram.",
+        "custom_strictest": "Haram."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "e441",
+      "name": "E441 (Gelatin)",
+      "aliases": [
+        "e 441"
+      ],
+      "e_number": "E441",
+      "category": "gelling_agent",
+      "default_status": "doubtful",
+      "definition": "European code for gelatin.",
+      "scientific": "See gelatin.",
+      "found_in": [
+        "Candies",
+        "Desserts",
+        "Capsules"
+      ],
+      "reason_templates": {
+        "haram": "Pork gelatin (E441).",
+        "doubtful": "E441 gelatin source unknown.",
+        "halal": "Halal-certified E441."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Same as gelatin.",
+        "hanafi": "Same as gelatin.",
+        "shafii": "Same as gelatin.",
+        "maliki": "Same as gelatin.",
+        "hanbali": "Same as gelatin.",
+        "custom_strictest": "Avoid unspecified E441."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "emulsifier",
+      "name": "Emulsifier",
+      "aliases": [
+        "emulsifiers",
+        "emulsifying salts"
+      ],
+      "e_number": null,
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Generic label for substances that stabilize mixtures of oil and water.",
+      "scientific": "May include lecithin, mono/diglycerides, polysorbates — plant or animal origin possible.",
+      "found_in": [
+        "Chocolate",
+        "Ice cream",
+        "Margarine",
+        "Dressings"
+      ],
+      "reason_templates": {
+        "haram": "Animal emulsifier from non-halal source.",
+        "doubtful": "Unspecified emulsifier; origin not verified.",
+        "halal": "Plant emulsifier confirmed."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Verify source when unspecified.",
+        "hanafi": "Verify source.",
+        "shafii": "Verify source.",
+        "maliki": "Verify source.",
+        "hanbali": "Verify source.",
+        "custom_strictest": "Avoid unspecified emulsifiers."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "enzyme",
+      "name": "Enzyme",
+      "aliases": [
+        "enzymes",
+        "food enzymes",
+        "processing enzymes"
+      ],
+      "e_number": null,
+      "category": "enzyme",
+      "default_status": "doubtful",
+      "definition": "Biological catalysts used in food and medicine manufacturing.",
+      "scientific": "May be microbial, plant, or animal-derived.",
+      "found_in": [
+        "Cheese",
+        "Bread",
+        "Juice",
+        "Supplements"
+      ],
+      "reason_templates": {
+        "haram": "Animal enzyme from non-halal source.",
+        "doubtful": "Enzyme source not specified.",
+        "halal": "Microbial enzymes that are halal certified or commonly accepted."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Microbial enzymes generally accepted; animal enzymes need verification.",
+        "hanafi": "Source matters.",
+        "shafii": "Source matters.",
+        "maliki": "Source matters.",
+        "hanbali": "Source matters.",
+        "custom_strictest": "Require microbial/halal-certified enzymes."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "polysorbate_80",
+      "name": "Polysorbate 80",
+      "aliases": [
+        "e433",
+        "tween 80"
+      ],
+      "e_number": "E433",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "An emulsifier used in ice cream, medicines, and cosmetics.",
+      "scientific": "Produced from sorbitol and oleic acid; oleic acid may be plant or animal derived.",
+      "found_in": [
+        "Ice cream",
+        "Vaccines/meds (inactive)",
+        "Cosmetics",
+        "Sauces"
+      ],
+      "reason_templates": {
+        "haram": "Animal-derived fatty acid source that is not halal.",
+        "doubtful": "Fatty acid origin for polysorbate not specified.",
+        "halal": "Plant-derived polysorbate confirmed."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Depends on oleic acid source.",
+        "hanafi": "Verify source.",
+        "shafii": "Verify source.",
+        "maliki": "Verify source.",
+        "hanbali": "Verify source.",
+        "custom_strictest": "Require plant-derived confirmation."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "lecithin",
+      "name": "Lecithin",
+      "aliases": [
+        "soy lecithin",
+        "sunflower lecithin",
+        "e322",
+        "egg lecithin"
+      ],
+      "e_number": "E322",
+      "category": "emulsifier",
+      "default_status": "halal",
+      "definition": "An emulsifier commonly from soy or sunflower; rarely from egg.",
+      "scientific": "Phospholipid mixture. Soy/sunflower are plant; egg lecithin is animal but generally from eggs, not pork.",
+      "found_in": [
+        "Chocolate",
+        "Supplements",
+        "Margarine",
+        "Spray oils"
+      ],
+      "reason_templates": {
+        "haram": "Not typically haram unless contaminated with impermissible additives.",
+        "doubtful": "Unspecified lecithin with possible allergen/process concerns.",
+        "halal": "Soy or sunflower lecithin is widely accepted as halal."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant lecithin is halal. Egg lecithin generally accepted if pure.",
+        "hanafi": "Plant lecithin halal.",
+        "shafii": "Plant lecithin halal.",
+        "maliki": "Plant lecithin halal.",
+        "hanbali": "Plant lecithin halal.",
+        "custom_strictest": "Prefer soy/sunflower lecithin explicitly labeled."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "aliases": [
+        "pure honey"
+      ],
+      "e_number": null,
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Natural sweetener produced by bees.",
+      "scientific": "Nectar processed by bees into honey.",
+      "found_in": [
+        "Tea",
+        "Desserts",
+        "Remedies",
+        "Cereals"
+      ],
+      "reason_templates": {
+        "haram": "N/A",
+        "doubtful": "N/A",
+        "halal": "Honey is halal."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Halal and praised in Islamic tradition as a wholesome food.",
+        "hanafi": "Halal.",
+        "shafii": "Halal.",
+        "maliki": "Halal.",
+        "hanbali": "Halal.",
+        "custom_strictest": "Halal."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "agar",
+      "name": "Agar-Agar",
+      "aliases": [
+        "agar",
+        "e406",
+        "vegetable gelatin"
+      ],
+      "e_number": "E406",
+      "category": "gelling_agent",
+      "default_status": "halal",
+      "definition": "A plant gel made from seaweed; common halal alternative to gelatin.",
+      "scientific": "Polysaccharides extracted from red algae.",
+      "found_in": [
+        "Vegan gummies",
+        "Desserts",
+        "Microbiology media",
+        "Jellies"
+      ],
+      "reason_templates": {
+        "haram": "N/A",
+        "doubtful": "N/A",
+        "halal": "Seaweed-derived agar is a halal gelling agent."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Halal plant alternative to gelatin.",
+        "hanafi": "Halal.",
+        "shafii": "Halal.",
+        "maliki": "Halal.",
+        "hanbali": "Halal.",
+        "custom_strictest": "Halal."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "pectin",
+      "name": "Pectin",
+      "aliases": [
+        "e440",
+        "fruit pectin"
+      ],
+      "e_number": "E440",
+      "category": "gelling_agent",
+      "default_status": "halal",
+      "definition": "A plant fiber gel from fruit, used in jams and candies.",
+      "scientific": "Polysaccharide from citrus peels or apple pomace.",
+      "found_in": [
+        "Jam",
+        "Jelly candies",
+        "Yogurt",
+        "Fillings"
+      ],
+      "reason_templates": {
+        "haram": "N/A",
+        "doubtful": "N/A",
+        "halal": "Plant-derived pectin is halal."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Halal.",
+        "hanafi": "Halal.",
+        "shafii": "Halal.",
+        "maliki": "Halal.",
+        "hanbali": "Halal.",
+        "custom_strictest": "Halal."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "animal_shortening",
+      "name": "Animal Shortening",
+      "aliases": [
+        "animal fat",
+        "beef fat",
+        "tallow",
+        "dripping"
+      ],
+      "e_number": null,
+      "category": "fat",
+      "default_status": "doubtful",
+      "definition": "Cooking fat from animals.",
+      "scientific": "Rendered animal adipose tissue. Halal only if from permitted animals slaughtered Islamically.",
+      "found_in": [
+        "Pastries",
+        "Fried foods",
+        "Some margarines",
+        "Traditional recipes"
+      ],
+      "reason_templates": {
+        "haram": "Pork fat or non-halal slaughtered animal fat.",
+        "doubtful": "Animal fat source/slaughter method unknown.",
+        "halal": "Halal-slaughtered animal fat or plant shortening."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Requires lawful animal and slaughter method.",
+        "hanafi": "Source and slaughter matter.",
+        "shafii": "Source and slaughter matter.",
+        "maliki": "Source and slaughter matter.",
+        "hanbali": "Source and slaughter matter.",
+        "custom_strictest": "Prefer plant shortening only."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "wine_vinegar",
+      "name": "Wine Vinegar",
+      "aliases": [
+        "red wine vinegar",
+        "white wine vinegar"
+      ],
+      "e_number": null,
+      "category": "condiment",
+      "default_status": "doubtful",
+      "definition": "Vinegar produced from wine.",
+      "scientific": "Ethanol in wine is converted by acetic acid bacteria into acetic acid. Classical and contemporary scholars differ on wine-origin vinegar.",
+      "found_in": [
+        "Salad dressings",
+        "Pickles",
+        "Sauces",
+        "Marinades"
+      ],
+      "reason_templates": {
+        "haram": "Treated as impermissible under selected strict custom setting.",
+        "doubtful": "Scholarly opinions differ on vinegar derived from wine.",
+        "halal": "Accepted under selected school as transformed vinegar, or apple/spirit vinegar alternative used."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Many scholars permit vinegar after transformation; some prefer non-wine vinegar.",
+        "hanafi": "Often permitted after it becomes vinegar.",
+        "shafii": "Nuanced; many permit genuine vinegar.",
+        "maliki": "Nuanced.",
+        "hanbali": "Nuanced.",
+        "custom_strictest": "Prefer apple cider or distilled vinegar not labeled as wine vinegar."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e100",
+      "name": "Curcumin",
+      "aliases": [
+        "E100",
+        "e100",
+        "curcumin"
+      ],
+      "e_number": "E100",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Usually plant-derived turmeric color.",
+      "scientific": "Usually plant-derived turmeric color.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Curcumin confirmed from an impermissible source.",
+        "doubtful": "Curcumin (E100) may require source verification.",
+        "halal": "Curcumin is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Usually plant-derived turmeric color.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e101",
+      "name": "Riboflavin",
+      "aliases": [
+        "E101",
+        "e101",
+        "riboflavin"
+      ],
+      "e_number": "E101",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Vitamin B2 color; typically fermentation.",
+      "scientific": "Vitamin B2 color; typically fermentation.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Riboflavin confirmed from an impermissible source.",
+        "doubtful": "Riboflavin (E101) may require source verification.",
+        "halal": "Riboflavin is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Vitamin B2 color; typically fermentation.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e140",
+      "name": "Chlorophylls",
+      "aliases": [
+        "E140",
+        "e140",
+        "chlorophylls"
+      ],
+      "e_number": "E140",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Plant leaf pigments.",
+      "scientific": "Plant leaf pigments.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Chlorophylls confirmed from an impermissible source.",
+        "doubtful": "Chlorophylls (E140) may require source verification.",
+        "halal": "Chlorophylls is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant leaf pigments.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e150a",
+      "name": "Plain Caramel",
+      "aliases": [
+        "E150A",
+        "e150a",
+        "plain caramel"
+      ],
+      "e_number": "E150A",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Caramel color from sugars.",
+      "scientific": "Caramel color from sugars.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Plain Caramel confirmed from an impermissible source.",
+        "doubtful": "Plain Caramel (E150A) may require source verification.",
+        "halal": "Plain Caramel is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Caramel color from sugars.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e160a",
+      "name": "Carotene",
+      "aliases": [
+        "E160A",
+        "e160a",
+        "carotene"
+      ],
+      "e_number": "E160A",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Usually plant or synthetic beta-carotene.",
+      "scientific": "Usually plant or synthetic beta-carotene.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Carotene confirmed from an impermissible source.",
+        "doubtful": "Carotene (E160A) may require source verification.",
+        "halal": "Carotene is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Usually plant or synthetic beta-carotene.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e160c",
+      "name": "Paprika Extract",
+      "aliases": [
+        "E160C",
+        "e160c",
+        "paprika extract"
+      ],
+      "e_number": "E160C",
+      "category": "colorant",
+      "default_status": "halal",
+      "definition": "Plant color from peppers.",
+      "scientific": "Plant color from peppers.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Paprika Extract confirmed from an impermissible source.",
+        "doubtful": "Paprika Extract (E160C) may require source verification.",
+        "halal": "Paprika Extract is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant color from peppers.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e200",
+      "name": "Sorbic Acid",
+      "aliases": [
+        "E200",
+        "e200",
+        "sorbic acid"
+      ],
+      "e_number": "E200",
+      "category": "preservative",
+      "default_status": "halal",
+      "definition": "Common preservative.",
+      "scientific": "Common preservative.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sorbic Acid confirmed from an impermissible source.",
+        "doubtful": "Sorbic Acid (E200) may require source verification.",
+        "halal": "Sorbic Acid is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Common preservative.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e202",
+      "name": "Potassium Sorbate",
+      "aliases": [
+        "E202",
+        "e202",
+        "potassium sorbate"
+      ],
+      "e_number": "E202",
+      "category": "preservative",
+      "default_status": "halal",
+      "definition": "Common preservative salt.",
+      "scientific": "Common preservative salt.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Potassium Sorbate confirmed from an impermissible source.",
+        "doubtful": "Potassium Sorbate (E202) may require source verification.",
+        "halal": "Potassium Sorbate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Common preservative salt.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e211",
+      "name": "Sodium Benzoate",
+      "aliases": [
+        "E211",
+        "e211",
+        "sodium benzoate"
+      ],
+      "e_number": "E211",
+      "category": "preservative",
+      "default_status": "halal",
+      "definition": "Common preservative.",
+      "scientific": "Common preservative.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sodium Benzoate confirmed from an impermissible source.",
+        "doubtful": "Sodium Benzoate (E211) may require source verification.",
+        "halal": "Sodium Benzoate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Common preservative.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e221",
+      "name": "Sodium Sulfite",
+      "aliases": [
+        "E221",
+        "e221",
+        "sodium sulfite"
+      ],
+      "e_number": "E221",
+      "category": "preservative",
+      "default_status": "halal",
+      "definition": "Preservative / antioxidant.",
+      "scientific": "Preservative / antioxidant.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sodium Sulfite confirmed from an impermissible source.",
+        "doubtful": "Sodium Sulfite (E221) may require source verification.",
+        "halal": "Sodium Sulfite is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Preservative / antioxidant.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e250",
+      "name": "Sodium Nitrite",
+      "aliases": [
+        "E250",
+        "e250",
+        "sodium nitrite"
+      ],
+      "e_number": "E250",
+      "category": "preservative",
+      "default_status": "doubtful",
+      "definition": "Used in cured meats — verify meat source.",
+      "scientific": "Used in cured meats — verify meat source.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sodium Nitrite confirmed from an impermissible source.",
+        "doubtful": "Sodium Nitrite (E250) may require source verification.",
+        "halal": "Sodium Nitrite is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Used in cured meats — verify meat source. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e252",
+      "name": "Potassium Nitrate",
+      "aliases": [
+        "E252",
+        "e252",
+        "potassium nitrate"
+      ],
+      "e_number": "E252",
+      "category": "preservative",
+      "default_status": "doubtful",
+      "definition": "Used in cured meats — verify meat source.",
+      "scientific": "Used in cured meats — verify meat source.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Potassium Nitrate confirmed from an impermissible source.",
+        "doubtful": "Potassium Nitrate (E252) may require source verification.",
+        "halal": "Potassium Nitrate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Used in cured meats — verify meat source. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e270",
+      "name": "Lactic Acid",
+      "aliases": [
+        "E270",
+        "e270",
+        "lactic acid"
+      ],
+      "e_number": "E270",
+      "category": "acidulant",
+      "default_status": "halal",
+      "definition": "Usually fermentation-derived.",
+      "scientific": "Usually fermentation-derived.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Lactic Acid confirmed from an impermissible source.",
+        "doubtful": "Lactic Acid (E270) may require source verification.",
+        "halal": "Lactic Acid is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Usually fermentation-derived.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e296",
+      "name": "Malic Acid",
+      "aliases": [
+        "E296",
+        "e296",
+        "malic acid"
+      ],
+      "e_number": "E296",
+      "category": "acidulant",
+      "default_status": "halal",
+      "definition": "Fruit acid / synthetic.",
+      "scientific": "Fruit acid / synthetic.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Malic Acid confirmed from an impermissible source.",
+        "doubtful": "Malic Acid (E296) may require source verification.",
+        "halal": "Malic Acid is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fruit acid / synthetic.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e300",
+      "name": "Ascorbic Acid",
+      "aliases": [
+        "E300",
+        "e300",
+        "ascorbic acid"
+      ],
+      "e_number": "E300",
+      "category": "antioxidant",
+      "default_status": "halal",
+      "definition": "Vitamin C.",
+      "scientific": "Vitamin C.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Ascorbic Acid confirmed from an impermissible source.",
+        "doubtful": "Ascorbic Acid (E300) may require source verification.",
+        "halal": "Ascorbic Acid is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Vitamin C.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e306",
+      "name": "Tocopherols",
+      "aliases": [
+        "E306",
+        "e306",
+        "tocopherols"
+      ],
+      "e_number": "E306",
+      "category": "antioxidant",
+      "default_status": "halal",
+      "definition": "Vitamin E; usually plant.",
+      "scientific": "Vitamin E; usually plant.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Tocopherols confirmed from an impermissible source.",
+        "doubtful": "Tocopherols (E306) may require source verification.",
+        "halal": "Tocopherols is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Vitamin E; usually plant.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e407",
+      "name": "Carrageenan",
+      "aliases": [
+        "E407",
+        "e407",
+        "carrageenan"
+      ],
+      "e_number": "E407",
+      "category": "gelling_agent",
+      "default_status": "halal",
+      "definition": "Seaweed extract.",
+      "scientific": "Seaweed extract.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Carrageenan confirmed from an impermissible source.",
+        "doubtful": "Carrageenan (E407) may require source verification.",
+        "halal": "Carrageenan is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Seaweed extract.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e410",
+      "name": "Locust Bean Gum",
+      "aliases": [
+        "E410",
+        "e410",
+        "locust bean gum"
+      ],
+      "e_number": "E410",
+      "category": "thickener",
+      "default_status": "halal",
+      "definition": "Plant gum.",
+      "scientific": "Plant gum.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Locust Bean Gum confirmed from an impermissible source.",
+        "doubtful": "Locust Bean Gum (E410) may require source verification.",
+        "halal": "Locust Bean Gum is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant gum.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e412",
+      "name": "Guar Gum",
+      "aliases": [
+        "E412",
+        "e412",
+        "guar gum"
+      ],
+      "e_number": "E412",
+      "category": "thickener",
+      "default_status": "halal",
+      "definition": "Plant gum.",
+      "scientific": "Plant gum.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Guar Gum confirmed from an impermissible source.",
+        "doubtful": "Guar Gum (E412) may require source verification.",
+        "halal": "Guar Gum is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant gum.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e415",
+      "name": "Xanthan Gum",
+      "aliases": [
+        "E415",
+        "e415",
+        "xanthan gum"
+      ],
+      "e_number": "E415",
+      "category": "thickener",
+      "default_status": "halal",
+      "definition": "Fermentation gum.",
+      "scientific": "Fermentation gum.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Xanthan Gum confirmed from an impermissible source.",
+        "doubtful": "Xanthan Gum (E415) may require source verification.",
+        "halal": "Xanthan Gum is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fermentation gum.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e420",
+      "name": "Sorbitol",
+      "aliases": [
+        "E420",
+        "e420",
+        "sorbitol"
+      ],
+      "e_number": "E420",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Sugar alcohol; usually plant.",
+      "scientific": "Sugar alcohol; usually plant.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sorbitol confirmed from an impermissible source.",
+        "doubtful": "Sorbitol (E420) may require source verification.",
+        "halal": "Sorbitol is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Sugar alcohol; usually plant.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e421",
+      "name": "Mannitol",
+      "aliases": [
+        "E421",
+        "e421",
+        "mannitol"
+      ],
+      "e_number": "E421",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Sugar alcohol.",
+      "scientific": "Sugar alcohol.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Mannitol confirmed from an impermissible source.",
+        "doubtful": "Mannitol (E421) may require source verification.",
+        "halal": "Mannitol is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Sugar alcohol.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e430",
+      "name": "Polyoxyethylene Stearate",
+      "aliases": [
+        "E430",
+        "e430",
+        "polyoxyethylene stearate"
+      ],
+      "e_number": "E430",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fatty acid origin may vary.",
+      "scientific": "Fatty acid origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Polyoxyethylene Stearate confirmed from an impermissible source.",
+        "doubtful": "Polyoxyethylene Stearate (E430) may require source verification.",
+        "halal": "Polyoxyethylene Stearate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fatty acid origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e432",
+      "name": "Polysorbate 20",
+      "aliases": [
+        "E432",
+        "e432",
+        "polysorbate 20"
+      ],
+      "e_number": "E432",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fatty acid origin may vary.",
+      "scientific": "Fatty acid origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Polysorbate 20 confirmed from an impermissible source.",
+        "doubtful": "Polysorbate 20 (E432) may require source verification.",
+        "halal": "Polysorbate 20 is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fatty acid origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e435",
+      "name": "Polysorbate 60",
+      "aliases": [
+        "E435",
+        "e435",
+        "polysorbate 60"
+      ],
+      "e_number": "E435",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fatty acid origin may vary.",
+      "scientific": "Fatty acid origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Polysorbate 60 confirmed from an impermissible source.",
+        "doubtful": "Polysorbate 60 (E435) may require source verification.",
+        "halal": "Polysorbate 60 is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fatty acid origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e442",
+      "name": "Ammonium Phosphatides",
+      "aliases": [
+        "E442",
+        "e442",
+        "ammonium phosphatides"
+      ],
+      "e_number": "E442",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "May involve animal fats.",
+      "scientific": "May involve animal fats.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Ammonium Phosphatides confirmed from an impermissible source.",
+        "doubtful": "Ammonium Phosphatides (E442) may require source verification.",
+        "halal": "Ammonium Phosphatides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "May involve animal fats. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e450",
+      "name": "Diphosphates",
+      "aliases": [
+        "E450",
+        "e450",
+        "diphosphates"
+      ],
+      "e_number": "E450",
+      "category": "stabilizer",
+      "default_status": "halal",
+      "definition": "Mineral phosphate salts.",
+      "scientific": "Mineral phosphate salts.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Diphosphates confirmed from an impermissible source.",
+        "doubtful": "Diphosphates (E450) may require source verification.",
+        "halal": "Diphosphates is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Mineral phosphate salts.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e460",
+      "name": "Cellulose",
+      "aliases": [
+        "E460",
+        "e460",
+        "cellulose"
+      ],
+      "e_number": "E460",
+      "category": "bulking_agent",
+      "default_status": "halal",
+      "definition": "Plant fiber.",
+      "scientific": "Plant fiber.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Cellulose confirmed from an impermissible source.",
+        "doubtful": "Cellulose (E460) may require source verification.",
+        "halal": "Cellulose is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant fiber.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e472a",
+      "name": "Acetic Acid Esters of Mono- and Diglycerides",
+      "aliases": [
+        "E472A",
+        "e472a",
+        "acetic acid esters of mono- and diglycerides"
+      ],
+      "e_number": "E472A",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Acetic Acid Esters of Mono- and Diglycerides confirmed from an impermissible source.",
+        "doubtful": "Acetic Acid Esters of Mono- and Diglycerides (E472A) may require source verification.",
+        "halal": "Acetic Acid Esters of Mono- and Diglycerides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e472b",
+      "name": "Lactic Acid Esters of Mono- and Diglycerides",
+      "aliases": [
+        "E472B",
+        "e472b",
+        "lactic acid esters of mono- and diglycerides"
+      ],
+      "e_number": "E472B",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Lactic Acid Esters of Mono- and Diglycerides confirmed from an impermissible source.",
+        "doubtful": "Lactic Acid Esters of Mono- and Diglycerides (E472B) may require source verification.",
+        "halal": "Lactic Acid Esters of Mono- and Diglycerides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e472c",
+      "name": "Citric Acid Esters of Mono- and Diglycerides",
+      "aliases": [
+        "E472C",
+        "e472c",
+        "citric acid esters of mono- and diglycerides"
+      ],
+      "e_number": "E472C",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Citric Acid Esters of Mono- and Diglycerides confirmed from an impermissible source.",
+        "doubtful": "Citric Acid Esters of Mono- and Diglycerides (E472C) may require source verification.",
+        "halal": "Citric Acid Esters of Mono- and Diglycerides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e472e",
+      "name": "DATEM",
+      "aliases": [
+        "E472E",
+        "e472e",
+        "datem"
+      ],
+      "e_number": "E472E",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "DATEM confirmed from an impermissible source.",
+        "doubtful": "DATEM (E472E) may require source verification.",
+        "halal": "DATEM is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e473",
+      "name": "Sucrose Esters of Fatty Acids",
+      "aliases": [
+        "E473",
+        "e473",
+        "sucrose esters of fatty acids"
+      ],
+      "e_number": "E473",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sucrose Esters of Fatty Acids confirmed from an impermissible source.",
+        "doubtful": "Sucrose Esters of Fatty Acids (E473) may require source verification.",
+        "halal": "Sucrose Esters of Fatty Acids is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e475",
+      "name": "Polyglycerol Esters of Fatty Acids",
+      "aliases": [
+        "E475",
+        "e475",
+        "polyglycerol esters of fatty acids"
+      ],
+      "e_number": "E475",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Fat origin may vary.",
+      "scientific": "Fat origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Polyglycerol Esters of Fatty Acids confirmed from an impermissible source.",
+        "doubtful": "Polyglycerol Esters of Fatty Acids (E475) may require source verification.",
+        "halal": "Polyglycerol Esters of Fatty Acids is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Fat origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e476",
+      "name": "Polyglycerol Polyricinoleate",
+      "aliases": [
+        "E476",
+        "e476",
+        "polyglycerol polyricinoleate"
+      ],
+      "e_number": "E476",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Often castor oil — verify.",
+      "scientific": "Often castor oil — verify.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Polyglycerol Polyricinoleate confirmed from an impermissible source.",
+        "doubtful": "Polyglycerol Polyricinoleate (E476) may require source verification.",
+        "halal": "Polyglycerol Polyricinoleate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Often castor oil — verify. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e481",
+      "name": "Sodium Stearoyl Lactylate",
+      "aliases": [
+        "E481",
+        "e481",
+        "sodium stearoyl lactylate"
+      ],
+      "e_number": "E481",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Stearic acid may be plant/animal.",
+      "scientific": "Stearic acid may be plant/animal.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sodium Stearoyl Lactylate confirmed from an impermissible source.",
+        "doubtful": "Sodium Stearoyl Lactylate (E481) may require source verification.",
+        "halal": "Sodium Stearoyl Lactylate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Stearic acid may be plant/animal. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e482",
+      "name": "Calcium Stearoyl Lactylate",
+      "aliases": [
+        "E482",
+        "e482",
+        "calcium stearoyl lactylate"
+      ],
+      "e_number": "E482",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Stearic acid may be plant/animal.",
+      "scientific": "Stearic acid may be plant/animal.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Calcium Stearoyl Lactylate confirmed from an impermissible source.",
+        "doubtful": "Calcium Stearoyl Lactylate (E482) may require source verification.",
+        "halal": "Calcium Stearoyl Lactylate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Stearic acid may be plant/animal. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e491",
+      "name": "Sorbitan Monostearate",
+      "aliases": [
+        "E491",
+        "e491",
+        "sorbitan monostearate"
+      ],
+      "e_number": "E491",
+      "category": "emulsifier",
+      "default_status": "doubtful",
+      "definition": "Stearate origin may vary.",
+      "scientific": "Stearate origin may vary.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sorbitan Monostearate confirmed from an impermissible source.",
+        "doubtful": "Sorbitan Monostearate (E491) may require source verification.",
+        "halal": "Sorbitan Monostearate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Stearate origin may vary. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e500",
+      "name": "Sodium Carbonates",
+      "aliases": [
+        "E500",
+        "e500",
+        "sodium carbonates"
+      ],
+      "e_number": "E500",
+      "category": "acidity_regulator",
+      "default_status": "halal",
+      "definition": "Mineral salts.",
+      "scientific": "Mineral salts.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sodium Carbonates confirmed from an impermissible source.",
+        "doubtful": "Sodium Carbonates (E500) may require source verification.",
+        "halal": "Sodium Carbonates is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Mineral salts.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e501",
+      "name": "Potassium Carbonates",
+      "aliases": [
+        "E501",
+        "e501",
+        "potassium carbonates"
+      ],
+      "e_number": "E501",
+      "category": "acidity_regulator",
+      "default_status": "halal",
+      "definition": "Mineral salts.",
+      "scientific": "Mineral salts.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Potassium Carbonates confirmed from an impermissible source.",
+        "doubtful": "Potassium Carbonates (E501) may require source verification.",
+        "halal": "Potassium Carbonates is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Mineral salts.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e503",
+      "name": "Ammonium Carbonates",
+      "aliases": [
+        "E503",
+        "e503",
+        "ammonium carbonates"
+      ],
+      "e_number": "E503",
+      "category": "acidity_regulator",
+      "default_status": "halal",
+      "definition": "Mineral salts.",
+      "scientific": "Mineral salts.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Ammonium Carbonates confirmed from an impermissible source.",
+        "doubtful": "Ammonium Carbonates (E503) may require source verification.",
+        "halal": "Ammonium Carbonates is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Mineral salts.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e620",
+      "name": "Glutamic Acid",
+      "aliases": [
+        "E620",
+        "e620",
+        "glutamic acid"
+      ],
+      "e_number": "E620",
+      "category": "flavor_enhancer",
+      "default_status": "doubtful",
+      "definition": "May be plant/microbial/animal process.",
+      "scientific": "May be plant/microbial/animal process.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Glutamic Acid confirmed from an impermissible source.",
+        "doubtful": "Glutamic Acid (E620) may require source verification.",
+        "halal": "Glutamic Acid is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "May be plant/microbial/animal process. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e621",
+      "name": "Monosodium Glutamate",
+      "aliases": [
+        "E621",
+        "e621",
+        "monosodium glutamate"
+      ],
+      "e_number": "E621",
+      "category": "flavor_enhancer",
+      "default_status": "halal",
+      "definition": "Usually fermentation; widely accepted.",
+      "scientific": "Usually fermentation; widely accepted.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Monosodium Glutamate confirmed from an impermissible source.",
+        "doubtful": "Monosodium Glutamate (E621) may require source verification.",
+        "halal": "Monosodium Glutamate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Usually fermentation; widely accepted.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e627",
+      "name": "Disodium Guanylate",
+      "aliases": [
+        "E627",
+        "e627",
+        "disodium guanylate"
+      ],
+      "e_number": "E627",
+      "category": "flavor_enhancer",
+      "default_status": "doubtful",
+      "definition": "May be meat or microbial.",
+      "scientific": "May be meat or microbial.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Disodium Guanylate confirmed from an impermissible source.",
+        "doubtful": "Disodium Guanylate (E627) may require source verification.",
+        "halal": "Disodium Guanylate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "May be meat or microbial. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e631",
+      "name": "Disodium Inosinate",
+      "aliases": [
+        "E631",
+        "e631",
+        "disodium inosinate"
+      ],
+      "e_number": "E631",
+      "category": "flavor_enhancer",
+      "default_status": "doubtful",
+      "definition": "May be meat or microbial.",
+      "scientific": "May be meat or microbial.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Disodium Inosinate confirmed from an impermissible source.",
+        "doubtful": "Disodium Inosinate (E631) may require source verification.",
+        "halal": "Disodium Inosinate is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "May be meat or microbial. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e635",
+      "name": "Disodium 5'-Ribonucleotides",
+      "aliases": [
+        "E635",
+        "e635",
+        "disodium 5'-ribonucleotides"
+      ],
+      "e_number": "E635",
+      "category": "flavor_enhancer",
+      "default_status": "doubtful",
+      "definition": "May be meat or microbial.",
+      "scientific": "May be meat or microbial.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Disodium 5'-Ribonucleotides confirmed from an impermissible source.",
+        "doubtful": "Disodium 5'-Ribonucleotides (E635) may require source verification.",
+        "halal": "Disodium 5'-Ribonucleotides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "May be meat or microbial. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e901",
+      "name": "Beeswax",
+      "aliases": [
+        "E901",
+        "e901",
+        "beeswax"
+      ],
+      "e_number": "E901",
+      "category": "glazing_agent",
+      "default_status": "doubtful",
+      "definition": "Insect secretion — opinions differ.",
+      "scientific": "Insect secretion — opinions differ.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Beeswax confirmed from an impermissible source.",
+        "doubtful": "Beeswax (E901) may require source verification.",
+        "halal": "Beeswax is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Insect secretion — opinions differ. Source verification recommended.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Avoid if origin is unspecified."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "e903",
+      "name": "Carnauba Wax",
+      "aliases": [
+        "E903",
+        "e903",
+        "carnauba wax"
+      ],
+      "e_number": "E903",
+      "category": "glazing_agent",
+      "default_status": "halal",
+      "definition": "Plant wax.",
+      "scientific": "Plant wax.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Carnauba Wax confirmed from an impermissible source.",
+        "doubtful": "Carnauba Wax (E903) may require source verification.",
+        "halal": "Carnauba Wax is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Plant wax.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e950",
+      "name": "Acesulfame K",
+      "aliases": [
+        "E950",
+        "e950",
+        "acesulfame k"
+      ],
+      "e_number": "E950",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Synthetic sweetener.",
+      "scientific": "Synthetic sweetener.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Acesulfame K confirmed from an impermissible source.",
+        "doubtful": "Acesulfame K (E950) may require source verification.",
+        "halal": "Acesulfame K is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Synthetic sweetener.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e951",
+      "name": "Aspartame",
+      "aliases": [
+        "E951",
+        "e951",
+        "aspartame"
+      ],
+      "e_number": "E951",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Synthetic sweetener.",
+      "scientific": "Synthetic sweetener.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Aspartame confirmed from an impermissible source.",
+        "doubtful": "Aspartame (E951) may require source verification.",
+        "halal": "Aspartame is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Synthetic sweetener.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e955",
+      "name": "Sucralose",
+      "aliases": [
+        "E955",
+        "e955",
+        "sucralose"
+      ],
+      "e_number": "E955",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Synthetic sweetener.",
+      "scientific": "Synthetic sweetener.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Sucralose confirmed from an impermissible source.",
+        "doubtful": "Sucralose (E955) may require source verification.",
+        "halal": "Sucralose is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Synthetic sweetener.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e960",
+      "name": "Steviol Glycosides",
+      "aliases": [
+        "E960",
+        "e960",
+        "steviol glycosides"
+      ],
+      "e_number": "E960",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Stevia plant sweetener.",
+      "scientific": "Stevia plant sweetener.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Steviol Glycosides confirmed from an impermissible source.",
+        "doubtful": "Steviol Glycosides (E960) may require source verification.",
+        "halal": "Steviol Glycosides is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Stevia plant sweetener.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e965",
+      "name": "Maltitol",
+      "aliases": [
+        "E965",
+        "e965",
+        "maltitol"
+      ],
+      "e_number": "E965",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Sugar alcohol.",
+      "scientific": "Sugar alcohol.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Maltitol confirmed from an impermissible source.",
+        "doubtful": "Maltitol (E965) may require source verification.",
+        "halal": "Maltitol is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Sugar alcohol.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "e967",
+      "name": "Xylitol",
+      "aliases": [
+        "E967",
+        "e967",
+        "xylitol"
+      ],
+      "e_number": "E967",
+      "category": "sweetener",
+      "default_status": "halal",
+      "definition": "Sugar alcohol.",
+      "scientific": "Sugar alcohol.",
+      "found_in": [
+        "Processed foods"
+      ],
+      "reason_templates": {
+        "haram": "Xylitol confirmed from an impermissible source.",
+        "doubtful": "Xylitol (E967) may require source verification.",
+        "halal": "Xylitol is generally accepted as halal in standard food use."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Sugar alcohol.",
+        "hanafi": "Follow source verification when origin can vary.",
+        "shafii": "Follow source verification when origin can vary.",
+        "maliki": "Follow source verification when origin can vary.",
+        "hanbali": "Follow source verification when origin can vary.",
+        "custom_strictest": "Acceptable."
+      },
+      "differs_by_school": false,
+      "color_blind_token": "green"
+    },
+    {
+      "id": "ethanol",
+      "name": "Ethanol",
+      "aliases": [
+        "ethanol"
+      ],
+      "e_number": null,
+      "category": "solvent",
+      "default_status": "haram",
+      "definition": "Ethanol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Ethanol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Ethanol).",
+        "doubtful": "Ethanol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Ethanol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "red"
+    },
+    {
+      "id": "isopropyl_alcohol",
+      "name": "Isopropyl Alcohol",
+      "aliases": [
+        "isopropyl alcohol"
+      ],
+      "e_number": null,
+      "category": "solvent",
+      "default_status": "doubtful",
+      "definition": "Isopropyl Alcohol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Isopropyl Alcohol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Isopropyl Alcohol).",
+        "doubtful": "Isopropyl Alcohol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Isopropyl Alcohol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "cetyl_alcohol",
+      "name": "Cetyl Alcohol",
+      "aliases": [
+        "cetyl alcohol"
+      ],
+      "e_number": null,
+      "category": "cosmetic_emollient",
+      "default_status": "doubtful",
+      "definition": "Cetyl Alcohol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Cetyl Alcohol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Cetyl Alcohol).",
+        "doubtful": "Cetyl Alcohol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Cetyl Alcohol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "stearyl_alcohol",
+      "name": "Stearyl Alcohol",
+      "aliases": [
+        "stearyl alcohol"
+      ],
+      "e_number": null,
+      "category": "cosmetic_emollient",
+      "default_status": "doubtful",
+      "definition": "Stearyl Alcohol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Stearyl Alcohol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Stearyl Alcohol).",
+        "doubtful": "Stearyl Alcohol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Stearyl Alcohol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "benzyl_alcohol",
+      "name": "Benzyl Alcohol",
+      "aliases": [
+        "benzyl alcohol"
+      ],
+      "e_number": null,
+      "category": "preservative",
+      "default_status": "doubtful",
+      "definition": "Benzyl Alcohol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Benzyl Alcohol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Benzyl Alcohol).",
+        "doubtful": "Benzyl Alcohol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Benzyl Alcohol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    },
+    {
+      "id": "fatty_alcohol",
+      "name": "Fatty Alcohol",
+      "aliases": [
+        "fatty alcohol"
+      ],
+      "e_number": null,
+      "category": "cosmetic_emollient",
+      "default_status": "doubtful",
+      "definition": "Fatty Alcohol appears on some food/cosmetic labels. Status depends on type and use.",
+      "scientific": "Fatty Alcohol is an alcohol-class ingredient; consumable ethanol is distinct from many fatty alcohols used externally.",
+      "found_in": [
+        "Cosmetics",
+        "Medicines",
+        "Some foods"
+      ],
+      "reason_templates": {
+        "haram": "Contains consumable intoxicating alcohol (Fatty Alcohol).",
+        "doubtful": "Fatty Alcohol needs context (food vs cosmetic, remaining amount, source).",
+        "halal": "Fatty Alcohol assessed as acceptable in this context."
+      },
+      "scholarly_notes": {
+        "general_sunni": "Distinguish ethanol for drinking from fatty alcohols in cosmetics; opinions vary on residues.",
+        "hanafi": "Context matters; ask a scholar for edge cases.",
+        "shafii": "Context matters; ask a scholar for edge cases.",
+        "maliki": "Context matters; ask a scholar for edge cases.",
+        "hanbali": "Context matters; ask a scholar for edge cases.",
+        "custom_strictest": "Avoid ambiguous alcohol listings when possible."
+      },
+      "differs_by_school": true,
+      "color_blind_token": "amber"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "jakim",
+      "name": "JAKIM",
+      "full_name": "Department of Islamic Development Malaysia",
+      "country": "Malaysia",
+      "verification_url": "https://www.halal.gov.my/",
+      "aliases": [
+        "jakim halal",
+        "malaysia halal"
+      ]
+    },
+    {
+      "id": "mui",
+      "name": "MUI",
+      "full_name": "Majelis Ulama Indonesia",
+      "country": "Indonesia",
+      "verification_url": "https://halalmui.org/",
+      "aliases": [
+        "mui halal",
+        "lppom mui"
+      ]
+    },
+    {
+      "id": "ifanca",
+      "name": "IFANCA",
+      "full_name": "Islamic Food and Nutrition Council of America",
+      "country": "United States",
+      "verification_url": "https://ifanca.org/",
+      "aliases": [
+        "crescent m",
+        "ifanca halal"
+      ]
+    },
+    {
+      "id": "hmc",
+      "name": "Halal Monitoring Committee",
+      "full_name": "Halal Monitoring Committee",
+      "country": "United Kingdom",
+      "verification_url": "https://www.halalhmc.org/",
+      "aliases": [
+        "hmc",
+        "halal monitoring committee"
+      ]
+    },
+    {
+      "id": "hfa",
+      "name": "HFA",
+      "full_name": "Halal Food Authority",
+      "country": "United Kingdom",
+      "verification_url": "https://halalfoodauthority.com/",
+      "aliases": [
+        "halal food authority"
+      ]
+    },
+    {
+      "id": "hfsaa",
+      "name": "HFSAA",
+      "full_name": "Halal Food Standards Alliance of America",
+      "country": "United States",
+      "verification_url": "https://hfsaa.org/",
+      "aliases": [
+        "hfsaa halal"
+      ]
+    },
+    {
+      "id": "sanha",
+      "name": "SANHA",
+      "full_name": "South African National Halal Authority",
+      "country": "South Africa",
+      "verification_url": "https://www.sanha.co.za/",
+      "aliases": [
+        "sanha halal"
+      ]
+    },
+    {
+      "id": "halal_india",
+      "name": "Jamiat Ulama Halal",
+      "full_name": "Jamiat Ulama-i-Hind Halal Trust / related Indian bodies",
+      "country": "India",
+      "verification_url": null,
+      "aliases": [
+        "india halal",
+        "jamiat halal"
+      ]
+    }
+  ],
+  "daily_tips": [
+    "When a label says “natural flavors,” ask the manufacturer about animal or alcohol sources.",
+    "Gelatin in vitamins is often pork-based — look for “halal gelatin” or cellulose capsules.",
+    "E120 (carmine) is insect-based red color. Beet or paprika colors are common alternatives.",
+    "Microbial rennet cheeses are usually easier to verify than animal rennet cheeses.",
+    "This app shares information, not a fatwa. For tough cases, ask a trusted local scholar.",
+    "Lipstick and blush may contain carmine. Check color additives on the ingredient list.",
+    "Alcohol-free vanilla is widely available for baking.",
+    "Agar and pectin are plant gels that replace gelatin in many desserts."
+  ]
+}

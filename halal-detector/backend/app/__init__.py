@@ -1,0 +1,1 @@
+"""Halal Detector API."""

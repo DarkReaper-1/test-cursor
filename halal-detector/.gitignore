@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.db
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+.env
+*.pyc
+.DS_Store
+coverage/
+.turbo/
