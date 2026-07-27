@@ -2,10 +2,31 @@
 
 This repository contains independent projects:
 
-1. **[VitalTrack AI](#vitaltrack-ai)** — Trust-first iOS cardiovascular tracking (SwiftUI)
-2. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
-3. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
-4. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+1. **[Halal Detector](#halal-detector)** — Cross-platform AI-powered Halal / Doubtful / Haram scanner (Expo + FastAPI)
+2. **[VitalTrack AI](#vitaltrack-ai)** — Trust-first iOS cardiovascular tracking (SwiftUI)
+3. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
+4. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
+5. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+
+---
+
+## Halal Detector
+
+Accessible mobile app for adults 40+ that analyzes barcodes, ingredient lists, medicines, cosmetics, and restaurant menus. Includes offline E-number database, scholar modes, voice assistant, and AI chat.
+
+```bash
+cd halal-detector/backend
+python3 -m pip install -r requirements.txt
+PYTHONPATH=. python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+cd ../mobile
+npm install
+npx expo start
+```
+
+Details: [halal-detector/README.md](halal-detector/README.md)
+
+> Informational only — not a religious ruling. Unknown ingredient origins are labeled Doubtful.
 
 ---
 

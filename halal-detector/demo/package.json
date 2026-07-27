@@ -1,0 +1,11 @@
+{
+  "name": "halal-detector-demo",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8788 --directory ../..",
+    "demo": "node record-demo.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}
