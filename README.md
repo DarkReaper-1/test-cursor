@@ -6,6 +6,7 @@ This repository contains independent projects:
 2. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 3. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
 4. **[PulseCheck](#pulsecheck)** — Flutter fingertip-camera heart-rate & HRV wellness app (Android + iOS)
+5. **[VitalTrack](#vitaltrack)** — Native SwiftUI iOS rebuild: camera heart rate + real blood pressure device/Health/CSV integration, analytics, reminders, reports
 
 ---
 
@@ -141,3 +142,21 @@ wellness app (Flutter, Android + iOS). Not a medical device and does not
 measure blood pressure — see [pulsecheck/README.md](pulsecheck/README.md)
 for the research behind the design and [pulsecheck/SETUP.md](pulsecheck/SETUP.md)
 for how to build and run it.
+
+---
+
+## VitalTrack
+
+A native SwiftUI/iOS rebuild of the same idea at a larger scope: camera
+heart rate measurement, plus real blood pressure tracking (manual entry,
+a standards-based Bluetooth cuff integration, Apple Health import, CSV
+import — never phone-estimated), trend charts, on-device rule-based
+insights, local reminders, and CSV/PDF export. Built around one rule:
+never mislead the user about what the app can and can't measure — see
+[vitaltrack/docs/PRD.md](vitaltrack/docs/PRD.md) for the full product
+reasoning and [vitaltrack/SETUP.md](vitaltrack/SETUP.md) for how to turn
+this into an Xcode project and build it.
+
+This is the newer, native-iOS-only counterpart to PulseCheck above (which
+stays cross-platform via Flutter) — pick whichever fits the platform
+target you actually want.
