@@ -106,7 +106,7 @@ function renderStatus() {
   const need = xpToNextLevel(state.level);
   $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
   $("#xp-text").textContent = `${state.xp} / ${need} XP`;
-  $("#streak-text").textContent = `Streak: ${state.streak} days`;
+  $("#streak-text").textContent = `${state.streak} day streak`;
   renderStats();
 }
 
@@ -121,12 +121,12 @@ function questCard(q, { penalty = false } = {}) {
           <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
             q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
           }</p>
-          <p class="quest-scan-tag">📷 Camera verification required</p>
+          <p class="quest-scan-tag">Camera verification</p>
         </div>
         <button class="sys-btn tiny ${penalty ? "scan-penalty" : "scan-quest"}" data-id="${q.id}" type="button" ${
           done ? "disabled" : ""
         }>
-          ${done ? "VERIFIED" : "SCAN"}
+          ${done ? "Verified" : "Scan"}
         </button>
       </div>
       <div class="bar ${penalty ? "danger" : ""}"><div class="bar-fill" style="width:${pct}%"></div></div>
@@ -332,7 +332,7 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
   $("#scanner-title").textContent = quest.name;
   $("#scanner-target").textContent = `Target ${quest.target} ${quest.unit}`;
   $("#scanner-view").hidden = false;
-  $("#camera-pill").textContent = "SCANNING";
+  $("#camera-pill").textContent = "Scanning";
   $("#camera-pill").classList.add("live");
 
   const params = new URLSearchParams(location.search);
@@ -346,7 +346,7 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
       addQuestProgress(quest, amount, { penalty });
       $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
       if (quest.progress >= quest.target) {
-        $("#scanner-status").textContent = "OBJECTIVE VERIFIED";
+        $("#scanner-status").textContent = "Objective verified";
       }
     },
   });
@@ -355,7 +355,7 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
 function closeScanner() {
   scanner.stop();
   $("#scanner-view").hidden = true;
-  $("#camera-pill").textContent = "SCANNER READY";
+  $("#camera-pill").textContent = "Scanner Ready";
   $("#camera-pill").classList.remove("live");
   activeQuest = null;
   activeIsPenalty = false;
@@ -366,7 +366,7 @@ function bindEvents() {
   $("#btn-awaken").addEventListener("click", () => {
     $("#boot-screen").classList.remove("active");
     $("#main-screen").classList.add("active");
-    showToast("[SYSTEM] Camera Scanner armed.", "success");
+    showToast("Camera Scanner armed.", "success");
     // preload model in background
     scanner.ensureModel().catch(() => {});
   });
