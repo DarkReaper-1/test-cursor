@@ -42,6 +42,17 @@ npm start
 # Demo tour: http://127.0.0.1:8787/presswell/?demo=1
 ```
 
+## Deploy (Vercel)
+
+```bash
+cd presswell
+npx vercel login
+npm run deploy          # production
+# or: npm run deploy:preview
+```
+
+Static PWA — `vercel.json` serves `index.html`, assets, and the service worker.
+
 ## Demo video
 
 ```bash

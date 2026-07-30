@@ -8,15 +8,18 @@
     "build:single": "node scripts/build-single.js",
     "demo": "node demo/record-demo.js",
     "record": "node demo/record-demo.js",
+    "deploy": "vercel deploy --prod --yes",
+    "deploy:preview": "vercel deploy --yes",
     "cap:sync": "npx cap sync",
     "cap:android": "npx cap open android",
     "cap:ios": "npx cap open ios"
   },
   "devDependencies": {
-    "playwright": "^1.49.0",
+    "@capacitor/android": "^6.2.0",
     "@capacitor/cli": "^6.2.0",
     "@capacitor/core": "^6.2.0",
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/ios": "^6.2.0"
+    "@capacitor/ios": "^6.2.0",
+    "playwright": "^1.49.0",
+    "vercel": "^58.4.0"
   }
 }
