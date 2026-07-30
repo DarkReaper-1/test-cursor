@@ -2,7 +2,7 @@
 
 Solo Leveling–inspired health trainer. **Every quest is verified by an in-app Camera Scanner** (MediaPipe Pose Landmarker + joint-angle rep counting).
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDarkReaper-1%2Ftest-cursor&root-directory=solo-health&project-name=solo-health&envDescription=Static%20app%20%E2%80%94%20no%20env%20vars%20required)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDarkReaper-1%2Ftest-cursor%2Ftree%2Fcursor%2Fsolo-health-premium-ui-5f95&root-directory=solo-health&project-name=solo-health)
 
 ## Features
 
