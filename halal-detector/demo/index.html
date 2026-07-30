@@ -6,148 +6,236 @@
   <title>Halal Detector — Demo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,600;7..72,700;7..72,800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="phone">
-    <div id="status-bar">
-      <span>9:41</span>
-      <span>Halal Detector</span>
-      <span>●●●</span>
+  <div class="stage">
+    <div class="ambient" aria-hidden="true"></div>
+    <div id="phone">
+      <div class="notch" aria-hidden="true"></div>
+      <div id="status-bar">
+        <span>9:41</span>
+        <span class="sig">5G ▮▮▮▮</span>
+      </div>
+
+      <!-- HOME -->
+      <section id="view-home" class="view active">
+        <div class="hero-bleed">
+          <div class="hero-leaf" aria-hidden="true"></div>
+          <div class="hero-crescent" aria-hidden="true"></div>
+          <p class="brand">Halal Detector</p>
+          <p class="headline">Know what’s in it — in one glance.</p>
+          <p class="hero-sub">Clear answers for food, medicine, and cosmetics.</p>
+          <button class="btn primary hero-cta" data-go="scan">Scan a product</button>
+        </div>
+
+        <div class="home-body">
+          <p class="trust-line">Informational guidance · Not a religious ruling</p>
+
+          <div class="action-list">
+            <button class="action-row" data-go="scan">
+              <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"/><path d="M7 8h2v8H7zm4 0h1v8h-1zm3 0h3v8h-3z"/></svg>
+              </span>
+              <span class="action-copy">
+                <strong>Scan barcode</strong>
+                <small>Food, drink, medicine</small>
+              </span>
+              <span class="chev" aria-hidden="true">›</span>
+            </button>
+            <button class="action-row" data-go="ingredients">
+              <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6v4H9zM10 7h4v13a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7z"/><path d="M8 11h8"/></svg>
+              </span>
+              <span class="action-copy">
+                <strong>Read ingredients</strong>
+                <small>Paste a label or photo</small>
+              </span>
+              <span class="chev" aria-hidden="true">›</span>
+            </button>
+            <button class="action-row" data-go="search">
+              <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="m20 20-3.5-3.5"/></svg>
+              </span>
+              <span class="action-copy">
+                <strong>Search an ingredient</strong>
+                <small>E-numbers, gelatin, enzymes</small>
+              </span>
+              <span class="chev" aria-hidden="true">›</span>
+            </button>
+            <button class="action-row" data-go="restaurants">
+              <span class="action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M6 20V9l6-4 6 4v11"/><path d="M10 20v-5h4v5"/></svg>
+              </span>
+              <span class="action-copy">
+                <strong>Find restaurants</strong>
+                <small>Certified, mixed, vegetarian</small>
+              </span>
+              <span class="chev" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <div class="tip-strip">
+            <span class="tip-kicker">Today</span>
+            <p>When a label says “natural flavors,” ask the manufacturer about animal or alcohol sources.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCAN -->
+      <section id="view-scan" class="view">
+        <header class="screen-head">
+          <p class="kicker">Scanner</p>
+          <h1>Hold steady</h1>
+          <p class="sub">We’ll read the barcode and explain the result in plain language.</p>
+        </header>
+        <div class="camera">
+          <div class="cam-vignette"></div>
+          <div class="frame-corners" aria-hidden="true"></div>
+          <div class="scan-line"></div>
+          <p class="cam-hint">Align barcode inside the frame</p>
+          <div class="barcode-fake" aria-hidden="true"></div>
+        </div>
+        <div class="panel">
+          <label for="barcode">Or enter a demo code</label>
+          <input id="barcode" value="0000000000001" readonly />
+          <button class="btn primary" id="btn-analyze">Analyze product</button>
+        </div>
+      </section>
+
+      <!-- RESULT -->
+      <section id="view-result" class="view">
+        <header class="screen-head compact">
+          <p class="kicker">Result</p>
+          <h1 id="result-title">Classic Pork Gelatin Gummies</h1>
+          <p class="meta">Demo Brand · United States</p>
+        </header>
+
+        <div id="status-card" class="status haram reveal">
+          <div class="status-top">
+            <span class="status-mark" aria-hidden="true">■■■</span>
+            <span class="status-word">Haram</span>
+          </div>
+          <p class="reason" id="result-reason">Contains carmine and gelatin that cannot be verified as halal.</p>
+          <div class="confidence-row">
+            <div class="meter"><span style="width:92%"></span></div>
+            <div>
+              <strong>92% confidence</strong>
+              <p>A clearly impermissible ingredient was identified.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <h3>Ingredient analysis</h3>
+          <ul id="ingredient-list" class="ing-list">
+            <li class="bad"><span class="dot"></span><div><strong>Gelatin</strong><small>Source unknown — often pork-based</small></div></li>
+            <li class="bad"><span class="dot"></span><div><strong>Carmine</strong><small>Made from cochineal insects</small></div></li>
+            <li class="warn"><span class="dot"></span><div><strong>Natural flavor</strong><small>Cannot be verified from the label</small></div></li>
+            <li class="ok"><span class="dot"></span><div><strong>Citric acid</strong><small>Generally accepted as halal</small></div></li>
+          </ul>
+        </div>
+
+        <div class="section-block alt">
+          <h3>Better option</h3>
+          <p class="alt-title">Agar or pectin gummies</p>
+          <p class="muted">Plant gels avoid animal gelatin uncertainty. Look in health stores or search “halal marshmallows”.</p>
+        </div>
+
+        <p class="footnote">Informational only — not a fatwa. Verify uncertain cases with manufacturers or trusted local scholars.</p>
+        <button class="btn ghost" data-go="ingredients">Check another list</button>
+      </section>
+
+      <!-- INGREDIENTS -->
+      <section id="view-ingredients" class="view">
+        <header class="screen-head">
+          <p class="kicker">Analyzer</p>
+          <h1>Ingredients</h1>
+          <p class="sub">Paste a list. We’ll flag risk in simple words.</p>
+        </header>
+        <div class="panel">
+          <textarea id="ing-text" readonly>Water, sugar, E471, microbial rennet, citric acid</textarea>
+          <button class="btn primary" id="btn-analyze-text">Analyze ingredients</button>
+        </div>
+        <div id="ing-result" class="status doubtful compact-status hidden">
+          <div class="status-top">
+            <span class="status-mark" aria-hidden="true">▲▲▲</span>
+            <span class="status-word">Doubtful</span>
+          </div>
+          <p class="reason"><strong>Reason:</strong> E471 may come from plant or animal fat. Manufacturer verification required.</p>
+          <p class="scholar-note">Scholarly opinions differ on this ingredient.</p>
+          <ul class="ing-list tight">
+            <li class="warn"><span class="dot"></span><div><strong>E471</strong><small>May come from plant or animal fat</small></div></li>
+            <li class="ok"><span class="dot"></span><div><strong>Microbial rennet</strong><small>Widely accepted when confirmed</small></div></li>
+            <li class="ok"><span class="dot"></span><div><strong>Citric acid</strong><small>Standard fermentation source</small></div></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- SEARCH -->
+      <section id="view-search" class="view">
+        <header class="screen-head">
+          <p class="kicker">Library</p>
+          <h1>Search</h1>
+          <p class="sub">Works offline for common E-numbers and additives.</p>
+        </header>
+        <input class="search" id="search-box" value="E120" readonly />
+        <article class="result-row">
+          <div>
+            <strong>Carmine</strong>
+            <span class="code">E120</span>
+          </div>
+          <span class="badge bad">Haram</span>
+          <p>A red color made from cochineal insects.</p>
+        </article>
+        <article class="result-row">
+          <div>
+            <strong>Gelatin</strong>
+            <span class="code">E441</span>
+          </div>
+          <span class="badge warn">Doubtful</span>
+          <p>May come from pork, non-halal beef, or fish.</p>
+        </article>
+      </section>
+
+      <!-- RESTAURANTS -->
+      <section id="view-restaurants" class="view">
+        <header class="screen-head">
+          <p class="kicker">Nearby</p>
+          <h1>Restaurants</h1>
+          <p class="sub">Certified kitchens, clear kitchen practices.</p>
+        </header>
+        <article class="place">
+          <div class="place-top">
+            <strong>Green Crescent Kitchen</strong>
+            <span class="rating">4.7</span>
+          </div>
+          <span class="badge ok">Halal certified</span>
+          <p class="muted">No alcohol · IFANCA mark on premise</p>
+        </article>
+        <article class="place">
+          <div class="place-top">
+            <strong>City Grill House</strong>
+            <span class="rating">4.2</span>
+          </div>
+          <span class="badge warn">Mixed kitchen</span>
+          <p class="muted">Serves claimed halal meat · Alcohol at bar</p>
+        </article>
+        <button class="btn ghost" data-go="home">Back home</button>
+      </section>
+
+      <nav id="tabs">
+        <button class="tab active" data-go="home"><span>Home</span></button>
+        <button class="tab" data-go="scan"><span>Scan</span></button>
+        <button class="tab" data-go="search"><span>Search</span></button>
+        <button class="tab" data-go="restaurants"><span>History</span></button>
+        <button class="tab" data-go="ingredients"><span>Profile</span></button>
+      </nav>
     </div>
 
-    <!-- HOME -->
-    <section id="view-home" class="view active">
-      <div class="hero">
-        <p class="brand">Halal Detector</p>
-        <p class="tagline">Scan once. Understand clearly.</p>
-      </div>
-      <p class="disclaimer">Informational only — not a religious ruling. Unknown origins are marked Doubtful.</p>
-      <h2>Quick actions</h2>
-      <div class="grid">
-        <button class="tile" data-go="scan">📷 Scan Barcode</button>
-        <button class="tile" data-go="ingredients">🧪 Ingredients</button>
-        <button class="tile" data-go="search">🔎 Search</button>
-        <button class="tile" data-go="restaurants">🍽️ Restaurants</button>
-      </div>
-      <div class="card tip">
-        <strong>Daily Halal Tip</strong>
-        <p>When a label says “natural flavors,” ask the manufacturer about animal or alcohol sources.</p>
-      </div>
-    </section>
-
-    <!-- SCAN -->
-    <section id="view-scan" class="view">
-      <h1>Barcode Scanner</h1>
-      <p class="sub">Point at the barcode — or use a demo product.</p>
-      <div class="camera">
-        <div class="scan-line"></div>
-        <p>Align barcode inside the frame</p>
-        <div class="barcode-fake">|||| |||| |||||||| ||||</div>
-      </div>
-      <div class="card">
-        <label for="barcode">Demo barcode</label>
-        <input id="barcode" value="0000000000001" readonly />
-        <button class="btn primary" id="btn-analyze">Analyze Product</button>
-      </div>
-    </section>
-
-    <!-- RESULT -->
-    <section id="view-result" class="view">
-      <h1 id="result-title">Classic Pork Gelatin Gummies</h1>
-      <div id="status-card" class="status haram">
-        <div class="pattern">■■■</div>
-        <div class="emoji">❌</div>
-        <div class="label">HARAM</div>
-        <div class="reason-title">Reason</div>
-        <p class="reason" id="result-reason">Contains carmine (insect color) and gelatin from an unverified animal source.</p>
-        <div class="confidence">
-          <strong>Confidence 92%</strong>
-          <p>A clearly impermissible ingredient was identified on the label.</p>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Ingredient analysis</h3>
-        <ul id="ingredient-list" class="ing-list">
-          <li class="bad">Gelatin ❌ — Source unknown / often pork-based</li>
-          <li class="bad">Carmine ❌ — Made from cochineal insects</li>
-          <li class="warn">Natural Flavor ⚠️ — Cannot be verified from the label</li>
-          <li class="ok">Citric Acid ✅ — Generally accepted as halal</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Smart alternative</h3>
-        <p><strong>Agar or pectin gummies</strong></p>
-        <p class="muted">Plant gels avoid animal gelatin uncertainty. Check health food stores or search “halal marshmallows”.</p>
-      </div>
-      <p class="disclaimer">This is informational guidance, not a fatwa. Verify uncertain cases with manufacturers or trusted local scholars.</p>
-      <button class="btn secondary" data-go="ingredients">Analyze another list</button>
-    </section>
-
-    <!-- INGREDIENTS -->
-    <section id="view-ingredients" class="view">
-      <h1>AI Ingredient Analyzer</h1>
-      <p class="sub">Paste an ingredient list — risky items are explained simply.</p>
-      <div class="card">
-        <textarea id="ing-text" readonly>Water, sugar, E471, microbial rennet, citric acid</textarea>
-        <button class="btn primary" id="btn-analyze-text">Analyze Ingredients</button>
-      </div>
-      <div id="ing-result" class="card hidden">
-        <div class="mini-status doubtful">⚠️ DOUBTFUL · Confidence 61%</div>
-        <p><strong>Reason:</strong> E471 may come from plant or animal fat. Manufacturer verification required.</p>
-        <p class="banner">Scholarly opinions differ on this ingredient.</p>
-        <ul class="ing-list">
-          <li class="warn">E471 ⚠️ — May come from plant or animal fat</li>
-          <li class="ok">Microbial rennet ✅ — Widely accepted when confirmed microbial</li>
-          <li class="ok">Citric Acid ✅ — Standard fermentation source</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- SEARCH -->
-    <section id="view-search" class="view">
-      <h1>Ingredient Search</h1>
-      <p class="sub">Works offline for common E-numbers and additives.</p>
-      <input class="search" id="search-box" value="E120" readonly />
-      <div class="card result-row">
-        <strong>Carmine (E120)</strong>
-        <span class="pill bad">HARAM</span>
-        <p>A red color made from cochineal insects. Widely considered haram.</p>
-      </div>
-      <div class="card result-row">
-        <strong>Gelatin (E441)</strong>
-        <span class="pill warn">DOUBTFUL</span>
-        <p>May come from pork, non-halal beef, or fish. Verify the source.</p>
-      </div>
-    </section>
-
-    <!-- RESTAURANTS -->
-    <section id="view-restaurants" class="view">
-      <h1>Restaurant Mode</h1>
-      <div class="card">
-        <strong>Green Crescent Kitchen</strong>
-        <p class="pill ok inline">Halal Certified</p>
-        <p class="muted">★ 4.7 · No alcohol · IFANCA certified kitchen</p>
-      </div>
-      <div class="card">
-        <strong>City Grill House</strong>
-        <p class="pill warn inline">Mixed Kitchen</p>
-        <p class="muted">★ 4.2 · Serves halal meat · Alcohol at bar</p>
-      </div>
-      <button class="btn secondary" data-go="home">Back to Home</button>
-    </section>
-
-    <nav id="tabs">
-      <button class="tab active" data-go="home">Home</button>
-      <button class="tab" data-go="scan">Scan</button>
-      <button class="tab" data-go="search">Search</button>
-      <button class="tab" data-go="restaurants">History</button>
-      <button class="tab" data-go="ingredients">Profile</button>
-    </nav>
+    <div id="demo-caption">Halal Detector</div>
   </div>
-
-  <div id="demo-caption">Halal Detector</div>
   <script src="demo.js"></script>
 </body>
 </html>

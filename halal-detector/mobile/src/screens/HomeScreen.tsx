@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradientFallback } from '../components/Gradient';
-import { Card, DisclaimerBanner, Screen } from '../components/ui';
+import { Screen } from '../components/ui';
 import { fetchTip } from '../services/api';
 import { useApp } from '../store/AppContext';
 import type { RootStackParamList } from '../navigation/types';
@@ -16,15 +16,15 @@ const ACTIONS: Array<{
   hint: string;
   tab?: boolean;
 }> = [
-  { key: 'BarcodeScan', label: 'Scan Barcode', icon: 'barcode-outline', hint: 'Food, drink, medicine' },
-  { key: 'IngredientAnalyze', label: 'Scan Ingredients', icon: 'flask-outline', hint: 'Paste or type list' },
-  { key: 'CameraOCR', label: 'Take Picture', icon: 'camera-outline', hint: 'Read the label' },
-  { key: 'Search', label: 'Search Ingredient', icon: 'search-outline', hint: 'E-numbers & names', tab: true },
-  { key: 'Restaurants', label: 'Restaurant Search', icon: 'restaurant-outline', hint: 'Nearby options' },
-  { key: 'Medicine', label: 'Medicine', icon: 'medkit-outline', hint: 'Capsules & syrups' },
-  { key: 'Cosmetics', label: 'Cosmetics', icon: 'color-palette-outline', hint: 'Makeup & care' },
-  { key: 'VoiceAssistant', label: 'Voice Ask', icon: 'mic-outline', hint: 'Speak a question' },
-  { key: 'Chat', label: 'AI Chat', icon: 'chatbubbles-outline', hint: 'Learn why' },
+  { key: 'BarcodeScan', label: 'Scan barcode', icon: 'barcode-outline', hint: 'Food, drink, medicine' },
+  { key: 'IngredientAnalyze', label: 'Read ingredients', icon: 'flask-outline', hint: 'Paste a label or photo' },
+  { key: 'CameraOCR', label: 'Take a picture', icon: 'camera-outline', hint: 'Read the label automatically' },
+  { key: 'Search', label: 'Search an ingredient', icon: 'search-outline', hint: 'E-numbers & additives', tab: true },
+  { key: 'Restaurants', label: 'Find restaurants', icon: 'restaurant-outline', hint: 'Certified or mixed kitchens' },
+  { key: 'Medicine', label: 'Check medicine', icon: 'medkit-outline', hint: 'Capsules & syrups' },
+  { key: 'Cosmetics', label: 'Check cosmetics', icon: 'color-palette-outline', hint: 'Makeup & care' },
+  { key: 'VoiceAssistant', label: 'Ask by voice', icon: 'mic-outline', hint: 'Speak a simple question' },
+  { key: 'Chat', label: 'Ask the guide', icon: 'chatbubbles-outline', hint: 'Learn why, in plain words' },
 ];
 
 export function HomeScreen() {
@@ -39,103 +39,117 @@ export function HomeScreen() {
   return (
     <Screen>
       <LinearGradientFallback>
-        <Text style={[styles.brand, { color: '#FFFFFF', fontSize: scale(34) }]}>Halal Detector</Text>
-        <Text style={[styles.tagline, { color: '#E8FFF2', fontSize: scale(18) }]}>
-          Scan once. Understand clearly.
+        <Text style={[styles.brand, { color: '#F4FFF8', fontSize: scale(38) }]}>Halal Detector</Text>
+        <Text style={[styles.headline, { color: '#E8FFF2', fontSize: scale(24) }]}>
+          Know what’s in it — in one glance.
         </Text>
+        <Text style={[styles.heroSub, { color: 'rgba(244,255,248,0.78)', fontSize: scale(16) }]}>
+          Clear answers for food, medicine, and cosmetics.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('BarcodeScan')}
+          style={({ pressed }) => [styles.heroCta, { opacity: pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+        >
+          <Text style={{ color: colors.primaryDark, fontSize: scale(17), fontWeight: '700' }}>Scan a product</Text>
+        </Pressable>
       </LinearGradientFallback>
 
-      <DisclaimerBanner />
+      <Text style={[styles.trust, { color: colors.tabInactive, fontSize: scale(13) }]}>
+        Informational guidance · Not a religious ruling
+      </Text>
 
-      <Text style={[styles.section, { color: colors.text, fontSize: scale(22) }]}>Quick actions</Text>
-      <View style={styles.grid}>
+      <View style={styles.list}>
         {ACTIONS.map((action) => (
           <Pressable
             key={action.label}
             accessibilityRole="button"
             onPress={() => {
-              if (action.tab && action.key === 'Search') {
-                navigation.navigate('Search' as never);
-              } else {
-                navigation.navigate(action.key as never);
-              }
+              if (action.tab && action.key === 'Search') navigation.navigate('Search' as never);
+              else navigation.navigate(action.key as never);
             }}
             style={({ pressed }) => [
-              styles.action,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                opacity: pressed ? 0.92 : 1,
-                transform: [{ scale: pressed ? 0.98 : 1 }],
-              },
+              styles.row,
+              { backgroundColor: pressed ? colors.surfaceMuted : 'transparent' },
             ]}
           >
             <View style={[styles.iconWrap, { backgroundColor: colors.primarySoft }]}>
-              <Ionicons name={action.icon} size={scale(28)} color={colors.primary} />
+              <Ionicons name={action.icon} size={scale(22)} color={colors.primary} />
             </View>
-            <Text style={{ color: colors.text, fontSize: scale(17), fontWeight: '700' }}>{action.label}</Text>
-            <Text style={{ color: colors.textSecondary, fontSize: scale(14), marginTop: 4 }}>{action.hint}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colors.text, fontSize: scale(17), fontWeight: '700' }}>{action.label}</Text>
+              <Text style={{ color: colors.textSecondary, fontSize: scale(14), marginTop: 2 }}>{action.hint}</Text>
+            </View>
+            <Text style={{ color: colors.tabInactive, fontSize: scale(22) }}>›</Text>
           </Pressable>
         ))}
       </View>
 
-      <Card>
-        <Text style={{ color: colors.text, fontSize: scale(20), fontWeight: '700' }}>Daily Halal Tip</Text>
-        <Text style={{ color: colors.textSecondary, fontSize: scale(17), marginTop: 8, lineHeight: 26 }}>{tip}</Text>
-      </Card>
+      <View style={[styles.divider, { borderTopColor: colors.border }]}>
+        <Text style={[styles.kicker, { color: colors.primary, fontSize: scale(12) }]}>TODAY</Text>
+        <Text style={{ color: colors.textSecondary, fontSize: scale(16), lineHeight: 24 }}>{tip}</Text>
+      </View>
 
-      <Card>
-        <Text style={{ color: colors.text, fontSize: scale(20), fontWeight: '700' }}>Recent Scans</Text>
-        {localHistory.slice(0, 3).map((h) => (
-          <Text key={h.id} style={{ color: colors.textSecondary, fontSize: scale(16), marginTop: 8 }}>
-            {h.status === 'halal' ? '✅' : h.status === 'doubtful' ? '⚠️' : '❌'} {h.title}
+      {(localHistory.length > 0 || localFavorites.length > 0) && (
+        <View style={[styles.divider, { borderTopColor: colors.border }]}>
+          {localHistory.slice(0, 2).map((h) => (
+            <Text key={h.id} style={{ color: colors.textSecondary, fontSize: scale(15), marginBottom: 8 }}>
+              {h.status === 'halal' ? '●' : h.status === 'doubtful' ? '▲' : '■'} {h.title}
+            </Text>
+          ))}
+          {localFavorites.slice(0, 2).map((f) => (
+            <Text key={f.id} style={{ color: colors.textSecondary, fontSize: scale(15), marginBottom: 6 }}>
+              ★ {f.title}
+            </Text>
+          ))}
+          <Text style={{ color: colors.tabInactive, fontSize: scale(13), marginTop: 4 }}>
+            Scholar mode: {profile.school.replace('_', ' ')}
           </Text>
-        ))}
-        {!localHistory.length && (
-          <Text style={{ color: colors.textSecondary, fontSize: scale(16), marginTop: 8 }}>
-            No scans yet. Start with Scan Barcode.
-          </Text>
-        )}
-      </Card>
-
-      <Card>
-        <Text style={{ color: colors.text, fontSize: scale(20), fontWeight: '700' }}>Favorites</Text>
-        {localFavorites.slice(0, 3).map((f) => (
-          <Text key={f.id} style={{ color: colors.textSecondary, fontSize: scale(16), marginTop: 8 }}>
-            ★ {f.title}
-          </Text>
-        ))}
-        {!localFavorites.length && (
-          <Text style={{ color: colors.textSecondary, fontSize: scale(16), marginTop: 8 }}>
-            Save products and ingredients you check often.
-          </Text>
-        )}
-        <Text style={{ color: colors.tabInactive, fontSize: scale(14), marginTop: 10 }}>
-          Scholar mode: {profile.school.replace('_', ' ')}
-        </Text>
-      </Card>
+        </View>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  brand: { fontWeight: '900', letterSpacing: 0.3 },
-  tagline: { marginTop: 6, fontWeight: '500' },
-  section: { fontWeight: '800', marginBottom: 12, marginTop: 8 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 8 },
-  action: {
-    width: '47%',
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 14,
-    minHeight: 128,
+  brand: { fontWeight: '800', letterSpacing: -0.8 },
+  headline: { marginTop: 14, fontWeight: '600', lineHeight: 32, maxWidth: 280 },
+  heroSub: { marginTop: 10, lineHeight: 22, maxWidth: 280 },
+  heroCta: {
+    marginTop: 22,
+    alignSelf: 'flex-start',
+    backgroundColor: '#F4FFF8',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  trust: { fontWeight: '600', marginBottom: 8, marginTop: 4 },
+  list: { gap: 2 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    borderRadius: 16,
   },
   iconWrap: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+  },
+  divider: {
+    borderTopWidth: 1,
+    marginTop: 16,
+    paddingTop: 16,
+  },
+  kicker: {
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 6,
   },
 });
