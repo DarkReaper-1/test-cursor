@@ -2,6 +2,8 @@
 
 Solo Leveling–inspired health trainer. **Every quest is verified by an in-app Camera Scanner** (MediaPipe Pose Landmarker + joint-angle rep counting).
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDarkReaper-1%2Ftest-cursor&root-directory=solo-health&project-name=solo-health&envDescription=Static%20app%20%E2%80%94%20no%20env%20vars%20required)
+
 ## Features
 
 - **Hunter ranks**: E → D → C → B → A → S → National Level
@@ -9,6 +11,23 @@ Solo Leveling–inspired health trainer. **Every quest is verified by an in-app 
 - **Daily Quests** (camera-only): push-ups, sit-ups, squats, jog-in-place, hydration sips, focus stillness
 - **Penalty Quest** if the day ends incomplete — also scanner-verified
 - **System UI** with skeleton overlay, form cues, and live progress HUD
+
+## Deploy on Vercel
+
+**Option A — one click**
+
+Use the Deploy button above (set **Root Directory** to `solo-health` if prompted).
+
+**Option B — CLI**
+
+```bash
+cd solo-health
+npm install
+npx vercel login
+npx vercel deploy --prod --yes
+```
+
+Camera scanning requires HTTPS — Vercel provides that automatically.
 
 ## Camera Scanner
 
@@ -39,4 +58,4 @@ python3 -m http.server 8765 --directory .. &
 npm run demo
 ```
 
-Output: `/opt/cursor/artifacts/solo-health-scanner-demo.mp4`
+Output: `/opt/cursor/artifacts/solo-health-premium-demo.mp4`
