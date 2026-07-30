@@ -41,10 +41,28 @@ halal-detector/
 Browser demo (phone mockup with auto-tour):
 
 ```bash
-cd halal-detector/demo
-python3 -m http.server 8788 --directory ../..
+cd /workspace && python3 -m http.server 8788 --directory /workspace
 # open http://127.0.0.1:8788/halal-detector/demo/index.html?demo=1
 ```
+
+### Deploy to Vercel
+
+From `halal-detector/demo`:
+
+```bash
+cd halal-detector/demo
+npx vercel login
+npx vercel --prod
+```
+
+Or set `VERCEL_TOKEN` (and optional org/project IDs) and run:
+
+```bash
+cd halal-detector/demo
+npx vercel deploy --yes --prod --token "$VERCEL_TOKEN"
+```
+
+Live URL is printed by the CLI after deploy. GitHub Action: `.github/workflows/deploy-halal-detector.yml`.
 
 Record a phone-sized MP4 (Playwright + ffmpeg):
 
