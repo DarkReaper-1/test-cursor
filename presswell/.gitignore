@@ -5,3 +5,4 @@ ios/
 *.log
 dist/
 .capacitor/
+node_modules/
