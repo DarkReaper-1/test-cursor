@@ -187,6 +187,24 @@ html, body {
   background: #f4fff8 !important;
   color: var(--forest-deep) !important;
 }
+.hero-bleed.tall {
+  min-height: calc(100% - 0px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 48px;
+}
+.btn.ghost-light {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+  width: auto;
+  min-width: 200px;
+  background: transparent;
+  color: #f4fff8;
+  border: 1.5px solid rgba(244, 255, 248, 0.35);
+}
 
 .home-body { padding: 18px 20px 0; }
 .trust-line {
@@ -625,6 +643,9 @@ textarea { min-height: 120px; resize: none; }
   border-top: 1px solid var(--line);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
+}
+#phone:has(#view-splash.active) #tabs {
+  display: none;
 }
 .tab {
   border: 0;

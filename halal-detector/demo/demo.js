@@ -1,5 +1,5 @@
 (() => {
-  const views = ["home", "scan", "result", "ingredients", "search", "restaurants"];
+  const views = ["splash", "home", "scan", "result", "ingredients", "search", "restaurants"];
   const caption = document.getElementById("demo-caption");
 
   function show(name) {
@@ -11,6 +11,7 @@
       t.classList.toggle("active", t.dataset.go === name || onScanFlow);
     });
     const labels = {
+      splash: "Halal Detector",
       home: "Premium clarity — one glance",
       scan: "Scan with confidence",
       result: "A clear verdict, explained simply",
@@ -18,6 +19,7 @@
       search: "Offline ingredient library",
       restaurants: "Trusted places nearby",
     };
+    if (!caption) return;
     caption.style.opacity = "0";
     setTimeout(() => {
       caption.textContent = labels[name] || "Halal Detector";
@@ -63,15 +65,21 @@
     show("restaurants");
     await sleep(2200);
     show("home");
-    caption.textContent = "Halal Detector — demo complete";
-    caption.style.opacity = "1";
+    if (caption) {
+      caption.textContent = "Halal Detector — demo complete";
+      caption.style.opacity = "1";
+    }
   }
+
+  document.getElementById("btn-start-tour")?.addEventListener("click", () => {
+    runTour();
+  });
 
   const params = new URLSearchParams(location.search);
   if (params.get("demo") === "1") {
     runTour();
   } else {
-    show("home");
+    show("splash");
   }
 
   window.HalalDemo = { show, runTour, views };

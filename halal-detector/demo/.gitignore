@@ -1,0 +1,6 @@
+# Halal Detector — ignored for Vercel / local tooling
+.vercel
+node_modules/
+public/
+*.webm
+.DS_Store

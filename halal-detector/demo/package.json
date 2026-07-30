@@ -1,8 +1,10 @@
 {
-  "name": "halal-detector-demo",
+  "name": "halal-detector",
   "private": true,
+  "version": "1.0.0",
+  "description": "Halal Detector premium web demo — Vercel static deploy",
   "scripts": {
-    "start": "python3 -m http.server 8788 --directory ../..",
+    "start": "python3 -m http.server 8788 --directory .",
     "demo": "node record-demo.js"
   },
   "devDependencies": {
