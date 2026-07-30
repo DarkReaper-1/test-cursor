@@ -4,7 +4,7 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 
 const ARTIFACTS = "/opt/cursor/artifacts";
-const OUTPUT = path.join(ARTIFACTS, "solo-health-scanner-demo.mp4");
+const OUTPUT = path.join(ARTIFACTS, "solo-health-premium-demo.mp4");
 const BASE = process.env.DEMO_URL || "http://127.0.0.1:8765/solo-health/?demo=1";
 
 async function sleep(ms) {
@@ -33,10 +33,16 @@ async function main() {
   const page = await context.newPage();
   await page.goto(BASE, { waitUntil: "networkidle" });
 
-  // Boot
-  await sleep(2000);
+  // Boot — linger on premium seal
+  await sleep(2800);
   await page.click("#btn-awaken");
-  await sleep(1500);
+  await sleep(2000);
+
+  // Scroll status / quests briefly into view
+  await page.evaluate(() => window.scrollTo({ top: 120, behavior: "smooth" }));
+  await sleep(900);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  await sleep(700);
 
   // Open push-up scanner (demo=1 → synthetic pose feed + real pipeline)
   await page.click('.scan-quest[data-id="pushups"]');
