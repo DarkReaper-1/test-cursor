@@ -73,6 +73,9 @@ export function createScannerSession(ui) {
   let synthetic = false;
   let synthT = 0;
   let useCamera = true;
+  let lastVideoTs = -1;
+  let noPoseMs = 0;
+  let initError = null;
 
   const ctx = canvas.getContext("2d");
 
@@ -94,18 +97,46 @@ export function createScannerSession(ui) {
 
   async function startCamera() {
     if (stream) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Camera API unavailable. Use HTTPS (or localhost).");
+    }
     stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        facingMode: "user",
-        width: { ideal: 720 },
-        height: { ideal: 1280 },
+        facingMode: { ideal: "user" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 },
       },
     });
     video.srcObject = stream;
+    video.setAttribute("playsinline", "true");
     video.playsInline = true;
     video.muted = true;
     await video.play();
+    // Wait until frames are actually available for MediaPipe
+    if (video.readyState < 2) {
+      await new Promise((resolve, reject) => {
+        const onReady = () => {
+          cleanup();
+          resolve();
+        };
+        const onErr = () => {
+          cleanup();
+          reject(new Error("Camera stream failed to start"));
+        };
+        const cleanup = () => {
+          video.removeEventListener("loadeddata", onReady);
+          video.removeEventListener("error", onErr);
+        };
+        video.addEventListener("loadeddata", onReady, { once: true });
+        video.addEventListener("error", onErr, { once: true });
+        setTimeout(() => {
+          cleanup();
+          resolve();
+        }, 2500);
+      });
+    }
   }
 
   function stopCamera() {
@@ -117,15 +148,14 @@ export function createScannerSession(ui) {
   }
 
   function drawFrame(keymap, w, h) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Do NOT clear — camera frame is already painted underneath
 
-    // scanner frame HUD
+    // scanner frame HUD corners
     ctx.save();
-    ctx.strokeStyle = "rgba(0,229,255,0.55)";
+    ctx.strokeStyle = "rgba(126,231,255,0.7)";
     ctx.lineWidth = 2;
     const m = 18;
     const L = 28;
-    // corners
     [
       [m, m, 1, 1],
       [w - m, m, -1, 1],
@@ -143,8 +173,10 @@ export function createScannerSession(ui) {
     if (!keymap) return;
 
     ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(0,229,255,0.85)";
-    ctx.fillStyle = "rgba(61,255,154,0.95)";
+    ctx.strokeStyle = "rgba(126,231,255,0.9)";
+    ctx.fillStyle = "rgba(93,255,176,0.95)";
+    ctx.shadowColor = "rgba(126,231,255,0.45)";
+    ctx.shadowBlur = 8;
 
     for (const [a, b] of SKELETON) {
       const p = keymap[a];
@@ -161,6 +193,7 @@ export function createScannerSession(ui) {
       ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.shadowBlur = 0;
   }
 
   /** Place a point at `len` px from `origin` along `deg` (screen y+ down). */
@@ -361,19 +394,30 @@ export function createScannerSession(ui) {
     let keymap = null;
     let fromCamera = false;
 
-    if (synthetic) {
+    // Demo-only synthetic path — never used for normal scanning
+    if (synthetic && session?.allowSynthFallback) {
       synthT += dt / 1000;
       keymap = syntheticKeymap(session.kind, synthT, w, h);
     } else if (useCamera && landmarker && video.readyState >= 2) {
       try {
-        const lm = landmarker.detectForVideo(video, performance.now());
+        // MediaPipe requires strictly increasing timestamps
+        let vts = performance.now();
+        if (vts <= lastVideoTs) vts = lastVideoTs + 1;
+        lastVideoTs = vts;
+        const lm = landmarker.detectForVideo(video, vts);
         const pose = lm.landmarks?.[0];
-        if (pose) {
+        if (pose?.length) {
           keymap = toKeyMap(pose, w, h, true);
           fromCamera = true;
+          noPoseMs = 0;
+        } else {
+          noPoseMs += dt;
         }
-      } catch {
-        /* frame skip */
+      } catch (err) {
+        noPoseMs += dt;
+        if (noPoseMs > 2000) {
+          setStatus("Pose model hitch — keep moving in frame");
+        }
       }
     }
 
@@ -389,10 +433,19 @@ export function createScannerSession(ui) {
           p.x = w - p.x;
         }
       }
-      if (synthetic) {
-        ctx.fillStyle = "rgba(4,12,22,0.28)";
-        ctx.fillRect(0, 0, w, h);
-      }
+    } else if (initError) {
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, "#1a0a10");
+      g.addColorStop(1, "#0c0810");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(255,180,190,0.95)";
+      ctx.font = `${Math.round(h * 0.028)}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("Camera required", w / 2, h * 0.45);
+      ctx.fillStyle = "rgba(200,210,220,0.85)";
+      ctx.font = `${Math.round(h * 0.022)}px sans-serif`;
+      wrapCanvasText(ctx, initError, w / 2, h * 0.52, w * 0.78, Math.round(h * 0.03));
     } else {
       const g = ctx.createLinearGradient(0, 0, w, h);
       g.addColorStop(0, "#071525");
@@ -401,36 +454,57 @@ export function createScannerSession(ui) {
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Live camera with no body → optional simulation fallback
-    if (!keymap && session?.allowSynthFallback) {
-      synthT += dt / 1000;
-      keymap = syntheticKeymap(session.kind, synthT, w, h);
-      setStatus("SIMULATION FEED — no body detected");
-    }
-
     drawFrame(keymap, w, h);
 
-    if (keymap && counter) {
-      // accelerate hold-based quests in simulation so demos can finish
+    // Only advance counters from real tracked poses (or explicit demo synth)
+    const trackingLive = fromCamera || (synthetic && session?.allowSynthFallback);
+    if (keymap && counter && trackingLive) {
       let useDt = dt;
-      if (synthetic) {
+      if (synthetic && session?.allowSynthFallback) {
         if (session.kind === "mind") useDt = dt * 50;
         if (session.kind === "hydrate") useDt = dt * 2.5;
         if (session.kind === "run") useDt = dt * 3;
       }
       const result = counter.update(keymap, useDt);
       applyProgress(result);
+      if (fromCamera) {
+        setStatus("Tracking — keep form in frame");
+      }
       if (session.kind !== "hydrate" && session.kind !== "mind" && session.kind !== "run") {
         const live = (session.baseProgress || 0) + counter.getReps();
         if (live >= session.quest.target) {
-          setStatus("OBJECTIVE VERIFIED");
+          setStatus("Objective verified");
         }
       }
-    } else {
-      setCue("Align your full body in the scanner");
+    } else if (useCamera && !initError) {
+      setCue(
+        noPoseMs > 1200
+          ? "No body detected — step back so head to feet are visible"
+          : "Stand in frame — scanner is watching"
+      );
+      if (noPoseMs > 1200) {
+        setStatus("Waiting for hunter in frame");
+      }
     }
 
     raf = requestAnimationFrame(loop);
+  }
+
+  function wrapCanvasText(context, text, x, y, maxWidth, lineHeight) {
+    const words = String(text).split(" ");
+    let line = "";
+    let yy = y;
+    for (const word of words) {
+      const test = line ? `${line} ${word}` : word;
+      if (context.measureText(test).width > maxWidth && line) {
+        context.fillText(line, x, yy);
+        line = word;
+        yy += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    if (line) context.fillText(line, x, yy);
   }
 
   async function start(opts) {
@@ -448,17 +522,21 @@ export function createScannerSession(ui) {
       onClose,
       kind: questKind(quest.id),
       baseProgress: quest.progress,
-      allowSynthFallback,
+      allowSynthFallback: !!(forceSynthetic && allowSynthFallback),
     };
     quest._scanValue = quest.progress;
     counter = createRepCounter(session.kind);
     counter.reset();
-    synthetic = forceSynthetic;
+    // Synthetic ONLY when explicitly requested for demos — never as silent fallback
+    synthetic = !!(forceSynthetic && allowSynthFallback);
     synthT = 0;
     lastTs = 0;
+    lastVideoTs = -1;
+    noPoseMs = 0;
+    initError = null;
     running = true;
+    useCamera = false;
 
-    // size canvas to stage
     const rect = canvas.parentElement.getBoundingClientRect();
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.floor(rect.width * dpr);
@@ -466,34 +544,35 @@ export function createScannerSession(ui) {
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
 
-    setStatus(forceSynthetic ? "SIMULATION MODE" : "Initializing scanner…");
     setCount("—");
     setMeter((quest.progress / quest.target) * 100);
-    setCue("Preparing pose landmarker…");
 
-    if (!forceSynthetic) {
-      try {
-        await ensureModel(setStatus);
-        await startCamera();
-        useCamera = true;
-        setStatus("CAMERA LOCKED — perform the movement");
-      } catch (err) {
-        console.warn(err);
-        useCamera = false;
-        synthetic = true;
-        setStatus("Camera unavailable — simulation feed");
-      }
-    } else {
+    if (synthetic) {
+      setStatus("Demo simulation — not live tracking");
+      setCue("Synthetic hunter (demo mode)");
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+
+    setStatus("Requesting camera…");
+    setCue("Allow camera access to begin tracking");
+
+    try {
+      await ensureModel(setStatus);
+      await startCamera();
+      useCamera = true;
+      setStatus("Camera live — step into frame");
+      setCue("Full body visible · start the movement");
+    } catch (err) {
+      console.error(err);
       useCamera = false;
-      try {
-        // still try camera for realism in UI if permitted
-        await startCamera();
-        useCamera = true;
-        await ensureModel(setStatus).catch(() => null);
-      } catch {
-        useCamera = false;
-      }
-      setStatus("SIMULATION MODE — synthetic hunter");
+      synthetic = false;
+      initError =
+        err?.name === "NotAllowedError"
+          ? "Camera permission denied. Allow the camera, then tap Retry."
+          : err?.message || "Could not start camera or pose model.";
+      setStatus("Scanner blocked");
+      setCue(initError);
     }
 
     raf = requestAnimationFrame(loop);
@@ -506,18 +585,45 @@ export function createScannerSession(ui) {
     const close = session?.onClose;
     session = null;
     counter = null;
+    initError = null;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     close?.();
   }
 
+  async function retryCamera() {
+    if (!session) return;
+    initError = null;
+    synthetic = false;
+    setStatus("Retrying camera…");
+    try {
+      await ensureModel(setStatus);
+      stopCamera();
+      await startCamera();
+      useCamera = true;
+      noPoseMs = 0;
+      lastVideoTs = -1;
+      setStatus("Camera live — step into frame");
+      setCue("Full body visible · start the movement");
+    } catch (err) {
+      useCamera = false;
+      initError = err?.message || "Camera still unavailable.";
+      setStatus("Scanner blocked");
+      setCue(initError);
+    }
+  }
+
   function enableSynthetic(on = true) {
+    // Kept for demo tooling only — does not auto-run in normal use
+    if (!session) return;
     synthetic = on;
-    if (on) setStatus("SIMULATION MODE");
+    session.allowSynthFallback = on;
+    if (on) setStatus("Demo simulation — not live tracking");
   }
 
   return {
     start,
     stop,
+    retryCamera,
     enableSynthetic,
     isRunning: () => running,
     ensureModel: () => ensureModel(setStatus),

@@ -1126,6 +1126,15 @@ body {
   margin-top: 14px;
 }
 
+.scanner-footnote {
+  margin: 10px 2px 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  text-align: center;
+  font-weight: 400;
+}
+
 /* Modal */
 .modal {
   position: fixed;

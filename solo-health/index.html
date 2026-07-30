@@ -93,7 +93,7 @@
           </div>
           <span id="quest-timer" class="chip warn">23:59:59</span>
         </div>
-        <p class="quest-brief">Complete each objective through the Camera Scanner. Incomplete days trigger the Penalty Quest.</p>
+        <p class="quest-brief">Open the Camera Scanner for each objective. Your live body must be tracked — reps do not count automatically.</p>
         <ul id="quest-list" class="quest-list"></ul>
         <div class="quest-footer">
           <p id="quest-progress">0 / 0 verified</p>
@@ -160,9 +160,10 @@
         </div>
       </div>
       <div class="scanner-actions">
-        <button id="btn-synth" class="sys-btn secondary" type="button" title="Use synthetic hunter when no camera body">Sim Feed</button>
+        <button id="btn-retry-camera" class="sys-btn secondary" type="button">Retry Camera</button>
         <button id="btn-finish-scan" class="sys-btn primary" type="button">Lock Progress</button>
       </div>
+      <p class="scanner-footnote">Reps only count when your body is tracked live. No auto-simulation.</p>
     </section>
 
     <div id="penalty-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="penalty-title">
