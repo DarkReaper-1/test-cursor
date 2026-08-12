@@ -1,7 +1,9 @@
-import { chromium } from "playwright-core";
+import { createRequire } from "module";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
+
+const { chromium } = createRequire(import.meta.url)("playwright-core");
 
 const ARTIFACTS = "/opt/cursor/artifacts";
 const OUTPUT = path.join(ARTIFACTS, "parkour-race-demo.mp4");
@@ -26,9 +28,11 @@ async function main() {
   });
 
   const page = await context.newPage();
-  await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
+  const url = BASE.includes("?") ? `${BASE}&t=${Date.now()}` : `${BASE}?t=${Date.now()}`;
+  await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
   await page.evaluate(() => localStorage.clear());
   await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => window.__game && window.gameAPI, { timeout: 15000 });
   await sleep(1600);
 
   await page.click("#play-btn");
