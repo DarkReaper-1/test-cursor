@@ -1,0 +1,749 @@
+<title>Health &amp; Longevity</title>
+<style>
+  :root {
+    --paper: #ece5d3;
+    --surface: #f7f2e6;
+    --surface-raised: #fffdf7;
+    --ink: #1e2a1f;
+    --ink-soft: #4d5b48;
+    --ink-faint: #7c8874;
+    --accent: #2f5233;
+    --accent-strong: #1e3a22;
+    --accent-warm: #a8763a;
+    --line: #cfc4a4;
+    --line-soft: #ded4b8;
+    --shadow: 30 30 20;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #11150e;
+      --surface: #171c13;
+      --surface-raised: #1d2318;
+      --ink: #e8e3d1;
+      --ink-soft: #aab49b;
+      --ink-faint: #78826c;
+      --accent: #82ab77;
+      --accent-strong: #a6cc9a;
+      --accent-warm: #d7a862;
+      --line: #333c29;
+      --line-soft: #262e1e;
+      --shadow: 0 0 0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #11150e;
+    --surface: #171c13;
+    --surface-raised: #1d2318;
+    --ink: #e8e3d1;
+    --ink-soft: #aab49b;
+    --ink-faint: #78826c;
+    --accent: #82ab77;
+    --accent-strong: #a6cc9a;
+    --accent-warm: #d7a862;
+    --line: #333c29;
+    --line-soft: #262e1e;
+    --shadow: 0 0 0;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, "Charter", serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .label {
+    font-family: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.7rem;
+  }
+
+  /* ---- progress bar ---- */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+    z-index: 100;
+    transition: width 0.1s linear;
+  }
+
+  /* ---- top nav ---- */
+  header.topnav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.5rem;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  header.topnav .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  header.topnav .brand strong { color: var(--accent-strong); }
+  nav.parts {
+    display: flex;
+    gap: 1.2rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+  nav.parts a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid transparent;
+    white-space: nowrap;
+  }
+  nav.parts a:hover, nav.parts a:focus-visible { color: var(--accent-strong); border-bottom-color: var(--accent-warm); }
+
+  /* ---- cover ---- */
+  .cover {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1.5rem 3rem;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+      var(--paper);
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--ink) 3%, transparent) 0 1px, transparent 1px 3px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .cover .rings { position: relative; width: 132px; height: 132px; margin-bottom: 1.8rem; }
+  .cover .rings svg { width: 100%; height: 100%; }
+  .cover-eyebrow {
+    color: var(--accent);
+    margin-bottom: 1.1rem;
+  }
+  .cover h1 {
+    font-size: clamp(2.6rem, 7vw, 5rem);
+    line-height: 1.03;
+    margin: 0 0 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .cover .sub {
+    max-width: 40rem;
+    color: var(--ink-soft);
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    font-style: italic;
+    text-wrap: balance;
+    margin-bottom: 2.4rem;
+  }
+  .cover .three {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.9rem;
+    margin-bottom: 2.6rem;
+  }
+  .cover .three span {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-soft);
+  }
+  .cover .go {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--surface-raised);
+    background: var(--accent-strong);
+    padding: 0.85rem 1.6rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .cover .go:hover { background: var(--accent); transform: translateY(-1px); }
+  .cover .meta {
+    margin-top: 3.2rem;
+    color: var(--ink-faint);
+    font-family: ui-monospace, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ---- contents ---- */
+  .contents {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 5rem 1.5rem 6rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .contents h2 {
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin: 0 0 2rem;
+  }
+  .toc-item {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .contents .toc-item:last-child { border-bottom: 1px solid var(--line-soft); }
+  .toc-item .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .toc-item .num {
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+  .toc-item h3 {
+    margin: 0.3rem 0 0.4rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  .toc-item p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    max-width: 34rem;
+  }
+  .toc-item .arrow {
+    font-family: ui-monospace, monospace;
+    color: var(--ink-faint);
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .toc-item:hover .arrow { transform: translateX(3px); color: var(--accent); }
+
+  /* ---- chapter content ---- */
+  main { max-width: 100%; }
+  .part {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 5.5rem 1.5rem 3rem;
+  }
+  .part + .part { border-top: 1px solid var(--line-soft); }
+
+  .part h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+    color: var(--ink);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  .part h1 + h3 {
+    font-family: ui-monospace, monospace;
+    text-transform: none;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 2.2rem;
+    letter-spacing: 0;
+    border: none;
+  }
+  .part h1 + h3 + hr { display: none; }
+
+  .part h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 3rem 0 1rem;
+    color: var(--accent-strong);
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .part h3 {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.8rem 0 0.6rem;
+  }
+  .part p { margin: 0 0 1.1rem; color: var(--ink); }
+  .part p, .part li { text-align: left; }
+  .part strong { color: var(--accent-strong); font-weight: 600; }
+  .part em { color: var(--ink-soft); }
+  .part ul, .part ol {
+    margin: 0 0 1.3rem;
+    padding-left: 1.3rem;
+  }
+  .part li { margin-bottom: 0.5rem; }
+  .part li::marker { color: var(--accent); }
+
+  .part hr {
+    border: none;
+    border-top: 1px solid var(--line-soft);
+    margin: 2.6rem 0;
+  }
+
+  .part table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.2rem 0 1.6rem;
+    font-size: 0.92rem;
+  }
+  .part th, .part td {
+    border: 1px solid var(--line-soft);
+    padding: 0.55rem 0.8rem;
+    text-align: left;
+  }
+  .part th {
+    background: var(--surface);
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .part .table-wrap { overflow-x: auto; }
+
+  .part blockquote {
+    margin: 1.4rem 0;
+    padding: 0.9rem 1.3rem;
+    border-left: 3px solid var(--accent-warm);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+  .part blockquote p:last-child { margin-bottom: 0; }
+
+  .part pre {
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    padding: 1rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    border-radius: 6px;
+  }
+  .part code {
+    font-family: ui-monospace, monospace;
+    background: var(--surface);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  .part pre code { background: none; padding: 0; }
+
+  /* ---- footer ---- */
+  footer {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+    text-align: center;
+  }
+  footer p {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .back-top {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-warm);
+    padding-bottom: 2px;
+  }
+
+  @media (max-width: 640px) {
+    nav.parts { display: none; }
+    .part { padding: 3.5rem 1.25rem 2rem; }
+    .contents { padding: 3.5rem 1.25rem 4rem; }
+  }
+</style>
+
+<div id="progress"></div>
+
+<header class="topnav">
+  <div class="brand">Health <strong>&amp;</strong> Longevity</div>
+  <nav class="parts">
+    <a href="#part-1">I &middot; Blueprint</a>
+    <a href="#part-2">II &middot; Reverse</a>
+    <a href="#part-3">III &middot; Energy</a>
+  </nav>
+</header>
+
+<section class="cover">
+  <div class="rings" aria-hidden="true">
+    <svg viewBox="0 0 132 132" fill="none">
+      <circle cx="66" cy="66" r="60" stroke="var(--line)" stroke-width="1"/>
+      <circle cx="66" cy="66" r="46" stroke="var(--accent-warm)" stroke-width="1" stroke-dasharray="2 5"/>
+      <circle cx="66" cy="66" r="30" stroke="var(--accent)" stroke-width="1.5"/>
+      <path d="M66 44 L66 88 M44 66 L88 66" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <p class="cover-eyebrow label">A Book in Three Parts</p>
+  <h1>Health &amp; Longevity</h1>
+  <p class="sub">A practical, evidence-informed guide to living longer, preventing chronic disease, and sustaining energy for the decades ahead.</p>
+  <div class="three">
+    <span>The Longevity Blueprint</span>
+    <span>Reverse Your Health</span>
+    <span>The Energy Code</span>
+  </div>
+  <a class="go" href="#contents">Begin Reading &darr;</a>
+  <p class="meta">Educational content &middot; not a substitute for medical advice</p>
+</section>
+
+<section class="contents" id="contents">
+  <h2>Contents</h2>
+
+  <a class="toc-item" href="#part-1">
+    <div class="row"><span class="num">Part I</span><span class="arrow">&rarr;</span></div>
+    <h3>The Longevity Blueprint</h3>
+    <p>How to live longer, avoid chronic disease, and stay energetic into old age &mdash; the biology of aging, lessons from the Blue Zones, and the five pillars of a longer healthspan.</p>
+  </a>
+  <a class="toc-item" href="#part-2">
+    <div class="row"><span class="num">Part II</span><span class="arrow">&rarr;</span></div>
+    <h3>Reverse Your Health</h3>
+    <p>A practical system for preventing and reversing obesity, type 2 diabetes, high blood pressure, and heart disease, with a 12-week starting plan.</p>
+  </a>
+  <a class="toc-item" href="#part-3">
+    <div class="row"><span class="num">Part III</span><span class="arrow">&rarr;</span></div>
+    <h3>The Energy Code</h3>
+    <p>Sleep, nutrition, exercise, and stress management as one interlocking system to maximize physical and mental energy every day.</p>
+  </a>
+</section>
+
+<main>
+  <section class="part" id="part-1"><h1>Part I — The Longevity Blueprint</h1>
+<h3>How to live longer, avoid chronic disease, and stay energetic into old age</h3>
+<hr />
+<h2>Introduction: Lifespan Is a Choice, Not Just a Roll of the Dice</h2>
+<p>Genetics load the gun, but lifestyle pulls the trigger. Twin studies consistently show that only about 20–30% of how long you live is determined by your genes — the rest is environment, behavior, and chance you can influence. That means the biggest lever on your lifespan and "healthspan" (the years you spend healthy and independent, not just alive) is sitting in your daily choices: what you eat, how you move, how you sleep, how you handle stress, and whether you catch problems early.</p>
+<p>This part of the book lays out the blueprint — the small number of high-leverage habits, backed by decades of research on the world's longest-lived populations and modern clinical science, that separate people who thrive into their 90s from people who don't make it past 70.</p>
+<hr />
+<h2>Chapter 1: The Biology of Aging</h2>
+<p>Aging isn't one process — it's several interacting ones. Researchers group them into the "hallmarks of aging":</p>
+<ol>
+<li><strong>Genomic instability</strong> — accumulated DNA damage over decades of cell division.</li>
+<li><strong>Telomere attrition</strong> — the protective caps on chromosomes shorten with each division.</li>
+<li><strong>Cellular senescence</strong> — old, damaged cells stop dividing but don't die, releasing inflammatory signals ("inflammaging").</li>
+<li><strong>Mitochondrial dysfunction</strong> — the cell's energy factories become less efficient, producing more oxidative stress.</li>
+<li><strong>Loss of proteostasis</strong> — the body's quality-control system for proteins breaks down, allowing misfolded proteins to accumulate.</li>
+<li><strong>Stem cell exhaustion</strong> — the reserve of cells that repair and replace tissue dwindles.</li>
+<li><strong>Altered intercellular communication</strong> — hormonal and immune signaling drifts out of balance.</li>
+<li><strong>Nutrient-sensing dysregulation</strong> — pathways like insulin/IGF-1 and mTOR that respond to food intake stop calibrating correctly.</li>
+</ol>
+<p>None of these are fixed. Diet, exercise, sleep, and stress management all measurably slow several of these processes at once — which is why lifestyle interventions consistently outperform any single "anti-aging" pill or supplement studied so far.</p>
+<hr />
+<h2>Chapter 2: Lessons from the Blue Zones</h2>
+<p>Blue Zones are the handful of regions in the world — Okinawa (Japan), Sardinia (Italy), Nicoya (Costa Rica), Ikaria (Greece), and Loma Linda (California) — where people reach 90 and 100 years old at far higher rates than the global average, largely free of chronic disease. Researchers studying these populations found nine recurring habits, often summarized as the "Power 9":</p>
+<ul>
+<li><strong>Move naturally</strong> — daily life involves walking, gardening, and manual work rather than structured gym sessions.</li>
+<li><strong>Purpose</strong> — a clear reason to get up in the morning (Okinawans call it <em>ikigai</em>).</li>
+<li><strong>Downshift</strong> — daily routines for shedding stress (napping, prayer, socializing).</li>
+<li><strong>80% rule</strong> — stop eating when 80% full (<em>hara hachi bu</em> in Okinawa).</li>
+<li><strong>Plant slant</strong> — diets built around vegetables, legumes, and whole grains, with meat eaten a few times a month.</li>
+<li><strong>Wine at 5</strong> — moderate, social alcohol consumption (optional, not a recommendation to start drinking).</li>
+<li><strong>Belong</strong> — participation in a faith or community group.</li>
+<li><strong>Loved ones first</strong> — prioritizing family and keeping aging parents and grandparents close.</li>
+<li><strong>Right tribe</strong> — social circles that reinforce healthy behaviors.</li>
+</ul>
+<p>The pattern is clear: longevity isn't a single supplement or biohack — it's an environment that makes healthy choices the default.</p>
+<hr />
+<h2>Chapter 3: The Five Pillars of a Longer Healthspan</h2>
+<p>Everything in this book distills into five pillars. Master these and you've captured most of the achievable benefit.</p>
+<h3>Pillar 1 — Nutrient-Dense, Mostly Plant-Based Eating</h3>
+<p>Diets consistently linked to longevity (Mediterranean, Okinawan, DASH) share common traits: abundant vegetables, legumes, nuts, whole grains, olive oil or other unsaturated fats, moderate fish, and minimal ultra-processed food, refined sugar, and red/processed meat.</p>
+<h3>Pillar 2 — Daily Movement Plus Structured Exercise</h3>
+<p>Both matter. Non-exercise activity (walking, stairs, standing) keeps metabolic systems active throughout the day. Structured exercise — strength training 2–3x/week and cardiovascular training 150+ minutes/week — builds the muscle mass and cardiorespiratory fitness that are the strongest predictors of survival in older age.</p>
+<h3>Pillar 3 — Restorative Sleep</h3>
+<p>Chronic short sleep (under 6–7 hours) is linked to higher rates of obesity, diabetes, cardiovascular disease, dementia, and all-cause mortality. Sleep is when the brain clears metabolic waste, the immune system recalibrates, and tissue repairs.</p>
+<h3>Pillar 4 — Stress Regulation and Social Connection</h3>
+<p>Chronic, unmanaged stress raises cortisol, drives inflammation, and accelerates several of the hallmarks of aging above. Strong social ties are one of the most robust predictors of longevity in the epidemiological literature — on par with quitting smoking.</p>
+<h3>Pillar 5 — Preventive Healthcare and Early Detection</h3>
+<p>Most of what kills people in mid-to-late life is slow and detectable long before symptoms appear: high blood pressure, elevated blood glucose, abnormal cholesterol, and certain cancers. Regular screening turns a fatal surprise into a manageable, early-stage condition.</p>
+<hr />
+<h2>Chapter 4: What Actually Moves the Needle (and What Doesn't)</h2>
+<p>There's an enormous industry built around exotic longevity interventions. It's worth being honest about the evidence:</p>
+<p><strong>Strong evidence:</strong></p>
+<ul>
+<li>Not smoking</li>
+<li>Regular physical activity, especially strength training</li>
+<li>Maintaining a healthy body composition</li>
+<li>A whole-food, mostly plant-based diet</li>
+<li>7–9 hours of quality sleep</li>
+<li>Strong social relationships</li>
+<li>Routine preventive screening (blood pressure, lipids, glucose, cancer screening per age guidelines)</li>
+</ul>
+<p><strong>Promising but less certain:</strong></p>
+<ul>
+<li>Time-restricted eating / intermittent fasting for metabolic health</li>
+<li>Moderate caloric restriction without malnutrition</li>
+<li>Specific supplements (vitamin D if deficient, omega-3s, creatine) — helpful in targeted cases, not magic bullets</li>
+<li>Cold exposure and sauna use for cardiovascular and stress-resilience benefits</li>
+</ul>
+<p><strong>Weak or unproven for lifespan extension in humans:</strong></p>
+<ul>
+<li>Most "anti-aging" supplements marketed directly to consumers (NAD+ boosters, exotic peptides) — promising in early research, not yet proven to extend human lifespan</li>
+<li>Extreme fasting protocols without medical supervision</li>
+<li>Any single product claiming to "reverse aging"</li>
+</ul>
+<p>The takeaway: the boring, well-established habits outperform the exciting, unproven ones. Get the fundamentals right first.</p>
+<hr />
+<h2>Chapter 5: Building Your Personal Longevity Blueprint</h2>
+<p>A practical starting checklist:</p>
+<ol>
+<li><strong>Get baseline numbers.</strong> Blood pressure, fasting glucose or HbA1c, lipid panel, and body composition. You can't manage what you don't measure.</li>
+<li><strong>Pick one pillar to start.</strong> Don't try to overhaul diet, exercise, sleep, and stress simultaneously — pick the weakest pillar and fix it first.</li>
+<li><strong>Build a movement habit before an exercise program.</strong> Walk more before you worry about VO2 max.</li>
+<li><strong>Protect your sleep window.</strong> Fix a consistent wake time — it anchors your whole circadian rhythm more effectively than a fixed bedtime.</li>
+<li><strong>Invest in relationships.</strong> Schedule time with people who support your habits, not undermine them.</li>
+<li><strong>Automate prevention.</strong> Put annual and age-appropriate screenings on a recurring calendar reminder so they don't get skipped for a decade.</li>
+</ol>
+<p>The next two parts of this book go deep on two of these pillars: Part II turns Pillar 5 (prevention) and metabolic health into a concrete disease-reversal protocol, and Part III expands Pillars 2–4 into a full daily energy system.</p>
+<hr />
+</section>
+  <section class="part" id="part-2"><h1>Part II — Reverse Your Health</h1>
+<h3>A practical system for preventing obesity, diabetes, high blood pressure, and heart disease</h3>
+<hr />
+<h2>Introduction: The Four Horsemen of Preventable Death</h2>
+<p>Obesity, type 2 diabetes, hypertension, and cardiovascular disease are deeply linked — each raises the risk of the others, and together they account for a large share of preventable deaths worldwide. The encouraging news: they share root causes, which means they share solutions. A relatively small set of changes addresses all four at once. This part gives you a step-by-step system for prevention — and, in many early-to-moderate cases, meaningful reversal — under the guidance of your own healthcare provider.</p>
+<p><strong>Important:</strong> This is educational content, not a treatment plan. Diabetes, hypertension, and heart disease can be dangerous conditions requiring medical supervision, especially around medication changes. Never stop or adjust prescribed medication without talking to your doctor first.</p>
+<hr />
+<h2>Chapter 1: Understanding the Shared Root Cause — Metabolic Syndrome</h2>
+<p>Metabolic syndrome is diagnosed when someone has at least three of the following:
+- Abdominal obesity (excess visceral fat around the organs)
+- Elevated blood pressure
+- Elevated fasting blood glucose
+- High triglycerides
+- Low HDL ("good") cholesterol</p>
+<p>These aren't five separate problems — they're five symptoms of the same underlying issue: chronically high insulin levels driven by excess calorie intake (especially refined carbohydrates and sugar), insufficient physical activity, and visceral fat accumulation. Fix the insulin/metabolic picture, and all five numbers tend to improve together.</p>
+<hr />
+<h2>Chapter 2: Preventing and Reversing Obesity</h2>
+<h3>The Core Principle</h3>
+<p>Sustainable fat loss comes from a consistent, moderate calorie deficit combined with adequate protein (to preserve muscle) and enough fiber and whole foods to control hunger — not from extreme restriction, which triggers rebound weight regain in the vast majority of people.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Protein first.</strong> Aim for roughly 1.2–1.6 g of protein per kg of bodyweight per day. Protein is the most satiating macronutrient and protects lean muscle during weight loss.</li>
+<li><strong>Fiber and volume.</strong> Fill the plate with vegetables and legumes before starches and fats — they add volume and slow digestion without adding many calories.</li>
+<li><strong>Cut liquid calories first.</strong> Soda, juice, and alcohol are the easiest calories to remove without feeling deprived, and are among the most fattening per calorie.</li>
+<li><strong>Track loosely, not obsessively.</strong> A rough log (photos, an app, or a simple hand-portion method) for a few weeks builds calorie awareness that lasts long after you stop tracking daily.</li>
+<li><strong>Sleep and stress matter as much as food.</strong> Poor sleep raises ghrelin (hunger hormone) and lowers leptin (satiety hormone), making a calorie deficit far harder to sustain.</li>
+<li><strong>Expect ~0.5–1% of bodyweight loss per week.</strong> Faster loss usually means more muscle loss and a higher chance of rebound.</li>
+</ol>
+<h3>When to Seek Medical Support</h3>
+<p>BMI over 30 (or over 27 with a weight-related condition), difficulty losing weight despite consistent effort, or a family history of severe obesity are all good reasons to loop in a physician — modern medical options (including newer medications) can be safe, effective complements to lifestyle change.</p>
+<hr />
+<h2>Chapter 3: Preventing and Reversing Type 2 Diabetes</h2>
+<h3>The Core Principle</h3>
+<p>Type 2 diabetes develops when cells become resistant to insulin, forcing the pancreas to overproduce it until it eventually can't keep blood sugar in range. Many people with early or moderate type 2 diabetes can bring blood glucose back into a normal or near-normal range through weight loss and dietary change — a process with strong clinical trial support (e.g., the DiRECT trial in the UK).</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Reduce refined carbohydrate load.</strong> White bread, white rice, pastries, and sugary drinks cause the sharpest insulin spikes. Swap toward whole grains, legumes, and non-starchy vegetables.</li>
+<li><strong>Pair carbs with protein, fat, or fiber.</strong> Eating carbohydrates alongside protein and fat blunts the blood sugar spike compared to eating them alone.</li>
+<li><strong>Walk after meals.</strong> A 10–15 minute walk after eating measurably lowers the post-meal glucose spike by helping muscles pull glucose from the blood without needing extra insulin.</li>
+<li><strong>Build muscle mass.</strong> Muscle is the body's primary glucose storage tank. More muscle means more capacity to clear blood sugar and greater insulin sensitivity.</li>
+<li><strong>Prioritize weight loss if overweight.</strong> Losing even 5–10% of body weight can significantly improve or, in some cases, normalize blood glucose control.</li>
+<li><strong>Monitor, don't guess.</strong> Fasting glucose and HbA1c every 3–6 months (or as your doctor recommends) tell you objectively whether the plan is working.</li>
+</ol>
+<h3>Warning Signs Requiring Immediate Medical Attention</h3>
+<p>Excessive thirst, frequent urination, unexplained weight loss, blurred vision, or slow-healing wounds warrant prompt medical evaluation, not a wait-and-see approach.</p>
+<hr />
+<h2>Chapter 4: Preventing and Reversing High Blood Pressure</h2>
+<h3>The Core Principle</h3>
+<p>Blood pressure is a function of how much fluid volume your blood vessels carry and how much resistance those vessels offer. Diet, weight, sodium intake, alcohol, stress, and artery health all move both of these variables.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Follow a DASH-style diet.</strong> Rich in fruits, vegetables, whole grains, and low-fat dairy; low in sodium, red meat, and added sugar. DASH is one of the most rigorously studied dietary blood-pressure interventions and can lower systolic blood pressure by meaningful margins on its own.</li>
+<li><strong>Cut sodium, but don't obsess.</strong> Most excess sodium in modern diets comes from processed and restaurant food, not the salt shaker. Cooking more meals at home is the highest-leverage move.</li>
+<li><strong>Increase potassium-rich foods.</strong> Bananas, potatoes, beans, and leafy greens help the kidneys excrete excess sodium.</li>
+<li><strong>Lose excess weight.</strong> Blood pressure drops reliably with weight loss — often before the weight loss is even complete.</li>
+<li><strong>Move regularly.</strong> Aerobic exercise conditions blood vessels to relax more efficiently, lowering resting blood pressure over weeks to months.</li>
+<li><strong>Limit alcohol and manage stress.</strong> Both raise blood pressure acutely and, over time, chronically.</li>
+<li><strong>Check it regularly.</strong> Home blood pressure monitoring (with a validated, cuff-style device — never rely on unvalidated camera-based estimates) catches trends long before symptoms would.</li>
+</ol>
+<h3>When to Seek Medical Support</h3>
+<p>Readings consistently at or above 130/80 mmHg warrant a conversation with a doctor about lifestyle changes and, if needed, medication. Readings above 180/120 mmHg, especially with symptoms like chest pain, shortness of breath, or severe headache, require emergency care.</p>
+<hr />
+<h2>Chapter 5: Preventing and Reversing Heart Disease Risk</h2>
+<h3>The Core Principle</h3>
+<p>Cardiovascular disease is the downstream result of years of the three conditions above, compounded by cholesterol particle damage to artery walls, chronic inflammation, and (for many) smoking. The same lifestyle changes that fix obesity, diabetes, and blood pressure also directly protect the heart — plus a few additions specific to arterial health.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Don't smoke — and if you do, quitting is the single highest-impact change available to you.</strong> Risk of heart attack drops sharply within just 1–2 years of quitting.</li>
+<li><strong>Favor unsaturated fats over saturated and trans fats.</strong> Replacing butter and fatty red meat with olive oil, nuts, and fatty fish measurably improves the cholesterol particle profile linked to arterial plaque.</li>
+<li><strong>Eat fiber deliberately.</strong> Soluble fiber (oats, beans, apples) binds cholesterol in the gut and helps lower LDL.</li>
+<li><strong>Train your cardiovascular system.</strong> 150+ minutes/week of moderate aerobic activity, plus 2+ strength sessions, is the most evidence-backed prescription for improving heart function and vascular health.</li>
+<li><strong>Know your numbers.</strong> LDL cholesterol, HDL cholesterol, triglycerides, and (for higher-risk individuals) markers like Lp(a) or coronary calcium scoring give a far more accurate risk picture than "feeling fine."</li>
+<li><strong>Manage chronic stress.</strong> Sustained stress and poor sleep independently raise cardiovascular risk through inflammation and blood pressure, separate from their effects on diet and weight.</li>
+</ol>
+<hr />
+<h2>Chapter 6: Putting the System Together — A 12-Week Starting Plan</h2>
+<p><strong>Weeks 1–2: Baseline and Awareness</strong>
+- Get blood pressure, fasting glucose/HbA1c, and a lipid panel checked.
+- Track your current food intake for one week without changing anything, just to see the starting point.</p>
+<p><strong>Weeks 3–6: Nutrition Reset</strong>
+- Swap one processed meal per day for a whole-food meal built around vegetables, protein, and fiber.
+- Cut sugary drinks and alcohol to occasional use.
+- Start a 10–15 minute post-meal walk habit.</p>
+<p><strong>Weeks 7–10: Movement and Structure</strong>
+- Add 2 strength-training sessions per week (bodyweight or resistance-based).
+- Build toward 150 minutes/week of moderate cardio (brisk walking counts).
+- Reassess portion sizes and aim for a moderate, sustainable calorie deficit if weight loss is a goal.</p>
+<p><strong>Weeks 11–12: Review and Adjust</strong>
+- Recheck blood pressure and, if possible, glucose and lipids.
+- Identify which habits stuck and which didn't — double down on what worked.
+- Set the next 12-week cycle of goals with your healthcare provider.</p>
+<p>Reversal of these conditions is rarely instant, but the trajectory usually turns within weeks — energy improves, blood pressure trends down, and blood sugar stabilizes well before the scale reflects the full change.</p>
+<hr />
+</section>
+  <section class="part" id="part-3"><h1>Part III — The Energy Code</h1>
+<h3>Sleep, nutrition, exercise, and stress management to maximize physical and mental energy</h3>
+<hr />
+<h2>Introduction: Energy Is a System, Not a Feeling</h2>
+<p>Low energy is rarely one problem — it's usually the compounded effect of a handful of small deficits: not quite enough sleep, a diet that spikes and crashes blood sugar, too little movement, and unmanaged stress. None of these alone might feel disqualifying, but together they add up to the fatigue most people accept as "just how adulthood feels." This part treats energy as an engineering problem with four interacting subsystems — sleep, nutrition, exercise, and stress — each of which amplifies or undermines the others.</p>
+<hr />
+<h2>Chapter 1: Sleep — The Foundation Everything Else Sits On</h2>
+<p>Sleep isn't downtime — it's when the brain clears metabolic waste (including proteins linked to neurodegeneration), consolidates memory, and the body repairs tissue and regulates hormones like cortisol, growth hormone, and the hunger hormones ghrelin and leptin.</p>
+<h3>Sleep Debt Is Real and Cumulative</h3>
+<p>Losing even 1–2 hours per night for a week produces measurable cognitive impairment comparable to mild alcohol intoxication — and most people underestimate how impaired they are.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Fix your wake time, not your bedtime.</strong> A consistent wake time — even on weekends — anchors your circadian rhythm more reliably than trying to force an exact bedtime.</li>
+<li><strong>Get morning light within 30–60 minutes of waking.</strong> Bright light (ideally outdoors) is the strongest signal that sets your internal clock and improves same-night sleep onset.</li>
+<li><strong>Dim lights and avoid screens 60–90 minutes before bed</strong>, or use night-mode/blue-light filtering if screens are unavoidable.</li>
+<li><strong>Keep the bedroom cool, dark, and quiet.</strong> Around 65°F/18°C is close to ideal for most people.</li>
+<li><strong>Cut caffeine after early afternoon.</strong> Caffeine has a half-life of roughly 5–6 hours, so a 3 PM coffee can still be partly active at 9 PM.</li>
+<li><strong>Watch alcohol before bed.</strong> It can help you fall asleep but fragments deep and REM sleep later in the night, leaving you less rested despite more hours in bed.</li>
+<li><strong>Aim for 7–9 hours, consistently</strong>, not just on an ideal night here and there.</li>
+</ol>
+<hr />
+<h2>Chapter 2: Nutrition — Fueling Without Crashing</h2>
+<p>The goal isn't a "perfect diet" — it's stable blood sugar, adequate micronutrients, and enough calories and protein to support the demands you're placing on your body.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Anchor meals around protein and fiber.</strong> This blunts blood sugar spikes and the energy crash that follows them.</li>
+<li><strong>Don't skip breakfast if it destabilizes your day.</strong> Some people do well with intermittent fasting; others crash hard by mid-morning without early food. Test what actually works for your energy, not what's trendy.</li>
+<li><strong>Hydrate deliberately.</strong> Even mild dehydration (as little as 1–2% of body weight in fluid loss) measurably impairs concentration and mood. A simple habit: a full glass of water on waking and with each meal.</li>
+<li><strong>Watch the sugar-caffeine cycle.</strong> A sugary snack plus coffee produces a sharp spike and an even sharper crash 60–90 minutes later, driving a self-reinforcing loop of stimulant and sugar cravings.</li>
+<li><strong>Get enough micronutrients that directly affect energy.</strong> Iron, B12, vitamin D, and magnesium deficiencies are common and all present as fatigue — worth checking via bloodwork if fatigue is persistent and unexplained.</li>
+<li><strong>Eat enough.</strong> Chronic under-eating (common during aggressive dieting) is one of the most overlooked causes of low energy, poor mood, and poor exercise recovery.</li>
+</ol>
+<hr />
+<h2>Chapter 3: Exercise — The Paradox of Spending Energy to Gain It</h2>
+<p>It feels counterintuitive, but regular physical activity increases baseline energy levels more reliably than rest does, for most people without a diagnosed medical condition. Exercise improves mitochondrial density (literally increasing your cells' energy-production capacity), improves sleep quality, and regulates mood-related neurotransmitters.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Separate cardio and strength — you need both.</strong> Cardiovascular training builds the engine (oxygen delivery and efficiency); strength training builds the muscle mass that both burns and stores usable energy.</li>
+<li><strong>Start small and consistent, not big and sporadic.</strong> A 20-minute walk five days a week beats a single exhausting 2-hour workout that leaves you sore and unmotivated for a week.</li>
+<li><strong>Use movement to manage energy dips, not just to burn calories.</strong> A short walk or a few minutes of bodyweight movement is one of the fastest ways to counter a mid-afternoon slump — faster and more sustainable than caffeine or sugar.</li>
+<li><strong>Respect recovery.</strong> Energy comes from the adaptation after training, not the training session itself. Under-recovery (poor sleep, inadequate protein, no rest days) turns exercise into a net energy drain.</li>
+<li><strong>Track trends, not single days.</strong> Resting heart rate and how you feel on a 1–10 scale across a week tell you more about whether your training load is sustainable than any single workout.</li>
+</ol>
+<hr />
+<h2>Chapter 4: Stress Management — Turning Off the Drain</h2>
+<p>Chronic stress keeps cortisol elevated, which in turn disrupts sleep, drives cravings for high-sugar food, suppresses immune function, and leaves less physiological "budget" for everything else in this book. Managing stress isn't a luxury add-on — it's a multiplier on every other system.</p>
+<h3>The System</h3>
+<ol>
+<li><strong>Build a daily "downshift" ritual.</strong> Even 5–10 minutes of deliberate calm — breathing exercises, a short walk without your phone, prayer, or meditation — measurably lowers cortisol and blood pressure.</li>
+<li><strong>Practice physiological sighing or box breathing during acute stress.</strong> A slow exhale longer than the inhale (e.g., 4 seconds in, 6–8 seconds out) directly activates the parasympathetic ("rest and digest") nervous system within seconds.</li>
+<li><strong>Protect unstructured time.</strong> Constant stimulation (notifications, multitasking, back-to-back meetings) keeps the nervous system in a low-grade alert state all day. Deliberate gaps in the schedule aren't wasted time — they're recovery time.</li>
+<li><strong>Invest in relationships.</strong> Social support is one of the most consistently proven stress buffers in the psychological literature — talking through a stressor with a trusted person measurably reduces its physiological impact.</li>
+<li><strong>Get outside.</strong> Time in nature, even a short walk in a park, reliably lowers markers of stress and improves mood and attention compared to the same time spent indoors.</li>
+<li><strong>Know when stress needs professional support.</strong> Persistent anxiety, low mood, or burnout that doesn't respond to lifestyle changes is worth discussing with a mental health professional — this is a normal and effective step, not a last resort.</li>
+</ol>
+<hr />
+<h2>Chapter 5: The Daily Energy Loop</h2>
+<p>The four systems reinforce each other in a loop:</p>
+<pre><code>Better Sleep → Better Food Choices (less craving-driven eating)
+     ↑                                        ↓
+Lower Stress ←── More Consistent Exercise ←───┘
+</code></pre>
+<p>Poor sleep drives sugar cravings and poor food choices → poor food choices spike and crash blood sugar, raising stress reactivity → elevated stress disrupts the next night's sleep → the cycle repeats and compounds downward. The same loop works in reverse: one good night's sleep makes the next day's food choices easier, which makes a workout feel more doable, which makes the next night's sleep deeper.</p>
+<p><strong>The practical implication:</strong> you don't need to fix all four systems perfectly at once. Improving any one of them tends to pull the other three upward. Start with whichever is currently weakest — usually sleep, because of how directly it drives the other three.</p>
+<hr />
+<h2>Chapter 6: A Sample Day Built on the Energy Code</h2>
+<ul>
+<li><strong>Wake at a consistent time; get outside for 10 minutes of morning light.</strong></li>
+<li><strong>Protein-forward breakfast</strong> (or a planned fast, if that's what works for you) with water.</li>
+<li><strong>Short walk or movement break</strong> mid-morning to counter the first energy dip.</li>
+<li><strong>Lunch built around protein, fiber, and vegetables</strong> rather than refined carbs alone.</li>
+<li><strong>A 5-minute breathing break</strong> before the busiest part of the afternoon.</li>
+<li><strong>Strength or cardio session</strong> in the late afternoon or early evening — a reliable time for most people's body temperature and performance to peak.</li>
+<li><strong>Dinner finished 2–3 hours before bed</strong>, moderate in size.</li>
+<li><strong>Screens dimmed, lights low, and a wind-down ritual</strong> in the final hour before sleep.</li>
+<li><strong>Consistent bedtime, cool dark room, 7–9 hours.</strong></li>
+</ul>
+<p>None of these steps is dramatic on its own. The compounding effect across weeks and months is what produces the sustained physical and mental energy most people are chasing when they reach for another cup of coffee.</p>
+<hr />
+<h2>Closing Thoughts: One System, Not Three Separate Books</h2>
+<p>The Longevity Blueprint, Reverse Your Health, and The Energy Code describe the same underlying system from three angles: the long view (decades), the disease-specific view (the conditions most likely to shorten life), and the daily view (how you feel today). The habits repeat across all three — nutrient-dense food, consistent movement, quality sleep, stress regulation, and proactive prevention — because they are, genuinely, the small set of levers that matter most. Everything else is refinement.</p>
+<p>Start with one habit. Build consistency before intensity. Measure what matters, adjust based on evidence, and give the system time — most of the benefits described in this book compound over months and years, not days.</p></section>
+</main>
+
+<footer>
+  <p>Health &amp; Longevity &mdash; educational content only, not medical advice.<br/>
+  Consult a healthcare provider before making significant changes to diet, exercise, sleep, or medication.</p>
+  <a class="back-top" href="#top">Back to Cover</a>
+</footer>
+
+<script>
+  (function () {
+    var bar = document.getElementById('progress');
+    function update() {
+      var h = document.documentElement;
+      var scrolled = h.scrollTop;
+      var height = h.scrollHeight - h.clientHeight;
+      var pct = height > 0 ? (scrolled / height) * 100 : 0;
+      bar.style.width = pct + '%';
+    }
+    document.addEventListener('scroll', update, { passive: true });
+    update();
+  })();
+</script>

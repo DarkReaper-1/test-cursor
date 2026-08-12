@@ -73,6 +73,7 @@ Most of what kills people in mid-to-late life is slow and detectable long before
 There's an enormous industry built around exotic longevity interventions. It's worth being honest about the evidence:
 
 **Strong evidence:**
+
 - Not smoking
 - Regular physical activity, especially strength training
 - Maintaining a healthy body composition
@@ -82,12 +83,14 @@ There's an enormous industry built around exotic longevity interventions. It's w
 - Routine preventive screening (blood pressure, lipids, glucose, cancer screening per age guidelines)
 
 **Promising but less certain:**
+
 - Time-restricted eating / intermittent fasting for metabolic health
 - Moderate caloric restriction without malnutrition
 - Specific supplements (vitamin D if deficient, omega-3s, creatine) — helpful in targeted cases, not magic bullets
 - Cold exposure and sauna use for cardiovascular and stress-resilience benefits
 
 **Weak or unproven for lifespan extension in humans:**
+
 - Most "anti-aging" supplements marketed directly to consumers (NAD+ boosters, exotic peptides) — promising in early research, not yet proven to extend human lifespan
 - Extreme fasting protocols without medical supervision
 - Any single product claiming to "reverse aging"
