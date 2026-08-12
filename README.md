@@ -8,6 +8,7 @@ This repository contains independent projects:
 4. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 5. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
 6. **[Health & Longevity Book](#health--longevity-book)** — A three-part book on living longer, preventing chronic disease, and maximizing energy
+7. **[Parkour Race — Freerun](#parkour-race--freerun)** — 3D rooftop parkour racer (Three.js homage)
 
 ---
 
@@ -186,3 +187,20 @@ A three-part educational book on living longer, preventing chronic disease, and 
 Read it here: [books/health-and-longevity/](books/health-and-longevity/README.md)
 
 > Educational content only — not medical advice. Consult a healthcare provider before making significant changes to diet, exercise, or medication.
+
+---
+
+## Parkour Race — Freerun
+
+A playable, from-scratch **Three.js** homage to the Madbox rooftop racer *Parkour Race – FreeRun Game*: auto-run forward, hold to charge a jump (longer hold = farther), steer across rooftops, clear gaps, auto-vault obstacles, hit glowing speed bumpers, and race a pack of AI runners to the finish.
+
+```bash
+python3 -m http.server 8090
+# open http://127.0.0.1:8090/parkour-race/
+```
+
+Controls: **Hold Space** (or tap & hold) to charge/jump, **A/D** or **←/→** to steer.
+
+Details: [parkour-race/README.md](parkour-race/README.md)
+
+> Original re-implementation of the gameplay using original code and primitive graphics — contains none of the original app's assets, art, or code.

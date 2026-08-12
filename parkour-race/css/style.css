@@ -1,0 +1,151 @@
+:root {
+  --accent: #ffd23f;
+  --accent2: #ff5d73;
+  --ink: #0d1117;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #0d1117; }
+body {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color: #fff;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+#game { position: fixed; inset: 0; }
+#scene { display: block; width: 100%; height: 100%; }
+
+.hidden { display: none !important; }
+
+/* ---------- Overlays ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  padding: 24px;
+  background: radial-gradient(120% 120% at 50% 20%, rgba(13,17,23,.35), rgba(13,17,23,.82));
+  backdrop-filter: blur(2px);
+  z-index: 30;
+}
+.logo {
+  font-size: clamp(44px, 12vw, 108px);
+  line-height: .9;
+  letter-spacing: 2px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 6px 0 rgba(0,0,0,.35);
+}
+.logo span {
+  display: block;
+  color: var(--accent);
+  -webkit-text-stroke: 2px rgba(0,0,0,.25);
+}
+.tagline { opacity: .85; font-size: clamp(14px, 3.5vw, 20px); }
+.btn {
+  margin-top: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: clamp(18px, 4.5vw, 26px);
+  letter-spacing: 1px;
+  color: var(--ink);
+  background: var(--accent);
+  padding: 16px 42px;
+  border-radius: 999px;
+  box-shadow: 0 8px 0 #c8a01f, 0 14px 22px rgba(0,0,0,.4);
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #c8a01f, 0 6px 12px rgba(0,0,0,.4); }
+.how {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+  font-size: clamp(12px, 3vw, 15px);
+  opacity: .9;
+  max-width: 520px;
+}
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 2px 7px;
+  margin: 0 2px;
+  border-radius: 6px;
+  background: #222b36;
+  border: 1px solid #3a4757;
+  border-bottom-width: 3px;
+  font-size: 12px;
+}
+
+#end-title { font-size: clamp(40px, 10vw, 84px); font-weight: 900; text-shadow: 0 5px 0 rgba(0,0,0,.35); }
+#end-place { font-size: clamp(22px, 6vw, 40px); font-weight: 800; color: var(--accent); }
+#end-time { opacity: .8; font-size: clamp(14px, 3.5vw, 18px); }
+
+/* ---------- HUD ---------- */
+#hud { position: absolute; inset: 0; pointer-events: none; z-index: 20; }
+.hud-pill {
+  position: absolute;
+  top: 16px; left: 16px;
+  background: rgba(13,17,23,.55);
+  border: 2px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 6px 16px 8px;
+  font-weight: 900;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  min-width: 78px;
+  justify-content: center;
+}
+#rank-pos { font-size: 34px; color: var(--accent); }
+#rank-suffix { font-size: 15px; opacity: .8; }
+
+#progress-wrap { position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: min(52vw, 420px); }
+#progress-track {
+  position: relative;
+  height: 12px;
+  background: rgba(13,17,23,.55);
+  border: 2px solid rgba(255,255,255,.15);
+  border-radius: 999px;
+}
+#progress-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 999px; }
+#progress-flag { position: absolute; right: -6px; top: -14px; font-size: 18px; }
+.dot { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px rgba(0,0,0,.4); }
+.dot.me { background: var(--accent); left: 0%; }
+
+#speed-wrap { position: absolute; right: 16px; bottom: 18px; width: 150px; text-align: right; }
+#speed-label { font-size: 11px; letter-spacing: 2px; opacity: .7; margin-bottom: 4px; }
+#speed-bar { height: 10px; background: rgba(13,17,23,.55); border: 2px solid rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
+#speed-fill { height: 100%; width: 30%; background: linear-gradient(90deg, #43e97b, var(--accent)); }
+
+/* ---------- Charge meter (bottom center) ---------- */
+#charge {
+  position: absolute;
+  bottom: 26px; left: 50%;
+  transform: translateX(-50%);
+  width: min(60vw, 300px);
+  height: 16px;
+  background: rgba(13,17,23,.55);
+  border: 2px solid rgba(255,255,255,.2);
+  border-radius: 999px;
+  overflow: hidden;
+  z-index: 20;
+}
+#charge-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+/* ---------- Countdown ---------- */
+#countdown {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(80px, 24vw, 220px);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 8px 0 rgba(0,0,0,.35);
+  z-index: 25;
+  pointer-events: none;
+}

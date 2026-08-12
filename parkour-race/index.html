@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Parkour Race — Freerun</title>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <div id="game">
+    <canvas id="scene"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="rank" class="hud-pill"><span id="rank-pos">1</span><span id="rank-suffix">st</span></div>
+      <div id="progress-wrap">
+        <div id="progress-track">
+          <div id="progress-fill"></div>
+          <div id="progress-flag">🏁</div>
+          <div id="progress-runner" class="dot me"></div>
+        </div>
+      </div>
+      <div id="speed-wrap">
+        <div id="speed-label">SPEED</div>
+        <div id="speed-bar"><div id="speed-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Charge indicator -->
+    <div id="charge" class="hidden"><div id="charge-fill"></div></div>
+
+    <!-- Start screen -->
+    <div id="start" class="overlay">
+      <h1 class="logo">PARKOUR<span>RACE</span></h1>
+      <p class="tagline">Rooftop freerun · beat the crowd to the finish</p>
+      <button id="btn-start" class="btn">TAP TO RACE</button>
+      <div class="how">
+        <div><kbd>Hold</kbd> Space / Tap &amp; Hold — charge &amp; jump (hold longer = farther)</div>
+        <div><kbd>A</kbd><kbd>D</kbd> / <kbd>◀</kbd><kbd>▶</kbd> — steer between rooftops</div>
+        <div>Hit glowing <b>speed bumpers</b>, land clean for a boost, vault obstacles automatically.</div>
+      </div>
+    </div>
+
+    <!-- End screen -->
+    <div id="end" class="overlay hidden">
+      <h1 id="end-title">FINISH!</h1>
+      <div id="end-place"></div>
+      <div id="end-time"></div>
+      <button id="btn-again" class="btn">RACE AGAIN</button>
+    </div>
+
+    <!-- Countdown -->
+    <div id="countdown" class="hidden"></div>
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
