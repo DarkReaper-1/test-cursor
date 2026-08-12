@@ -226,6 +226,8 @@ export class Game {
       const slot = slots[slotIdx % slots.length];
       slotIdx++;
       const profile = makeProfile(skills[i], i, rng);
+      // gentler fields on early levels, full pace at difficulty 5
+      profile.speedMult *= 0.92 + def.difficulty * 0.016;
       const events = this.makeAiEvents();
       const mc = new MovementController({}, events.handlers);
       mc.reset(slot, 0.2, startZ - 1.2);

@@ -27,9 +27,9 @@ const FIRST_NAMES = ['Blur', 'Volt', 'Kiko', 'Rex', 'Nova', 'Juno', 'Ace', 'Pipe
 
 export function makeProfile(skill: AISkill, index: number, rng: () => number): AIProfile {
   const base = {
-    easy: { speed: 0.84, speedVar: 0.05, reaction: 0.3, mistake: 0.22 },
-    normal: { speed: 0.92, speedVar: 0.05, reaction: 0.17, mistake: 0.12 },
-    hard: { speed: 0.985, speedVar: 0.045, reaction: 0.08, mistake: 0.05 },
+    easy: { speed: 0.78, speedVar: 0.05, reaction: 0.3, mistake: 0.24 },
+    normal: { speed: 0.87, speedVar: 0.05, reaction: 0.17, mistake: 0.13 },
+    hard: { speed: 0.95, speedVar: 0.05, reaction: 0.08, mistake: 0.06 },
   }[skill];
   const colors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#2dd4bf', '#a78bfa', '#f472b6', '#94a3b8'];
   return {
@@ -111,10 +111,10 @@ export class AIController {
       this.rubberBand = 1;
     } else {
       const d = playerProgress - this.mc.z;
-      if (d > 30) this.rubberBand = 1.08;
+      if (d > 30) this.rubberBand = 1.09;
       else if (d > 12) this.rubberBand = 1.04;
-      else if (d < -35) this.rubberBand = 0.93;
-      else if (d < -15) this.rubberBand = 0.97;
+      else if (d < -40) this.rubberBand = 0.86;
+      else if (d < -18) this.rubberBand = 0.93;
       else this.rubberBand = 1;
     }
     this.mc.cfg.baseSpeed = this.baseSpeed * this.rubberBand;
