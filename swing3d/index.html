@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skyline Drifter — 3D Web-Swing Traversal</title>
+  <link rel="stylesheet" href="./style.css" />
+
+  <!--
+    Import map lets us write `import * as THREE from 'three'` in every module
+    while resolving to a single vendored copy of three.js. Vendoring keeps the
+    game fully self-contained (works offline, no CDN dependency at runtime).
+  -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./js/vendor/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- WebGL render target. main.js attaches the renderer to this canvas. -->
+  <canvas id="game"></canvas>
+
+  <!-- Fixed reticle used for aiming web-lines at buildings. -->
+  <div id="crosshair" aria-hidden="true">
+    <span class="ch-dot"></span>
+    <span class="ch-ring"></span>
+  </div>
+
+  <!-- Heads-up display: title, live status, speed/state readouts. -->
+  <div id="hud">
+    <div class="hud-top">
+      <h1>SKYLINE&nbsp;DRIFTER</h1>
+      <p class="tag">original hero · physics web-swinging · procedural city</p>
+    </div>
+
+    <div class="hud-stats">
+      <div class="stat"><label>SPEED</label><span id="stat-speed">0</span></div>
+      <div class="stat"><label>STATE</label><span id="stat-state">grounded</span></div>
+      <div class="stat"><label>HEIGHT</label><span id="stat-height">0</span></div>
+      <div class="stat"><label>COMBO</label><span id="stat-combo">0</span></div>
+      <div class="stat"><label>TIME</label><span id="stat-time">day</span></div>
+    </div>
+  </div>
+
+  <!-- Start / help overlay. Click to enter pointer-lock and play. -->
+  <div id="overlay">
+    <div class="panel">
+      <h2>SKYLINE DRIFTER</h2>
+      <p class="sub">A fully original web-swinging traversal sandbox built with Three.js.</p>
+      <div class="keys">
+        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span></div>
+        <div><kbd>Shift</kbd><span>Sprint</span></div>
+        <div><kbd>Space</kbd><span>Jump / Wall-run / Ledge-vault</span></div>
+        <div><kbd>Space</kbd><span>(hold at wall) Wall-climb</span></div>
+        <div><kbd>Mouse</kbd><span>Aim</span></div>
+        <div><kbd>L-Click</kbd><span>Fire &amp; hold web to swing · release to launch</span></div>
+        <div><kbd>R-Click</kbd><span>Web-zip toward a surface</span></div>
+        <div><kbd>F</kbd><span>Punch combo / Air attack</span></div>
+        <div><kbd>E</kbd><span>Web projectile</span></div>
+        <div><kbd>C</kbd><span>Dodge roll</span></div>
+      </div>
+      <button id="start-btn">CLICK TO PLAY</button>
+      <p class="hint">Tip: aim at a building and hold Left-Click to swing. Momentum carries — release at the low point of a swing to fling forward.</p>
+    </div>
+  </div>
+
+  <!-- Entry point. All other modules are imported from here. -->
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
