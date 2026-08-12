@@ -46,9 +46,8 @@ async function main() {
     }));
     if (state.screen === "results") break;
 
-    const x = Math.sin(state.z / 16) * 0.85;
-    await page.evaluate((steerX) => window.gameAPI.steer(steerX), x);
-    await sleep(120);
+    await page.evaluate(() => window.gameAPI.steerDemo());
+    await sleep(80);
   }
 
   await sleep(4000);

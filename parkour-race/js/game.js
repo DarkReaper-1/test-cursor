@@ -824,4 +824,22 @@ window.gameAPI = {
   steer: (x) => {
     if (window.__game) window.__game.steerTarget = x;
   },
+  steerDemo: () => {
+    const g = window.__game;
+    const p = g?.player();
+    if (!g || !p || !g.course) return;
+    const lookZ = p.z + 7;
+    let target = Math.sin(p.z / 26) * 0.45;
+    if (!g.course.groundAt(target, lookZ) || !g.course.groundAt(p.x, p.z + 3)) {
+      for (const dx of [0, -1.2, 1.2, -2.4, 2.4, -3.6, 3.6]) {
+        if (g.course.groundAt(dx, lookZ) && g.course.groundAt(dx, p.z + 3)) {
+          target = dx;
+          break;
+        }
+      }
+    }
+    const pad = g.course.pads.find((pad) => pad.z > p.z && pad.z < p.z + 14 && Math.abs(pad.x) < 3.5);
+    if (pad && g.course.groundAt(pad.x, lookZ)) target = pad.x;
+    g.steerTarget = target;
+  },
 };
