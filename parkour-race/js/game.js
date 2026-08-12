@@ -655,8 +655,8 @@ export class Game {
   updateCamera(dt) {
     const p = this.player();
     if (!p) return;
-    const back = this.countdown > 0 ? 5.1 : 5.4;
-    const height = p.action === "flip" || p.action === "jump" ? 2.15 : 1.72;
+    const back = this.countdown > 0 ? 4.7 : 4.95;
+    const height = p.action === "flip" || p.action === "jump" ? 2.0 : 1.62;
     const desired = new THREE.Vector3(p.x * 0.85, p.y + height, p.z - back);
     this.camera.position.lerp(desired, 1 - Math.pow(0.0008, dt));
     this.camLook.lerp(new THREE.Vector3(p.x * 0.7, p.y + 0.95, p.z + 9), 1 - Math.pow(0.0007, dt));
