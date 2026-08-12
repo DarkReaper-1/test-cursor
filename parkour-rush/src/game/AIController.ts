@@ -104,20 +104,28 @@ export class AIController {
     this.steerTargetX = this.mc.x;
   }
 
-  /** Rubber-banding keeps races close but believable. Disabled near the finish. */
-  updateRubberBand(playerProgress: number, finishZ: number): void {
-    const nearFinish = this.mc.z > finishZ * 0.85;
+  /**
+   * Rubber-banding keeps races close but believable; softened near the
+   * finish so results still feel earned. `minBand` is the strongest
+   * catch-down factor (lower on easy levels so beginners stay in touch).
+   */
+  updateRubberBand(playerProgress: number, finishZ: number, minBand = 0.8): void {
+    const nearFinish = this.mc.z > finishZ * 0.9;
     if (nearFinish) {
       this.rubberBand = 1;
     } else {
       const d = playerProgress - this.mc.z;
       if (d > 30) this.rubberBand = 1.09;
       else if (d > 12) this.rubberBand = 1.04;
-      else if (d < -40) this.rubberBand = 0.86;
-      else if (d < -18) this.rubberBand = 0.93;
+      else if (d < -45) this.rubberBand = minBand;
+      else if (d < -18) this.rubberBand = (1 + minBand) / 2;
       else this.rubberBand = 1;
     }
     this.mc.cfg.baseSpeed = this.baseSpeed * this.rubberBand;
+    // when held back, boost pads shouldn't launch the AI out of reach
+    if (this.rubberBand < 0.98 && this.mc.boostMult > 1.1) {
+      this.mc.boostMult = 1.1;
+    }
   }
 
   update(dt: number, world: CollisionWorld): void {

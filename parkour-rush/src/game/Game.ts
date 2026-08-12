@@ -473,9 +473,11 @@ export class Game {
     // AI racers (affected by slow-mo)
     if (racing) {
       const aiDt = dt * worldScale;
+      // stronger catch-down on easy levels so beginners stay in the race
+      const minBand = 0.62 + (this.levelDef?.difficulty ?? 3) * 0.05;
       for (const r of this.racers) {
         if (r.isPlayer || !r.ai) continue;
-        r.ai.updateRubberBand(pmc.z, this.race.finishZ);
+        r.ai.updateRubberBand(pmc.z, this.race.finishZ, minBand);
         r.ai.update(aiDt, this.world);
       }
     }
