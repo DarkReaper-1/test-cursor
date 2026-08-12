@@ -7,6 +7,7 @@ This repository contains independent projects:
 3. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
 4. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 5. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
+6. **[Health & Longevity Book](#health--longevity-book)** — A three-part book on living longer, preventing chronic disease, and maximizing energy
 
 ---
 
@@ -171,3 +172,17 @@ Then visit http://localhost:8080
 - Auto-respawn if you fall off the map
 
 Swing from building to building and see how far you can go!
+
+---
+
+## Health & Longevity Book
+
+A three-part educational book on living longer, preventing chronic disease, and maximizing physical and mental energy:
+
+1. **The Longevity Blueprint** — How to live longer, avoid chronic disease, and stay energetic into old age.
+2. **Reverse Your Health** — A practical system for preventing obesity, diabetes, high blood pressure, and heart disease.
+3. **The Energy Code** — Sleep, nutrition, exercise, and stress management to maximize physical and mental energy.
+
+Read it here: [books/health-and-longevity/](books/health-and-longevity/README.md)
+
+> Educational content only — not medical advice. Consult a healthcare provider before making significant changes to diet, exercise, or medication.
