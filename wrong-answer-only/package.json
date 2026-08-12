@@ -1,0 +1,12 @@
+{
+  "name": "wrong-answer-only",
+  "version": "1.0.0",
+  "description": "A party/elimination game where each round shows a **fake rule**. Doing what the rule says eliminates you. Last player standing wins.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
