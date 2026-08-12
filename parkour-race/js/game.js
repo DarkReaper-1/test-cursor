@@ -14,7 +14,7 @@ import {
   loadSave,
   writeSave,
 } from "./config.js";
-import { createStickman, setStickmanColor, animateStickman, createNameTag } from "./stickman.js";
+import { createStickman, setStickmanColor, animateStickman, createNameTag, writeNameTag } from "./stickman.js";
 import { Course, disposeCourse } from "./course.js";
 import { AudioBus } from "./audio.js";
 
@@ -60,9 +60,9 @@ export class Game {
     this.camera = new THREE.PerspectiveCamera(62, 1, 0.1, 600);
     this.camera.position.set(0, 12, -10);
 
-    this.hemi = new THREE.HemisphereLight(0xe8f6ff, 0x8aa0b0, 0.85);
+    this.hemi = new THREE.HemisphereLight(0xf2fbff, 0xb8c4cc, 1.05);
     this.scene.add(this.hemi);
-    this.sun = new THREE.DirectionalLight(0xfff3d0, 1.15);
+    this.sun = new THREE.DirectionalLight(0xfff6e8, 1.35);
     this.sun.position.set(20, 40, -10);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(1024, 1024);
@@ -257,15 +257,26 @@ export class Game {
     const startY = this.course.groundAt(0, startZ)?.top ?? 8;
 
     this.racers = [];
+    let ai = 0;
     for (let i = 0; i < RACER_COUNT; i++) {
       const isPlayer = i === 0;
       const color = isPlayer ? skin.color : new THREE.Color().setHSL((i * 0.17) % 1, 0.75, 0.55).getHex();
       const mesh = createStickman(color, { outlined: isPlayer });
+      if (isPlayer) mesh.scale.setScalar(1.12);
       if (isPlayer && trail.color) mesh.userData.trailMat.color.setHex(trail.color);
-      const col = i % 4;
-      const row = Math.floor(i / 4);
-      const x = -3.6 + col * 2.4;
-      const z = startZ - row * 1.6;
+      let x;
+      let z;
+      if (isPlayer) {
+        x = 0;
+        z = startZ - 0.6;
+      } else {
+        const col = ai % 5;
+        const row = Math.floor(ai / 5);
+        x = -4 + col * 2;
+        if (Math.abs(x) < 0.7) x = x < 0 ? -2 : 2;
+        z = startZ + 0.4 - row * 1.55;
+        ai += 1;
+      }
       const racer = {
         mesh,
         x,
@@ -292,7 +303,7 @@ export class Game {
         place: i + 1,
       };
       if (!isPlayer) {
-        const tag = createNameTag(`${i + 1}th  ${racer.name}`);
+        const tag = createNameTag(`${ordinal(i + 1)}  ${racer.name}`);
         mesh.add(tag);
         racer.tag = tag;
       }
@@ -428,7 +439,7 @@ export class Game {
     else this.steerAI(r, dt);
 
     r.boost = Math.max(0, r.boost - dt * 7);
-    const targetSpeed = Math.min(MAX_SPEED, BASE_SPEED + r.boost);
+    const targetSpeed = Math.min(MAX_SPEED, BASE_SPEED + (r.isPlayer ? 1.8 : 0) + r.boost);
     r.speed += (targetSpeed - r.speed) * Math.min(1, dt * 3);
     r.z += r.speed * dt;
 
@@ -438,7 +449,7 @@ export class Game {
     r.y += r.vy * dt;
     this.placeOnGround(r);
 
-    if (r.y < -6) this.respawn(r);
+    if (r.y < -2) this.respawn(r);
 
     if (r.z >= this.course.finishZ && !r.finished) {
       r.finished = true;
@@ -471,11 +482,21 @@ export class Game {
       if (pads.length) r.aiTarget = pads[0].x;
       else r.aiTarget = THREE.MathUtils.clamp(r.aiTarget + (Math.random() - 0.5) * 3, -TRACK_HALF + 0.6, TRACK_HALF - 0.6);
     }
+    const lookZ = r.z + 7;
+    if (!this.course.groundAt(r.x, lookZ)) {
+      for (const dx of [-2.2, 2.2, -4, 4]) {
+        if (this.course.groundAt(r.x + dx, lookZ)) {
+          r.aiTarget = THREE.MathUtils.clamp(r.x + dx, -TRACK_HALF, TRACK_HALF);
+          break;
+        }
+      }
+    }
     const player = this.player();
     if (player) {
       const gap = player.z - r.z;
-      if (gap > 18) r.boost = Math.max(r.boost, 6);
-      if (gap < -22) r.speed *= 0.985;
+      if (gap > 14) r.boost = Math.max(r.boost, 5);
+      if (gap < -8) r.boost = Math.min(r.boost, 2);
+      if (gap < -14) r.speed *= 0.96;
     }
     r.x += (r.aiTarget - r.x) * dt * (3 + r.skill * 4);
   }
@@ -490,7 +511,7 @@ export class Game {
     } else if (r.grounded && !ahead) {
       this.jump(r, 12.5);
       if (r.speed > 22) this.setAction(r, "flip", 0.7);
-    } else if (r.grounded && ahead && ahead.top < here.top - 1.4) {
+    } else if (r.grounded && ahead && here && ahead.top < here.top - 1.4) {
       this.jump(r, 9);
     }
 
@@ -644,20 +665,24 @@ export class Game {
     });
     sorted.forEach((r, i) => {
       r.place = i + 1;
-      if (r.tag) {
-        /* name tags stay */
-      }
+      if (r.tag) r.tag.visible = false;
+    });
+    const p = this.player();
+    const tagged = sorted.filter((r) => !r.isPlayer && p && r.z > p.z - 1 && r.z < p.z + 22);
+    tagged.slice(0, 3).forEach((r) => {
+      r.tag.visible = true;
+      writeNameTag(r.tag, `${ordinal(r.place)}  ${r.name}`);
     });
   }
 
   updateCamera(dt) {
     const p = this.player();
     if (!p) return;
-    const back = this.countdown > 0 ? 7.2 : 8.4;
-    const height = p.action === "flip" || p.action === "jump" ? 3.4 : 2.7;
-    const desired = new THREE.Vector3(p.x * 0.35, p.y + height, p.z - back);
+    const back = this.countdown > 0 ? 6.6 : 7.4;
+    const height = p.action === "flip" || p.action === "jump" ? 3.1 : 2.45;
+    const desired = new THREE.Vector3(p.x * 0.92, p.y + height, p.z - back);
     this.camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
-    this.camLook.lerp(new THREE.Vector3(p.x * 0.2, p.y + 1.15, p.z + 10), 1 - Math.pow(0.0008, dt));
+    this.camLook.lerp(new THREE.Vector3(p.x * 0.7, p.y + 1.05, p.z + 11), 1 - Math.pow(0.0008, dt));
     this.camera.lookAt(this.camLook);
     this.sun.position.set(p.x + 18, p.y + 35, p.z - 12);
     this.sun.target.position.set(p.x, p.y, p.z + 8);

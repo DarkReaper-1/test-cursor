@@ -13,38 +13,42 @@ function addOutline(mesh, color = 0xffffff) {
     side: THREE.BackSide,
   });
   const outline = new THREE.Mesh(mesh.geometry, outlineMat);
-  outline.scale.setScalar(1.08);
+  outline.scale.setScalar(1.045);
   mesh.add(outline);
 }
 
 export function createStickman(color, { outlined = true } = {}) {
   const group = new THREE.Group();
-  const mat = new THREE.MeshLambertMaterial({ color });
+  const mat = new THREE.MeshLambertMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.28,
+  });
 
   const hips = new THREE.Group();
   hips.position.y = 0.78;
   group.add(hips);
 
-  const torso = capsule(0.2, 0.38, mat);
-  torso.position.y = 0.28;
+  const torso = capsule(0.22, 0.42, mat);
+  torso.position.y = 0.26;
   hips.add(torso);
   if (outlined) addOutline(torso);
 
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), mat);
-  head.position.y = 0.72;
+  head.position.y = 0.64;
   head.castShadow = true;
   hips.add(head);
   if (outlined) addOutline(head, 0xffffff);
 
   function arm(side) {
     const shoulder = new THREE.Group();
-    shoulder.position.set(side * 0.28, 0.42, 0);
-    const upper = capsule(0.075, 0.26, mat);
-    upper.position.y = -0.18;
+    shoulder.position.set(side * 0.26, 0.4, 0);
+    const upper = capsule(0.08, 0.28, mat);
+    upper.position.y = -0.16;
     const elbow = new THREE.Group();
-    elbow.position.y = -0.34;
-    const lower = capsule(0.065, 0.24, mat);
-    lower.position.y = -0.16;
+    elbow.position.y = -0.3;
+    const lower = capsule(0.07, 0.26, mat);
+    lower.position.y = -0.14;
     if (outlined) {
       addOutline(upper);
       addOutline(lower);
@@ -58,13 +62,13 @@ export function createStickman(color, { outlined = true } = {}) {
 
   function leg(side) {
     const hip = new THREE.Group();
-    hip.position.set(side * 0.12, 0, 0);
-    const thigh = capsule(0.09, 0.32, mat);
-    thigh.position.y = -0.22;
+    hip.position.set(side * 0.11, 0.02, 0);
+    const thigh = capsule(0.095, 0.34, mat);
+    thigh.position.y = -0.2;
     const knee = new THREE.Group();
-    knee.position.y = -0.42;
-    const shin = capsule(0.08, 0.3, mat);
-    shin.position.y = -0.2;
+    knee.position.y = -0.38;
+    const shin = capsule(0.085, 0.32, mat);
+    shin.position.y = -0.18;
     if (outlined) {
       addOutline(thigh);
       addOutline(shin);
@@ -85,6 +89,12 @@ export function createStickman(color, { outlined = true } = {}) {
   const trailCount = 28;
   const trailPos = new Float32Array(trailCount * 6);
   trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPos, 3));
+  const indices = [];
+  for (let i = 0; i < trailCount - 1; i++) {
+    const a = i * 2;
+    indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+  }
+  trailGeo.setIndex(indices);
   const trailMat = new THREE.MeshBasicMaterial({
     color,
     transparent: true,
@@ -95,6 +105,14 @@ export function createStickman(color, { outlined = true } = {}) {
   const trail = new THREE.Mesh(trailGeo, trailMat);
   trail.frustumCulled = false;
   group.add(trail);
+
+  const shadow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.42, 16),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22, depthWrite: false })
+  );
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.02;
+  group.add(shadow);
 
   group.userData = {
     mat,
@@ -108,6 +126,7 @@ export function createStickman(color, { outlined = true } = {}) {
     trailPos,
     trailCount,
     trailHistory: [],
+    shadow,
     state: "run",
     stateT: 0,
     flip: 0,
@@ -216,6 +235,7 @@ export function animateStickman(mesh, dt, { speed, grounded, action, wall, later
   }
 
   if (action !== "flip") u.flip = 0;
+  if (u.shadow) u.shadow.material.opacity = grounded ? 0.22 : 0.08;
   updateTrail(mesh, speed, action);
 }
 
@@ -239,13 +259,13 @@ function updateTrail(mesh, speed, action) {
     const a = u.trailHistory[Math.min(i, n - 1)] || world;
     local.copy(a);
     mesh.worldToLocal(local);
-    const w = (1 - i / u.trailCount) * 0.22;
+    const w = (1 - i / u.trailCount) * 0.38;
     const idx = i * 6;
-    pos[idx] = local.x - w;
-    pos[idx + 1] = local.y;
+    pos[idx] = local.x;
+    pos[idx + 1] = local.y - w;
     pos[idx + 2] = local.z;
-    pos[idx + 3] = local.x + w;
-    pos[idx + 4] = local.y;
+    pos[idx + 3] = local.x;
+    pos[idx + 4] = local.y + w;
     pos[idx + 5] = local.z;
   }
   u.trail.geometry.attributes.position.needsUpdate = true;
@@ -255,6 +275,19 @@ export function createNameTag(text) {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 64;
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const spr = new THREE.Sprite(mat);
+  spr.scale.set(2.2, 0.55, 1);
+  spr.position.y = 2.15;
+  spr.userData.canvas = canvas;
+  spr.userData.tex = tex;
+  writeNameTag(spr, text);
+  return spr;
+}
+
+export function writeNameTag(spr, text) {
+  const canvas = spr.userData.canvas;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, 256, 64);
   ctx.font = "700 28px Nunito, sans-serif";
@@ -265,10 +298,5 @@ export function createNameTag(text) {
   ctx.strokeText(text, 128, 32);
   ctx.fillStyle = "#fff";
   ctx.fillText(text, 128, 32);
-  const tex = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
-  const spr = new THREE.Sprite(mat);
-  spr.scale.set(2.2, 0.55, 1);
-  spr.position.y = 2.15;
-  return spr;
+  spr.userData.tex.needsUpdate = true;
 }

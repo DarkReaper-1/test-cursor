@@ -5,10 +5,14 @@ const WHITE = 0xffffff;
 const ORANGE = 0xff5a18;
 const YELLOW = 0xffe14a;
 
-function boxMesh(w, h, d, color, { emissive = 0x000000, y = 0 } = {}) {
+function boxMesh(w, h, d, color, { emissive = 0x000000, y = 0, emissiveIntensity = 0.55 } = {}) {
   const mesh = new THREE.Mesh(
     new THREE.BoxGeometry(w, h, d),
-    new THREE.MeshLambertMaterial({ color, emissive, emissiveIntensity: emissive ? 0.55 : 0 })
+    new THREE.MeshLambertMaterial({
+      color,
+      emissive,
+      emissiveIntensity: emissive ? emissiveIntensity : 0,
+    })
   );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
@@ -76,6 +80,7 @@ function checkerSky(city) {
   g.fillStyle = a;
   g.fillRect(0, 0, 512, 512);
   g.fillStyle = b;
+  g.globalAlpha = 0.22;
   const s = 64;
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
@@ -111,7 +116,7 @@ export class Course {
 
   addPlatform(x, surfaceY, z, w, d) {
     const h = surfaceY + 7;
-    const mesh = boxMesh(w, h, d, WHITE, { y: surfaceY - h / 2 });
+    const mesh = boxMesh(w, h, d, WHITE, { y: surfaceY - h / 2, emissive: 0xffffff, emissiveIntensity: 0.42 });
     mesh.position.x = x;
     mesh.position.z = z;
     this.group.add(mesh);
@@ -378,43 +383,44 @@ export class Course {
     this.addWaterTower(-4.2, z + 4, y0 - 2.5);
 
     z = 150;
-    this.addScaffold(z, y0 - 1.2, 2.4, 16);
+    this.addScaffold(z, y0 - 1.2, 4.6, 16);
     this.checkpoints.push(150);
 
     z = 168;
-    this.roof(z, 14, 10, y0);
+    this.roof(z, 16, 11, y0);
     this.addOverhead(0, z + 2, y0);
     this.addPad(0, z - 4, y0);
 
     z = 184;
-    this.roof(z, 18, 8, y0);
-    this.addWall(-4.2, z, y0, 16, 4.5, -1);
+    this.roof(z, 18, 11, y0);
+    this.addWall(-5.4, z, y0, 16, 4.5, -1);
     this.addPad(1.5, z, y0);
 
     z = 204;
-    this.roof(z, 12, 12, y0 + 1.5);
+    this.roof(z, 14, 12, y0 + 1.5);
     this.addTramp(0, z - 2, y0 + 1.5);
 
     z = 222;
-    this.roof(z, 16, 11, y0 + 3.2);
+    this.roof(z, 16, 12, y0 + 3.2);
     this.addHurdle(-2, z - 2, y0 + 3.2);
     this.addHurdle(2.4, z + 3, y0 + 3.2);
     this.checkpoints.push(222);
 
     z = 242;
-    this.roof(z - 4, 8, 5, y0 + 3.2, -3);
-    this.roof(z + 2, 10, 5, y0 + 1.2, 3);
-    this.addPad(-3, z - 4, y0 + 3.2);
-    this.addPad(3, z + 2, y0 + 1.2);
+    this.roof(z, 16, 6, y0 + 2.4, 0);
+    this.roof(z, 14, 5, y0 + 3.2, -4.2);
+    this.roof(z, 14, 5, y0 + 1.4, 4.2);
+    this.addPad(-4.2, z, y0 + 3.2);
+    this.addPad(4.2, z, y0 + 1.4);
 
     z = 258;
-    this.roof(z, 14, 12, y0 + 1.2);
-    this.addFence(0, z, y0 + 1.2, 0.15);
-    this.addWaterTower(4.4, z + 3, y0 + 1.2);
+    this.roof(z, 16, 12, y0 + 1.4);
+    this.addFence(0, z, y0 + 1.4, 0.15);
+    this.addWaterTower(4.4, z + 3, y0 + 1.4);
 
     z = 276;
-    this.addZip(-2.2, 268, 292, y0 + 1.2);
-    this.roof(z, 10, 8, y0 + 1.2);
+    this.addZip(-2.2, 268, 292, y0 + 1.4);
+    this.roof(z, 18, 11, y0 + 1.4);
     z = 296;
     this.roof(z, 16, 12, y0);
     this.addPad(-3, z - 2, y0);
@@ -429,14 +435,14 @@ export class Course {
 
     if (city === "tokyo" || city === "dubai") {
       z = 334;
-      this.roof(z, 12, 9, y0 + 4);
-      this.addPad(0, z, y0 + 4);
+      this.roof(z, 14, 11, y0 + 3.2);
+      this.addPad(0, z, y0 + 3.2);
       z = 350;
-      this.roof(z, 14, 11, y0 + 2);
+      this.roof(z, 16, 12, y0 + 1.6);
     } else {
       z = 334;
-      this.roof(z, 12, 11, y0 - 1);
-      this.addTramp(0, z, y0 - 1);
+      this.roof(z, 14, 12, y0);
+      this.addTramp(0, z, y0);
       z = 350;
       this.roof(z, 16, 12, y0);
     }
