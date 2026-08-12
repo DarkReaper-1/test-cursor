@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Parkour Race — Freerun Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="progress-wrap">
+      <div class="level-hex" id="level-num">1</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-pip" id="progress-pip"></div>
+      </div>
+      <div class="flag">🏁</div>
+    </div>
+    <div id="rank">1ST</div>
+    <div id="trick" class="hidden"></div>
+    <button id="pause-btn" type="button" aria-label="Pause">❚❚</button>
+  </div>
+
+  <div id="countdown" class="hidden">3</div>
+
+  <div id="menu">
+    <div class="logo">
+      <span class="logo-parkour">PARKOUR</span>
+      <span class="logo-race">RACE</span>
+    </div>
+    <div class="city-row">
+      <button id="prev-city" type="button" aria-label="Previous city">‹</button>
+      <div id="city-name">NEW YORK</div>
+      <button id="next-city" type="button" aria-label="Next city">›</button>
+    </div>
+    <div id="city-dots"></div>
+    <p class="hint">Steer only — vaults, flips &amp; slides are automatic</p>
+    <button id="play-btn" type="button">PLAY</button>
+    <div class="menu-bottom">
+      <button id="shop-btn" type="button">SHOP</button>
+      <div class="coins"><span>⬤</span> <span class="coin-count">0</span></div>
+      <button id="mute-btn" type="button" aria-label="Mute">🔊</button>
+    </div>
+    <p class="controls-hint">A / D or drag to steer · Esc pause</p>
+  </div>
+
+  <div id="shop" class="hidden">
+    <div class="panel">
+      <header>
+        <h2>LOCKER</h2>
+        <div class="coins"><span>⬤</span> <span class="coin-count">0</span></div>
+        <button id="shop-close" type="button">✕</button>
+      </header>
+      <h3>OUTFITS</h3>
+      <div id="skin-grid" class="grid"></div>
+      <h3>TRAILS</h3>
+      <div id="trail-grid" class="grid"></div>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="logo mini">
+      <span class="logo-parkour">PARKOUR</span>
+      <span class="logo-race">RACE</span>
+    </div>
+    <div id="result-place" class="result-place">1ST</div>
+    <p id="result-sub">YOU WON THE RACE!</p>
+    <p id="result-time" class="result-time">0.00s</p>
+    <p id="result-coins" class="result-coins">+0 COINS</p>
+    <div class="result-actions">
+      <button id="retry-btn" type="button">RACE AGAIN</button>
+      <button id="menu-btn" type="button" class="ghost">MENU</button>
+    </div>
+  </div>
+
+  <div id="pause-overlay" class="hidden">
+    <div class="panel pause-panel">
+      <h2>PAUSED</h2>
+      <button id="resume-btn" type="button">RESUME</button>
+      <button id="pause-quit" type="button" class="ghost">QUIT</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

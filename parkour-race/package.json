@@ -1,0 +1,9 @@
+{
+  "name": "parkour-race",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node js/config.test.js",
+    "start": "python3 -m http.server 8080"
+  }
+}

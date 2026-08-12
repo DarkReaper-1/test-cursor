@@ -7,7 +7,8 @@ This repository contains independent projects:
 3. **[Solo Health](#solo-health)** — Solo Leveling–inspired health app (ranks + penalty quests)
 4. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 5. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
-6. **[Health & Longevity Book](#health--longevity-book)** — A three-part book on living longer, preventing chronic disease, and maximizing energy
+6. **[Parkour Race](#parkour-race)** — 3D rooftop freerun racer (browser / Three.js)
+7. **[Health & Longevity Book](#health--longevity-book)** — A three-part book on living longer, preventing chronic disease, and maximizing energy
 
 ---
 
@@ -172,6 +173,19 @@ Then visit http://localhost:8080
 - Auto-respawn if you fall off the map
 
 Swing from building to building and see how far you can go!
+
+---
+
+## Parkour Race
+
+3D rooftop parkour racer inspired by MADBOX’s *Parkour Race*. Auto-run, steer left/right, automatic vaults/flips, speed pads, and a crowd of AI racers across New York, Paris, Tokyo, and Dubai. Original procedural assets.
+
+```bash
+python3 -m http.server 8080 --directory parkour-race
+# open http://localhost:8080
+```
+
+Details: [parkour-race/README.md](parkour-race/README.md)
 
 ---
 
