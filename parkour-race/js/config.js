@@ -1,11 +1,12 @@
 export const TRACK_HALF = 5.5;
 export const RACER_COUNT = 12;
-export const BASE_SPEED = 16;
-export const MAX_SPEED = 34;
-export const BOOST_SPEED = 12;
-export const GRAVITY = 38;
+export const BASE_SPEED = 17;
+export const MAX_SPEED = 27;
+export const BOOST_SPEED = 8;
+export const BOOST_DECAY = 7;
+export const GRAVITY = 36;
 export const PLAYER_RADIUS = 0.35;
-export const PLAYER_HEIGHT = 1.55;
+export const PLAYER_HEIGHT = 1.7;
 
 export const SKINS = [
   { id: "blaze", name: "Blaze", color: 0xff5a18, price: 0 },
@@ -83,8 +84,8 @@ export const AI_NAMES = [
   "TRICKSHOT",
   "FREERUN",
   "WALLKICK",
-  "BOOST",
-  "GAPJUMP",
+  "BLAZE",
+  "RACER",
 ];
 
 export const SAVE_KEY = "parkour-rush-save-v1";

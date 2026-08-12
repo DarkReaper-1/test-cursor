@@ -5,6 +5,7 @@ import {
   BASE_SPEED,
   MAX_SPEED,
   BOOST_SPEED,
+  BOOST_DECAY,
   GRAVITY,
   SKINS,
   TRAILS,
@@ -14,7 +15,7 @@ import {
   loadSave,
   writeSave,
 } from "./config.js";
-import { createStickman, setStickmanColor, animateStickman, createNameTag, writeNameTag } from "./stickman.js";
+import { createStickman, setStickmanColor, animateStickman } from "./stickman.js";
 import { Course, disposeCourse } from "./course.js";
 import { AudioBus } from "./audio.js";
 
@@ -85,7 +86,7 @@ export class Game {
     const h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.camera.fov = h > w ? 68 : 58;
+    this.camera.fov = h > w ? 64 : 55;
     this.camera.updateProjectionMatrix();
   }
 
@@ -220,7 +221,7 @@ export class Game {
     this.course = new Course(city.id, 7);
     this.scene.add(this.course.group);
     const skin = SKINS.find((s) => s.id === this.save.skin) || SKINS[0];
-    const mesh = createStickman(skin.color);
+    const mesh = createStickman(skin.color, { outlined: true });
     mesh.position.set(0, 8, 8);
     this.scene.add(mesh);
     this.racers = [
@@ -239,8 +240,8 @@ export class Game {
       },
     ];
     this.placeOnGround(this.racers[0]);
-    this.camera.position.set(2.8, this.racers[0].y + 2.2, this.racers[0].z - 5.5);
-    this.camLook.set(0, this.racers[0].y + 1.1, this.racers[0].z + 4);
+    this.camera.position.set(0.12, this.racers[0].y + 1.55, this.racers[0].z - 4.5);
+    this.camLook.set(0, this.racers[0].y + 1.05, this.racers[0].z + 5);
     this.camera.lookAt(this.camLook);
   }
 
@@ -262,8 +263,10 @@ export class Game {
       const isPlayer = i === 0;
       const color = isPlayer ? skin.color : new THREE.Color().setHSL((i * 0.17) % 1, 0.75, 0.55).getHex();
       const mesh = createStickman(color, { outlined: isPlayer });
-      if (isPlayer) mesh.scale.setScalar(1.12);
-      if (isPlayer && trail.color) mesh.userData.trailMat.color.setHex(trail.color);
+      if (isPlayer && trail.color) {
+        mesh.userData.trailL.material.color.setHex(trail.color);
+        mesh.userData.trailR.material.color.setHex(trail.color);
+      }
       let x;
       let z;
       if (isPlayer) {
@@ -302,11 +305,6 @@ export class Game {
         invuln: 0,
         place: i + 1,
       };
-      if (!isPlayer) {
-        const tag = createNameTag(`${ordinal(i + 1)}  ${racer.name}`);
-        mesh.add(tag);
-        racer.tag = tag;
-      }
       mesh.position.set(x, startY, z);
       this.scene.add(mesh);
       this.racers.push(racer);
@@ -329,20 +327,17 @@ export class Game {
   }
 
   spawnSpeedLines() {
-    for (let i = 0; i < 40; i++) {
-      const g = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, 1.8 + Math.random()),
-      ]);
-      const m = new THREE.Line(
-        g,
-        new THREE.LineBasicMaterial({
+    for (let i = 0; i < 22; i++) {
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(0.045, 0.045, 1.3 + Math.random() * 0.8),
+        new THREE.MeshBasicMaterial({
           color: 0xffffff,
           transparent: true,
-          opacity: 0.18,
+          opacity: 0,
+          depthWrite: false,
         })
       );
-      m.position.set((Math.random() - 0.5) * 16, 6 + Math.random() * 10, Math.random() * 40);
+      m.position.set((Math.random() - 0.5) * 10, 7 + Math.random() * 6, Math.random() * 30);
       this.scene.add(m);
       this.speedLines.push(m);
     }
@@ -371,9 +366,9 @@ export class Game {
           action: "idle",
           lateral: 0,
         });
-        p.mesh.rotation.y = Math.sin(performance.now() / 1400) * 0.25;
-        this.camera.position.lerp(new THREE.Vector3(3.2, p.y + 2.4, p.z - 6.2), 0.04);
-        this.camLook.lerp(new THREE.Vector3(p.x, p.y + 1.2, p.z + 3), 0.04);
+        p.mesh.rotation.y = 0;
+        this.camera.position.lerp(new THREE.Vector3(0.1, p.y + 1.55, p.z - 4.4), 0.08);
+        this.camLook.lerp(new THREE.Vector3(p.x, p.y + 1.05, p.z + 5), 0.08);
         this.camera.lookAt(this.camLook);
       }
       return;
@@ -382,8 +377,8 @@ export class Game {
       const p = this.player();
       if (p) {
         animateStickman(p.mesh, dt, { speed: 0, grounded: true, action: "win", lateral: 0 });
-        this.camera.position.lerp(new THREE.Vector3(p.x + 1.4, p.y + 1.8, p.z - 4.2), 0.05);
-        this.camLook.lerp(new THREE.Vector3(p.x, p.y + 1.1, p.z), 0.05);
+        this.camera.position.lerp(new THREE.Vector3(p.x, p.y + 2.1, p.z - 5.6), 0.06);
+        this.camLook.lerp(new THREE.Vector3(p.x, p.y + 1.15, p.z + 0.4), 0.06);
         this.camera.lookAt(this.camLook);
       }
       return;
@@ -438,9 +433,9 @@ export class Game {
     if (r.isPlayer) this.steerPlayer(r, dt);
     else this.steerAI(r, dt);
 
-    r.boost = Math.max(0, r.boost - dt * 7);
-    const targetSpeed = Math.min(MAX_SPEED, BASE_SPEED + (r.isPlayer ? 1.8 : 0) + r.boost);
-    r.speed += (targetSpeed - r.speed) * Math.min(1, dt * 3);
+    r.boost = Math.max(0, r.boost - dt * BOOST_DECAY);
+    const targetSpeed = Math.min(MAX_SPEED, BASE_SPEED + r.boost);
+    r.speed += (targetSpeed - r.speed) * Math.min(1, dt * 8);
     r.z += r.speed * dt;
 
     this.autoParkour(r, dt);
@@ -510,7 +505,7 @@ export class Game {
       this.jump(r, 11 + (ahead.top - here.top) * 0.8);
     } else if (r.grounded && !ahead) {
       this.jump(r, 12.5);
-      if (r.speed > 22) this.setAction(r, "flip", 0.7);
+      if (r.boost > 5) this.setAction(r, "flip", 0.7);
     } else if (r.grounded && ahead && here && ahead.top < here.top - 1.4) {
       this.jump(r, 9);
     }
@@ -521,13 +516,10 @@ export class Game {
       if (Math.abs(h.z - r.z) < 0.7 && Math.abs(h.x - r.x) < h.w / 2 + 0.3 && r.y <= h.y + h.h + 0.8) {
         r.lastHurdle = i;
         this.setAction(r, "vault", 0.35);
-        r.boost = Math.min(BOOST_SPEED, r.boost + 3.5);
+        r.boost = Math.min(BOOST_SPEED, r.boost + 1.2);
         r.y = Math.max(r.y, h.y + h.h + 0.05);
         r.vy = Math.max(r.vy, 4);
-        if (r.isPlayer) {
-          this.audio.vault();
-          this.showTrick("VAULT!");
-        }
+        if (r.isPlayer) this.audio.vault();
       }
     }
 
@@ -551,10 +543,7 @@ export class Game {
       if (Math.abs(p.z - r.z) < 1.1 && Math.abs(p.x - r.x) < 1.1 && r.grounded) {
         r.lastPad = i;
         r.boost = BOOST_SPEED;
-        if (r.isPlayer) {
-          this.audio.boost();
-          this.showTrick("BOOST!");
-        }
+        if (r.isPlayer) this.audio.boost();
       }
     }
 
@@ -566,10 +555,8 @@ export class Game {
         r.vy = 16;
         r.grounded = false;
         this.setAction(r, "flip", 0.9);
-        if (r.isPlayer) {
-          this.audio.jump();
-          this.showTrick("FLIP!");
-        }
+        r.boost = Math.min(BOOST_SPEED, r.boost + 0.8);
+        if (r.isPlayer) this.audio.jump();
       }
     }
 
@@ -577,7 +564,7 @@ export class Game {
       if (r.z > zip.z0 && r.z < zip.z1 && Math.abs(r.x - zip.x) < 1.4) {
         r.y += (zip.y - 0.9 - r.y) * Math.min(1, dt * 8);
         r.vy = 0;
-        r.boost = Math.max(r.boost, 8);
+        r.boost = Math.max(r.boost, 5);
         r.action = "run";
         r.x += (zip.x - r.x) * dt * 6;
       }
@@ -607,7 +594,6 @@ export class Game {
     r.grounded = false;
     r.action = force > 13 ? "flip" : "jump";
     if (r.isPlayer) this.audio.jump();
-    if (force > 13 && r.isPlayer) this.showTrick("FLIP!");
   }
 
   setAction(r, action, t) {
@@ -624,7 +610,6 @@ export class Game {
       r.vy = 0;
       r.grounded = true;
       if (wasAir && r.isPlayer && r.action !== "slide") this.audio.land();
-      if (wasAir && r.speed > 20) r.boost = Math.min(BOOST_SPEED, r.boost + 1.2);
     } else {
       r.grounded = false;
     }
@@ -653,7 +638,6 @@ export class Game {
     if (r.isPlayer) {
       this.steerTarget = r.x;
       this.audio.stumble();
-      this.showTrick("OOPS!");
     }
   }
 
@@ -665,25 +649,26 @@ export class Game {
     });
     sorted.forEach((r, i) => {
       r.place = i + 1;
-      if (r.tag) r.tag.visible = false;
-    });
-    const p = this.player();
-    const tagged = sorted.filter((r) => !r.isPlayer && p && r.z > p.z - 1 && r.z < p.z + 22);
-    tagged.slice(0, 3).forEach((r) => {
-      r.tag.visible = true;
-      writeNameTag(r.tag, `${ordinal(r.place)}  ${r.name}`);
     });
   }
 
   updateCamera(dt) {
     const p = this.player();
     if (!p) return;
-    const back = this.countdown > 0 ? 6.6 : 7.4;
-    const height = p.action === "flip" || p.action === "jump" ? 3.1 : 2.45;
-    const desired = new THREE.Vector3(p.x * 0.92, p.y + height, p.z - back);
-    this.camera.position.lerp(desired, 1 - Math.pow(0.001, dt));
-    this.camLook.lerp(new THREE.Vector3(p.x * 0.7, p.y + 1.05, p.z + 11), 1 - Math.pow(0.0008, dt));
+    const back = this.countdown > 0 ? 5.1 : 5.4;
+    const height = p.action === "flip" || p.action === "jump" ? 2.15 : 1.72;
+    const desired = new THREE.Vector3(p.x * 0.85, p.y + height, p.z - back);
+    this.camera.position.lerp(desired, 1 - Math.pow(0.0008, dt));
+    this.camLook.lerp(new THREE.Vector3(p.x * 0.7, p.y + 0.95, p.z + 9), 1 - Math.pow(0.0007, dt));
     this.camera.lookAt(this.camLook);
+    const baseFov = window.innerHeight > window.innerWidth ? 64 : 55;
+    this.camera.fov = THREE.MathUtils.damp(
+      this.camera.fov,
+      baseFov + (p.boost > 1 ? 2 : 0),
+      8,
+      dt
+    );
+    this.camera.updateProjectionMatrix();
     this.sun.position.set(p.x + 18, p.y + 35, p.z - 12);
     this.sun.target.position.set(p.x, p.y, p.z + 8);
     this.sun.target.updateMatrixWorld();
@@ -693,12 +678,18 @@ export class Game {
   updateSpeedLines(dt) {
     const p = this.player();
     if (!p) return;
+    const boosting = p.boost > 1.2;
     for (const line of this.speedLines) {
-      line.position.z -= (p.speed + 20) * dt;
-      if (line.position.z < p.z - 8) {
-        line.position.set((Math.random() - 0.5) * 14, p.y + Math.random() * 8, p.z + 8 + Math.random() * 20);
+      line.position.z -= (p.speed + 18) * dt;
+      if (line.position.z < p.z - 6) {
+        line.position.set(
+          p.x + (Math.random() - 0.5) * 8,
+          p.y + 0.4 + Math.random() * 2.4,
+          p.z + 4 + Math.random() * 14
+        );
       }
-      line.material.opacity = THREE.MathUtils.clamp((p.speed - 14) / 40, 0.04, 0.28);
+      line.material.opacity = boosting ? 0.28 + Math.random() * 0.12 : 0;
+      line.visible = boosting;
     }
   }
 
@@ -805,6 +796,11 @@ export class Game {
     writeSave(this.save);
     const p = this.player();
     if (p && kind === "skin") setStickmanColor(p.mesh, item.color);
+    if (p && kind === "trail") {
+      const c = item.color ?? p.mesh.userData.color;
+      p.mesh.userData.trailL.material.color.setHex(c);
+      p.mesh.userData.trailR.material.color.setHex(c);
+    }
     this.renderShop();
     this.syncHUD();
   }

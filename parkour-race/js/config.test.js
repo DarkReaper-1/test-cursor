@@ -1,4 +1,4 @@
-import { ordinal, seeded, defaultSave, SKINS, CITIES } from "./config.js";
+import { ordinal, seeded, defaultSave, SKINS, CITIES, BASE_SPEED, BOOST_SPEED } from "./config.js";
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -24,5 +24,7 @@ assert(save.coins === 0, "default coins");
 assert(SKINS[0].price === 0, "starter skin free");
 assert(CITIES.length === 4, "four cities");
 assert(CITIES.every((c) => c.sky && c.name), "city fields");
+assert(BASE_SPEED === 17, "cruise speed");
+assert(BOOST_SPEED === 8, "pad burst");
 
 console.log("config tests passed");
