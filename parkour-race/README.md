@@ -41,3 +41,13 @@ Running is automatic. Vaults, flips, slides, wall-runs, and ziplines trigger whe
 ## Stack
 
 Three.js (CDN) · vanilla ES modules · Web Audio SFX · localStorage save
+
+## Record a demo
+
+With the game server running on port 8765:
+
+```bash
+python3 -m http.server 8765 --directory parkour-race
+node parkour-race/demo/record-demo.js
+# writes /opt/cursor/artifacts/parkour-race-demo.mp4
+```
