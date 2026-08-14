@@ -4,7 +4,7 @@ An original, fully playable 3D arcade **parkour racing** game built with **Three
 
 Race AI opponents across rooftop obstacle courses: sprint, jump, double-jump, slide, vault, wall-run, and wall-jump your way to the finish line while collecting coins and power-ups.
 
-![gameplay](https://img.shields.io/badge/engine-three.js-blue) ![tests](https://img.shields.io/badge/tests-52%20passing-brightgreen)
+![gameplay](https://img.shields.io/badge/engine-three.js-blue) ![tests](https://img.shields.io/badge/tests-53%20passing-brightgreen)
 
 ---
 
@@ -99,7 +99,7 @@ parkour-rush/
 
 ## Implemented features
 
-- **Movement**: auto-run, lateral steering + lane snaps, jump, double jump (flip), slide + fast-fall, auto-vault, wall-run, wall-jump, ledge mantle, air control, coyote time + jump buffering, landing detection with impact grades, boost momentum, stumble, fall/hazard death with checkpoint respawn.
+- **Movement**: auto-run, lateral steering + lane snaps, tuned jump arcs with apex hang and fast descent, double jump (flip), slide + fast-fall, auto-vault, wall-run, wall-jump, ledge mantle, air control, coyote time + jump buffering, blended landing recovery with impact grades, boost momentum, stumble, fall/hazard death with checkpoint respawn.
 - **Parkour system**: reusable surface scanner classifying gaps, vaults, slide bars, walls, wall-run panels, launch pads, breakables, hazards — drives tutorial prompts and AI recovery.
 - **Camera**: smooth chase cam with lateral anticipation, speed-based FOV, impact shake (toggleable), never clips below the deck.
 - **Racing**: countdown, timer, live placement (1st–8th), gap indicators, checkpoints, finish detection, final standings with DNF handling.

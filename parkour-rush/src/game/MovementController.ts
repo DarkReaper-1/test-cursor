@@ -40,6 +40,10 @@ export interface MovementConfig {
   strafeSpeed: number;
   airControlMult: number;
   gravity: number;
+  /** Softer gravity around the apex makes jumps readable without feeling floaty. */
+  apexGravityMult: number;
+  /** Faster downward gravity keeps landings responsive. */
+  fallGravityMult: number;
   jumpVelocity: number;
   doubleJumpVelocity: number;
   slideDuration: number;
@@ -67,6 +71,8 @@ export function defaultMovementConfig(): MovementConfig {
     strafeSpeed: 9.5,
     airControlMult: 0.7,
     gravity: 30,
+    apexGravityMult: 0.78,
+    fallGravityMult: 1.18,
     jumpVelocity: 11.2,
     doubleJumpVelocity: 10.2,
     slideDuration: 0.72,
@@ -110,6 +116,7 @@ export class MovementController {
   wallRunTimer = 0;
   wallRunX = 0;
   vaultTimer = 0;
+  landingTimer = 0;
   stumbleTimer = 0;
   dead = false;
   deathTimer = 0;
@@ -154,6 +161,7 @@ export class MovementController {
     this.wallRun = null;
     this.wallRunTimer = 0;
     this.vaultTimer = 0;
+    this.landingTimer = 0;
     this.stumbleTimer = 0;
     this.dead = false;
     this.finished = false;
@@ -241,6 +249,7 @@ export class MovementController {
     }
     if (this.stumbleTimer > 0) this.stumbleTimer -= dt;
     if (this.vaultTimer > 0) this.vaultTimer -= dt;
+    if (this.landingTimer > 0) this.landingTimer -= dt;
 
     // ---- input intents
     if (input.jump) this.jumpBuffer = cfg.jumpBufferTime;
@@ -286,7 +295,14 @@ export class MovementController {
         this.endWallRun();
       }
     } else if (!this.grounded) {
-      this.vy -= cfg.gravity * dt;
+      // A short apex hang makes the jump arc easy to read, followed by a
+      // slightly faster descent for decisive, responsive landings.
+      const gravityMult = Math.abs(this.vy) < 2
+        ? cfg.apexGravityMult
+        : this.vy < 0
+          ? cfg.fallGravityMult
+          : 1;
+      this.vy -= cfg.gravity * gravityMult * dt;
     }
 
     // jump from ground / coyote / double jump
@@ -342,6 +358,7 @@ export class MovementController {
     if (this.sliding) this.endSlideImmediate();
     this.vy = double ? cfg.doubleJumpVelocity : cfg.jumpVelocity;
     this.grounded = false;
+    this.landingTimer = 0;
     this.coyote = 0;
     this.jumpBuffer = 0;
     this.jumpsUsed = double ? 2 : 1;
@@ -594,6 +611,7 @@ export class MovementController {
       if (!wasGrounded) {
         const fallDist = Math.max(0, this.fallStartY - this.y);
         const impact = Math.min(1.5, impactSpeed / 16 + fallDist / 14);
+        this.landingTimer = 0.08 + Math.min(0.1, impact * 0.08);
         this.events.onLand?.(impact);
         if (impact > 1.2) this.stumble(0.5);
       }
@@ -631,6 +649,10 @@ export class MovementController {
     }
     if (this.sliding) {
       this.state = 'slide';
+      return;
+    }
+    if (this.landingTimer > 0) {
+      this.state = 'land';
       return;
     }
     if (!this.grounded) {

@@ -198,7 +198,7 @@ Original, fully playable 3D arcade **parkour racing** game (mobile-first, touch 
 cd parkour-rush
 npm install
 npm run dev     # → http://localhost:5173
-npm test        # 52 unit tests (movement, race logic, AI, power-ups, saves…)
+npm test        # 53 unit tests (movement, race logic, AI, power-ups, saves…)
 ```
 
 Details: [parkour-rush/README.md](parkour-rush/README.md)

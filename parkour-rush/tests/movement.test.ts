@@ -69,11 +69,13 @@ describe('MovementController — jumping', () => {
     const mc = new MovementController();
     mc.reset(0, 0.2, 0);
     let landed = 0;
+    let showedLandingPose = false;
     mc.events.onLand = () => landed++;
     run(mc, world, 1); // settle
     let maxY = 0;
     run(mc, world, 1.6, { jump: true }, () => {
       maxY = Math.max(maxY, mc.y);
+      showedLandingPose ||= mc.state === 'land';
     });
     // apex ≈ v² / 2g
     const expectedApex = (mc.cfg.jumpVelocity * mc.cfg.jumpVelocity) / (2 * mc.cfg.gravity);
@@ -81,6 +83,25 @@ describe('MovementController — jumping', () => {
     expect(maxY).toBeLessThan(expectedApex * 1.2);
     expect(mc.grounded).toBe(true);
     expect(landed).toBeGreaterThanOrEqual(1);
+    expect(showedLandingPose).toBe(true);
+  });
+
+  it('uses a readable apex hang and a faster, responsive descent', () => {
+    const world = makeWorld();
+    const mc = new MovementController();
+    mc.reset(0, 0.2, 0);
+    run(mc, world, 0.5);
+
+    let slowApexSteps = 0;
+    let fastestFall = 0;
+    run(mc, world, 1.5, { jump: true }, () => {
+      if (!mc.grounded && Math.abs(mc.vy) < 2) slowApexSteps++;
+      fastestFall = Math.min(fastestFall, mc.vy);
+    });
+
+    expect(slowApexSteps).toBeGreaterThan(8);
+    expect(fastestFall).toBeLessThan(-mc.cfg.jumpVelocity);
+    expect(mc.grounded).toBe(true);
   });
 
   it('supports double jump but not triple jump', () => {
