@@ -1,0 +1,10 @@
+{
+  "name": "parkour-dash",
+  "version": "1.0.0",
+  "description": "Parkour Dash — steer-only rooftop parkour racing game (Three.js, zero build step)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080"
+  }
+}
