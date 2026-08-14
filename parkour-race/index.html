@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#1a1030" />
+<title>Parkour Dash — Freerun Race</title>
+<link rel="stylesheet" href="style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="position-badge"><span id="position-num">8</span><span id="position-suffix">th</span></div>
+    <div id="progress-track">
+      <div id="progress-line"></div>
+      <div id="progress-dots"></div>
+    </div>
+    <div id="speed-lines"></div>
+    <div id="charge-wrap" class="hidden"><div id="charge-bar"></div></div>
+    <div id="popup-text"></div>
+  </div>
+
+  <!-- Title screen -->
+  <div id="title-screen" class="overlay">
+    <h1 class="logo"><span>PARKOUR</span><span class="accent">DASH</span></h1>
+    <p class="subtitle">FREERUN RACE</p>
+    <div class="stick-preview"></div>
+    <button id="btn-start" class="big-btn">TAP TO RACE</button>
+    <p class="howto">
+      <b>HOLD</b> to charge a jump &nbsp;·&nbsp; <b>RELEASE</b> to leap<br/>
+      <b>A / D</b> or <b>drag</b> to steer &nbsp;·&nbsp; hit <span class="orange">speed pads</span>, land clean!
+    </p>
+  </div>
+
+  <!-- Countdown -->
+  <div id="countdown" class="overlay transparent hidden"><span id="countdown-num">3</span></div>
+
+  <!-- Results -->
+  <div id="results-screen" class="overlay hidden">
+    <p id="result-place-label">YOU FINISHED</p>
+    <h2 id="result-place">1st</h2>
+    <div id="result-list"></div>
+    <button id="btn-retry" class="big-btn">RACE AGAIN</button>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
