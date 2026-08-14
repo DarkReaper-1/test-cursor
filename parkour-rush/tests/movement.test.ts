@@ -93,14 +93,18 @@ describe('MovementController — jumping', () => {
     run(mc, world, 0.5);
 
     let slowApexSteps = 0;
-    let fastestFall = 0;
+    let fallAcceleration = 0;
     run(mc, world, 1.5, { jump: true }, () => {
       if (!mc.grounded && Math.abs(mc.vy) < 2) slowApexSteps++;
-      fastestFall = Math.min(fastestFall, mc.vy);
+      if (!fallAcceleration && mc.vy < -3 && mc.y > 1) {
+        const before = mc.vy;
+        mc.step(DT, IDLE, world);
+        fallAcceleration = before - mc.vy;
+      }
     });
 
     expect(slowApexSteps).toBeGreaterThan(8);
-    expect(fastestFall).toBeLessThan(-mc.cfg.jumpVelocity);
+    expect(fallAcceleration).toBeCloseTo(mc.cfg.gravity * mc.cfg.fallGravityMult * DT, 5);
     expect(mc.grounded).toBe(true);
   });
 
