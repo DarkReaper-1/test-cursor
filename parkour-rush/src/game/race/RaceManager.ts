@@ -87,12 +87,9 @@ export class RaceManager {
     r.progress = this.finishZ;
     const placement = this.racers.filter((x) => x.finished).length;
     this.onRacerFinish?.(r, placement);
-    const player = this.racers.find((x) => x.isPlayer);
-    if (player?.finished) {
-      // Race effectively over for the player; let remaining AI keep placings implicit.
-      this.phase = 'done';
-      this.onAllDone?.();
-    } else if (this.racers.every((x) => x.finished || x.eliminated)) {
+    // Keep the race clock and AI simulation alive after the player finishes.
+    // Otherwise every rival still on the course freezes and appears as DNF.
+    if (this.racers.every((x) => x.finished || x.eliminated)) {
       this.phase = 'done';
       this.onAllDone?.();
     }

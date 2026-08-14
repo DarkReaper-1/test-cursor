@@ -44,7 +44,17 @@ async function main() {
     const g = api.game;
     const pmc = g.player.mc;
     const finishZ = g.race?.finishZ ?? 120;
-    // Drive into the finish trigger volume so placement + rewards fire naturally.
+    // Put rivals just behind the player, then drive through the finish trigger.
+    // They must keep simulating after the player wins and record real times.
+    for (const [index, racer] of g.racers.slice(1).entries()) {
+      racer.mc.z = finishZ - 3.5 - index * 0.35;
+      racer.mc.y = 0.2;
+      racer.mc.grounded = true;
+      racer.mc.dead = false;
+      racer.mc.finished = false;
+      racer.mc.speed = Math.max(racer.mc.cfg.baseSpeed, 12);
+      racer.mc.vy = 0;
+    }
     pmc.z = finishZ - 0.5;
     pmc.y = 0.2;
     pmc.grounded = true;
@@ -99,6 +109,7 @@ async function main() {
   const ok =
     status.levels >= 10 &&
     (final.state === 'results' || /PLACE|REWARD|FINISH|1ST|2ND|3RD|Results/i.test(final.resultsText)) &&
+    !/DNF/.test(final.resultsText) &&
     persisted.unlocked >= 1 &&
     !errors.some((e) => !/corrupt save/i.test(e));
 

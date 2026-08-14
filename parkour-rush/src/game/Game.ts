@@ -97,6 +97,8 @@ export class Game {
   private autoQualityLevel = 2; // 0 low, 1 med, 2 high
   private settings: SettingsData | null = null;
   private launchCooldown = 0;
+  private readonly POST_FINISH_TIMEOUT = 6;
+  private readonly FIELD_DONE_HOLD = 0.9;
 
   onRaceEnd: ((data: RaceEndData) => void) | null = null;
   onHud: ((hud: HudSnapshot) => void) | null = null;
@@ -380,7 +382,9 @@ export class Game {
     const pr = this.playerRacer();
     this.vfx.confetti(mc.x, mc.y, mc.z + 2);
     void pr;
-    this.raceEndTimer = 1.9;
+    // Keep the course alive briefly so nearby rivals cross the line and
+    // produce real standings instead of freezing as soon as the player wins.
+    this.raceEndTimer = this.POST_FINISH_TIMEOUT;
   }
 
   // ------------------------------------------------------------- lifecycle
@@ -504,6 +508,12 @@ export class Game {
           if (r.isPlayer) bus.emit('playerRespawn');
         }
       }
+    }
+
+    // Once the full field is home, retain a short celebration beat. The
+    // timeout above remains a safety net for racers repeatedly wiping out.
+    if (this.race.phase === 'done' && this.raceEndTimer > this.FIELD_DONE_HOLD) {
+      this.raceEndTimer = this.FIELD_DONE_HOLD;
     }
 
     // race-over timer → results

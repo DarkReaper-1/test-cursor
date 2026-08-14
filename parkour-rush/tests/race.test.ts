@@ -71,7 +71,7 @@ describe('RaceManager', () => {
     expect(rm.time).toBeGreaterThan(0.9);
   });
 
-  it('detects finishes in order and computes player placement', () => {
+  it('keeps rivals racing after the player finishes and records real standings', () => {
     const rm = new RaceManager(100);
     rm.addRacer(0, 'You', true);
     rm.addRacer(1, 'A', false);
@@ -84,7 +84,11 @@ describe('RaceManager', () => {
     rm.update(5);
     expect(rm.finishRacer(0)).toBe(2);
     expect(rm.playerPlacement()).toBe(2);
-    // player finished → race done
+    // The player's placement is locked, but the final rival keeps racing.
+    expect(rm.phase).toBe('racing');
+    rm.update(2);
+    expect(rm.finishRacer(2)).toBe(3);
+    expect(rm.racers.find((r) => r.id === 2)?.finishTime).toBeCloseTo(17, 2);
     expect(rm.phase).toBe('done');
     // repeated finish returns -1
     expect(rm.finishRacer(0)).toBe(-1);
