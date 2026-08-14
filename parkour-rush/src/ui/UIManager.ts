@@ -107,8 +107,8 @@ export class UIManager {
     this.clear();
     const s = this.el(`
       <div class="screen ui-clickable" id="boot">
-        <div class="title">Skyline Rush</div>
-        <div class="subtitle">Parkour Racing</div>
+        <div class="title">Parkour Race</div>
+        <div class="subtitle">Freerun</div>
         <div class="boot-bar"><i id="boot-fill"></i></div>
         <div class="tap-hint hidden" id="boot-tap">TAP TO START</div>
       </div>`);
@@ -142,8 +142,8 @@ export class UIManager {
           <span class="chip">★ ${stars}</span>
           <span class="chip">LV ${this.progression.playerLevel}</span>
         </div>
-        <div class="title">Skyline Rush</div>
-        <div class="subtitle">Parkour Racing</div>
+        <div class="title">Parkour Race</div>
+        <div class="subtitle">Freerun</div>
         <div class="menu-stack">
           <button class="btn" data-a="race">▶ &nbsp;Race</button>
           <button class="btn secondary" data-a="levels">Levels</button>
@@ -333,11 +333,11 @@ export class UIManager {
           ${toggle('reducedMotion', 'Reduced Motion', st.reducedMotion)}
           <div class="setting-row"><label>Controls</label>
             <div class="seg-row">
-              <button class="seg-btn ${st.controlScheme === 'swipe' ? 'active' : ''}" data-s="swipe">Swipe</button>
+              <button class="seg-btn ${st.controlScheme === 'swipe' ? 'active' : ''}" data-s="swipe">Drag</button>
               <button class="seg-btn ${st.controlScheme === 'buttons' ? 'active' : ''}" data-s="buttons">Buttons</button>
             </div>
           </div>
-          <div class="setting-row"><label>Swipe Sensitivity</label>
+          <div class="setting-row"><label>Steer Sensitivity</label>
             <input type="range" min="0.5" max="2" step="0.1" value="${st.sensitivity}" data-r="sensitivity" />
           </div>
           <div class="setting-row"><label>Graphics Quality</label>
@@ -495,20 +495,17 @@ export class UIManager {
     if (!this.hudPrompt || !this.tutorialMode) return;
     let text: string | null = null;
     let key = '';
-    const scheme = this.settings.controlScheme;
-    const jumpHint = scheme === 'buttons' ? 'TAP ▲' : 'SWIPE UP';
-    const slideHint = scheme === 'buttons' ? 'TAP ▼' : 'SWIPE DOWN';
     if (p.type === 'gap' && p.distance < 12) {
-      text = `${jumpHint} TO JUMP THE GAP!`;
+      text = 'STAY CENTERED — AUTO JUMP!';
       key = 'gap';
     } else if (p.type === 'slideBar' && p.distance < 12) {
-      text = `${slideHint} TO SLIDE!`;
+      text = 'AUTO SLIDE — KEEP STEERING!';
       key = 'slide';
     } else if (p.type === 'vault' && p.distance < 10) {
       text = 'RUN AT IT — AUTO VAULT!';
       key = 'vault';
     } else if (p.type === 'wallRunPanel' && p.distance < 12) {
-      text = 'JUMP NEAR THE WALL TO WALL-RUN!';
+      text = 'HUG THE WALL TO WALL-RUN!';
       key = 'wall';
     } else if (p.type === 'launchPad' && p.distance < 10) {
       text = 'HIT THE BLUE PAD!';

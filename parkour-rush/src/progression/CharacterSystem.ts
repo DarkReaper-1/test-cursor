@@ -29,11 +29,11 @@ export interface TrailDef {
 }
 
 export const CHARACTERS: CharacterDef[] = [
-  { id: 'dash', name: 'Dash', cost: 0, bodyColor: '#38bdf8', headColor: '#fde68a', visorColor: '#0f172a', scale: 1.0, headSize: 1.0, description: 'The all-rounder. Fast feet, cool head.' },
-  { id: 'bolt', name: 'Bolt', cost: 400, bodyColor: '#fbbf24', headColor: '#fef3c7', visorColor: '#1e293b', scale: 0.95, headSize: 1.05, description: 'Small frame, big energy.' },
-  { id: 'titan', name: 'Titan', cost: 800, bodyColor: '#f87171', headColor: '#e2e8f0', visorColor: '#111827', scale: 1.12, headSize: 0.92, description: 'Powers through anything.' },
-  { id: 'wisp', name: 'Wisp', cost: 1200, bodyColor: '#a78bfa', headColor: '#ede9fe', visorColor: '#312e81', scale: 0.92, headSize: 1.1, description: 'Barely touches the ground.' },
-  { id: 'shade', name: 'Shade', cost: 2000, bodyColor: '#334155', headColor: '#94a3b8', visorColor: '#f43f5e', scale: 1.02, headSize: 1.0, description: 'Seen only at the finish line.' },
+  { id: 'dash', name: 'Dash', cost: 0, bodyColor: '#38bdf8', headColor: '#1a1a1e', visorColor: '#f8fafc', scale: 1.0, headSize: 1.0, description: 'Classic stickman. Hits every bumper.' },
+  { id: 'bolt', name: 'Bolt', cost: 400, bodyColor: '#fbbf24', headColor: '#1a1a1e', visorColor: '#fff7ed', scale: 0.95, headSize: 1.08, description: 'Gold outfit. Built for flips.' },
+  { id: 'titan', name: 'Titan', cost: 800, bodyColor: '#f43f5e', headColor: '#1a1a1e', visorColor: '#ffe4e6', scale: 1.1, headSize: 0.95, description: 'Powers through the pack.' },
+  { id: 'wisp', name: 'Wisp', cost: 1200, bodyColor: '#a78bfa', headColor: '#1a1a1e', visorColor: '#ede9fe', scale: 0.9, headSize: 1.12, description: 'Light on the rooftops.' },
+  { id: 'shade', name: 'Shade', cost: 2000, bodyColor: '#0f172a', headColor: '#1a1a1e', visorColor: '#22d3ee', scale: 1.02, headSize: 1.0, description: 'Seen only at the finish line.' },
 ];
 
 export const COLORS: { id: string; cost: number }[] = [

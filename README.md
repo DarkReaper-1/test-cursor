@@ -8,7 +8,7 @@ This repository contains independent projects:
 4. **[Square App Reverse Engineering](#square-app-reverse-engineering)** — Security research toolkit for analyzing Square Android apps
 5. **[Spider-Man Web Swing](#spider-man-web-swing)** — Browser-based web-swinging game
 6. **[Health & Longevity Book](#health--longevity-book)** — A three-part book on living longer, preventing chronic disease, and maximizing energy
-7. **[Skyline Rush](#skyline-rush)** — Original 3D mobile parkour racing game (Three.js + TypeScript)
+7. **[Parkour Race](#parkour-race)** — 3D stickman rooftop freerun racing (Three.js + TypeScript)
 
 ---
 
@@ -190,15 +190,17 @@ Read it here: [books/health-and-longevity/](books/health-and-longevity/README.md
 
 ---
 
-## Skyline Rush
+## Parkour Race
 
-Original, fully playable 3D arcade **parkour racing** game (mobile-first, touch controls) built with **Three.js + TypeScript + Vite**. Race AI opponents across 12 rooftop obstacle courses: jump, double-jump, slide, vault, wall-run and wall-jump to the finish line while collecting coins, power-ups and cosmetic unlocks. All assets (characters, levels, VFX, audio, UI) are generated procedurally — nothing copied from any existing game.
+Playable **gameplay replica** of Madbox-style rooftop parkour racing (Three.js + TypeScript + Vite). Stickmen auto-run; you only steer. Jumps, vaults, slides and backflips are automatic. Jump distance comes from speed — hit the yellow bumpers or you will not clear the next rooftop.
 
 ```bash
 cd parkour-rush
 npm install
 npm run dev     # → http://localhost:5173
-npm test        # 52 unit tests (movement, race logic, AI, power-ups, saves…)
+npm test
 ```
 
 Details: [parkour-rush/README.md](parkour-rush/README.md)
+
+Original implementation. Not affiliated with Madbox.

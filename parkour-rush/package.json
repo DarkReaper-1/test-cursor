@@ -1,7 +1,7 @@
 {
-  "name": "skyline-rush",
+  "name": "parkour-race",
   "version": "1.0.0",
-  "description": "Skyline Rush - original 3D arcade parkour racing game for mobile (Three.js + TypeScript)",
+  "description": "Parkour Race - Freerun: 3D stickman rooftop racing (Three.js + TypeScript)",
   "private": true,
   "type": "module",
   "scripts": {

@@ -25,6 +25,9 @@ export class PlayerController {
         if (double) this.stuntScore += 5;
         haptics.tap();
       },
+      onFlip: () => {
+        this.stuntScore += 6;
+      },
       onLand: (impact) => {
         bus.emit('playerLand', { impact });
         if (impact > 0.5) haptics.light();

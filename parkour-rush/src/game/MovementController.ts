@@ -4,9 +4,9 @@ import type { BoxCollider, MoveInput, MoveState } from '../core/types';
  * Kinematic arcade character movement shared by the player and AI racers.
  * Pure logic (no three.js / DOM) so it can be unit-tested headlessly.
  *
- * Handles: auto-run, steering/lanes, jump + double jump + buffering/coyote
- * time, slide + fast-fall, auto-vault, wall-run + wall-jump, ledge mantle,
- * air control, landing detection, boosts + momentum, stumble, death.
+ * Parkour Race–style: auto-run, steer-only control, auto-jump at ledges
+ * (distance comes from forward speed), auto-slide, auto-vault, auto-flip
+ * on long hangs, wall-run, boost bumpers, steer drag, stumble, death.
  */
 
 export interface CollisionWorld {
@@ -18,6 +18,7 @@ export interface CollisionWorld {
 
 export interface MovementEvents {
   onJump?(double: boolean): void;
+  onFlip?(): void;
   onLand?(impact: number): void;
   onSlideStart?(): void;
   onSlideEnd?(): void;
@@ -57,33 +58,45 @@ export interface MovementConfig {
   jumpBufferTime: number;
   stepUp: number;
   mantleHeight: number;
+  /** When true, jump/slide fire automatically from geometry (Parkour Race). */
+  autoParkour: boolean;
+  /** Forward speed at which an auto-jump becomes a backflip. */
+  flipSpeed: number;
+  /** Extra speed granted when a flip lands cleanly. */
+  flipLandBoost: number;
+  /** Fraction of speed lost per second while steering at full lock. */
+  steerDrag: number;
 }
 
 export function defaultMovementConfig(): MovementConfig {
   return {
-    baseSpeed: 11.5,
-    maxBoostSpeed: 20,
-    accel: 14,
-    strafeSpeed: 9.5,
-    airControlMult: 0.7,
-    gravity: 30,
-    jumpVelocity: 11.2,
-    doubleJumpVelocity: 10.2,
-    slideDuration: 0.72,
+    baseSpeed: 13.2,
+    maxBoostSpeed: 24,
+    accel: 16,
+    strafeSpeed: 11.2,
+    airControlMult: 0.58,
+    gravity: 28,
+    jumpVelocity: 10.6,
+    doubleJumpVelocity: 9.8,
+    slideDuration: 0.78,
     vaultMaxHeight: 1.35,
-    wallRunMaxTime: 1.25,
+    wallRunMaxTime: 1.35,
     wallJumpUp: 10.4,
     wallJumpOut: 7.5,
-    laneWidth: 3,
+    laneWidth: 2.6,
     killY: -9,
-    bodyHalfX: 0.38,
-    bodyHalfZ: 0.38,
+    bodyHalfX: 0.32,
+    bodyHalfZ: 0.32,
     standHeight: 1.7,
-    slideHeight: 0.85,
-    coyoteTime: 0.12,
-    jumpBufferTime: 0.14,
-    stepUp: 0.45,
+    slideHeight: 0.72,
+    coyoteTime: 0.14,
+    jumpBufferTime: 0.16,
+    stepUp: 0.5,
     mantleHeight: 1.75,
+    autoParkour: true,
+    flipSpeed: 15.5,
+    flipLandBoost: 1.35,
+    steerDrag: 0.22,
   };
 }
 
@@ -111,6 +124,8 @@ export class MovementController {
   wallRunX = 0;
   vaultTimer = 0;
   stumbleTimer = 0;
+  /** Mid-air backflip (auto on fast/long jumps, or from a double-jump). */
+  flipping = false;
   dead = false;
   deathTimer = 0;
   finished = false;
@@ -155,6 +170,7 @@ export class MovementController {
     this.wallRunTimer = 0;
     this.vaultTimer = 0;
     this.stumbleTimer = 0;
+    this.flipping = false;
     this.dead = false;
     this.finished = false;
     this.deathTimer = 0;
@@ -256,22 +272,28 @@ export class MovementController {
       if (this.slideTimer <= 0) this.endSlide(world);
     }
 
+    // Parkour Race: jump/slide are automatic from the course, not button combos.
+    if (cfg.autoParkour) this.tryAutoParkour(world);
+
     // ---- steering
     const half = world.halfWidthAt(this.z) - cfg.bodyHalfX - 0.05;
+    const steerMag = Math.abs(input.steer);
     if (!this.wallRun) {
       const controlMult = this.grounded ? 1 : cfg.airControlMult;
       this.targetX += input.steer * cfg.strafeSpeed * controlMult * dt;
       this.targetX = Math.max(-half, Math.min(half, this.targetX));
-      const k = this.grounded ? 14 : 9;
+      const k = this.grounded ? 16 : 9;
       const newX = this.x + (this.targetX - this.x) * Math.min(1, k * dt);
       this.vx = (newX - this.x) / Math.max(dt, 1e-6);
       this.x = newX;
     }
 
     // ---- forward speed with momentum
-    const target = this.effectiveTargetSpeed;
+    const target = this.effectiveTargetSpeed * (this.grounded && steerMag > 0.18
+      ? Math.max(0.78, 1 - cfg.steerDrag * (steerMag - 0.18))
+      : 1);
     if (this.speed < target) this.speed = Math.min(target, this.speed + cfg.accel * dt);
-    else this.speed = Math.max(target, this.speed - cfg.accel * 0.6 * dt);
+    else this.speed = Math.max(target, this.speed - cfg.accel * 0.55 * dt);
     let slideBonus = this.sliding ? 1.12 : 1;
 
     // ---- vertical
@@ -340,7 +362,11 @@ export class MovementController {
   private doJump(double: boolean): void {
     const cfg = this.cfg;
     if (this.sliding) this.endSlideImmediate();
-    this.vy = double ? cfg.doubleJumpVelocity : cfg.jumpVelocity;
+    // Distance is almost entirely from forward speed; a tiny extra hang at
+    // boost speed sells the "whoosh" without making slow jumps floaty.
+    const speedBonus = Math.max(0, (this.speed - cfg.baseSpeed) * 0.06);
+    const baseVy = double ? cfg.doubleJumpVelocity : cfg.jumpVelocity;
+    this.vy = baseVy + speedBonus;
     this.grounded = false;
     this.coyote = 0;
     this.jumpBuffer = 0;
@@ -348,7 +374,55 @@ export class MovementController {
     this.fallStartY = this.y;
     this.groundVel.x = 0;
     this.groundVel.y = 0;
+    // Fast / long jumps auto-flip (Parkour Race backflip = extra speed on land).
+    this.flipping = double || this.speed >= cfg.flipSpeed;
+    if (this.flipping) this.events.onFlip?.();
     this.events.onJump?.(double);
+  }
+
+  /**
+   * Auto-jump at ledges and auto-slide under bars. Jump height is nearly
+   * constant; how far you fly is determined by current forward speed, so
+   * missing a bumper means falling short of the next rooftop.
+   */
+  private tryAutoParkour(world: CollisionWorld): void {
+    if (this.dead || this.finished || this.wallRun) return;
+
+    // Auto-slide: duck just before a low bar in our lane.
+    if (this.grounded && !this.sliding) {
+      const look = 1.6 + this.speed * 0.12;
+      const list = world.queryZ(this.z + 0.3, this.z + look);
+      for (const c of list) {
+        if (c.disabled || c.kind !== 'slideUnder') continue;
+        if (this.x + this.cfg.bodyHalfX < c.minX || this.x - this.cfg.bodyHalfX > c.maxX) continue;
+        if (this.y + this.cfg.standHeight > c.minY && this.y < c.minY + 0.15) {
+          this.startSlide();
+          break;
+        }
+      }
+    }
+
+    // Auto-jump at the lip of a gap. Look just past the feet so we leave
+    // the ledge, not three meters early.
+    if (this.grounded && this.jumpsUsed === 0 && this.speed > 3.5 && this.vaultTimer <= 0) {
+      const look = this.cfg.bodyHalfZ + 0.38;
+      if (!this.hasSupport(this.x, this.y, this.z + look, world)) {
+        this.jumpBuffer = this.cfg.jumpBufferTime;
+      }
+    }
+  }
+
+  /** Walkable ground (or vault top) near (x, y, z). */
+  hasSupport(x: number, y: number, z: number, world: CollisionWorld): boolean {
+    const list = world.queryZ(z - 0.4, z + 0.4);
+    for (const c of list) {
+      if (c.disabled) continue;
+      if (c.kind !== 'solid' && c.kind !== 'vault') continue;
+      if (x < c.minX - 0.28 || x > c.maxX + 0.28) continue;
+      if (z < c.minZ || z > c.maxZ) continue;
+      if (c.maxY <= y + this.cfg.stepUp + 0.2 && c.maxY >= y - 3.2) return true;
+    }
+    return false;
   }
 
   private doWallJump(): void {
@@ -594,6 +668,10 @@ export class MovementController {
       if (!wasGrounded) {
         const fallDist = Math.max(0, this.fallStartY - this.y);
         const impact = Math.min(1.5, impactSpeed / 16 + fallDist / 14);
+        if (this.flipping && impact < 1.15) {
+          this.speed = Math.min(cfg.maxBoostSpeed, this.speed + cfg.flipLandBoost);
+        }
+        this.flipping = false;
         this.events.onLand?.(impact);
         if (impact > 1.2) this.stumble(0.5);
       }
@@ -634,7 +712,8 @@ export class MovementController {
       return;
     }
     if (!this.grounded) {
-      if (this.vy > 1.5) this.state = this.jumpsUsed >= 2 ? 'doubleJump' : 'jump';
+      if (this.flipping) this.state = 'doubleJump';
+      else if (this.vy > 1.5) this.state = this.jumpsUsed >= 2 ? 'doubleJump' : 'jump';
       else this.state = 'fall';
       return;
     }

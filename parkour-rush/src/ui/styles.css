@@ -1,13 +1,13 @@
-/* Skyline Rush — original mobile-first UI */
+/* Parkour Race — mobile-first hypercasual UI */
 
 :root {
-  --bg: #0e1526;
+  --bg: #0b1220;
   --panel: rgba(17, 25, 46, 0.82);
   --panel-light: rgba(255, 255, 255, 0.08);
   --text: #eef2ff;
   --text-dim: #94a3b8;
-  --accent: #38bdf8;
-  --accent2: #fbbf24;
+  --accent: #ffdd00;
+  --accent2: #38bdf8;
   --good: #4ade80;
   --bad: #f87171;
   --radius: 18px;
@@ -64,7 +64,7 @@ html, body {
   font-size: clamp(38px, 9vw, 64px);
   font-weight: 900;
   letter-spacing: 2px;
-  background: linear-gradient(90deg, #38bdf8, #a78bfa, #fbbf24);
+  background: linear-gradient(90deg, #ffdd00, #38bdf8, #f472b6);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

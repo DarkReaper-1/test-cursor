@@ -1,11 +1,7 @@
 /**
- * Touch-first input with forgiving swipe recognition, continuous drag
- * steering, an alternative on-screen button scheme, and keyboard support
- * for desktop testing.
- *
- * Emits semantic actions consumed by PlayerController:
- *  - steer: continuous -1..1
- *  - jump / slide / moveLeft / moveRight: edge-triggered
+ * Parkour Race controls: hold and drag left/right to steer. Jump, vault,
+ * slide and flip are automatic. Optional swipe-up / swipe-down still work
+ * as manual overrides. Keyboard A/D (or arrows) for desktop.
  */
 
 export interface InputFrame {
@@ -28,7 +24,7 @@ interface ActiveTouch {
 }
 
 export class InputManager {
-  /** swipe sensitivity multiplier (0.5..2). Higher = shorter swipes needed. */
+  /** swipe/drag sensitivity multiplier (0.5..2). */
   sensitivity = 1.0;
   scheme: 'swipe' | 'buttons' = 'swipe';
   enabled = true;
@@ -39,18 +35,22 @@ export class InputManager {
     left: 0,
     right: 0,
   };
-  private steerValue = 0;
   private steerFromDrag = 0;
   private keys = new Set<string>();
   private touches = new Map<number, ActiveTouch>();
   private el: HTMLElement | null = null;
   private buttonSteer = 0;
+  private mouseDown = false;
+  private mouseStartX = 0;
 
   private onTouchStart = (e: TouchEvent) => this.handleTouchStart(e);
   private onTouchMove = (e: TouchEvent) => this.handleTouchMove(e);
   private onTouchEnd = (e: TouchEvent) => this.handleTouchEnd(e);
   private onKeyDown = (e: KeyboardEvent) => this.handleKeyDown(e);
   private onKeyUp = (e: KeyboardEvent) => this.handleKeyUp(e);
+  private onMouseDown = (e: MouseEvent) => this.handleMouseDown(e);
+  private onMouseMove = (e: MouseEvent) => this.handleMouseMove(e);
+  private onMouseUp = () => this.handleMouseUp();
 
   attach(el: HTMLElement): void {
     this.el = el;
@@ -58,6 +58,9 @@ export class InputManager {
     el.addEventListener('touchmove', this.onTouchMove, { passive: false });
     el.addEventListener('touchend', this.onTouchEnd, { passive: false });
     el.addEventListener('touchcancel', this.onTouchEnd, { passive: false });
+    el.addEventListener('mousedown', this.onMouseDown);
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
   }
@@ -68,7 +71,10 @@ export class InputManager {
       this.el.removeEventListener('touchmove', this.onTouchMove);
       this.el.removeEventListener('touchend', this.onTouchEnd);
       this.el.removeEventListener('touchcancel', this.onTouchEnd);
+      this.el.removeEventListener('mousedown', this.onMouseDown);
     }
+    window.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp);
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
   }
@@ -84,7 +90,8 @@ export class InputManager {
 
   /** Read and clear edge-triggered actions accumulated since the last frame. */
   poll(): InputFrame {
-    const keySteer = (this.keys.has('ArrowLeft') || this.keys.has('KeyA') ? -1 : 0) +
+    const keySteer =
+      (this.keys.has('ArrowLeft') || this.keys.has('KeyA') ? -1 : 0) +
       (this.keys.has('ArrowRight') || this.keys.has('KeyD') ? 1 : 0);
     const steer = Math.max(-1, Math.min(1, keySteer + this.steerFromDrag + this.buttonSteer));
     const frame: InputFrame = {
@@ -102,16 +109,17 @@ export class InputManager {
   }
 
   private swipeThreshold(): number {
-    // Forgiving: ~28px baseline scaled by sensitivity and DPI.
     const dpi = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 3) : 1;
-    return (28 * dpi) / this.sensitivity;
+    return (22 * dpi) / this.sensitivity;
+  }
+
+  private isUi(target: EventTarget | null): boolean {
+    return !!(target as HTMLElement | null)?.closest?.('.ui-clickable');
   }
 
   private handleTouchStart(e: TouchEvent): void {
     if (!this.enabled) return;
-    // Ignore touches on UI elements (buttons, menus).
-    const target = e.target as HTMLElement | null;
-    if (target && target.closest('.ui-clickable')) return;
+    if (this.isUi(e.target)) return;
     e.preventDefault();
     for (const t of Array.from(e.changedTouches)) {
       this.touches.set(t.identifier, {
@@ -122,7 +130,7 @@ export class InputManager {
         lastY: t.clientY,
         startTime: performance.now(),
         swiped: false,
-        steering: false,
+        steering: true, // steer from the first pixel — Parkour Race one-thumb
       });
     }
   }
@@ -138,24 +146,16 @@ export class InputManager {
       a.lastY = t.clientY;
       const th = this.swipeThreshold();
 
-      if (!a.swiped) {
-        if (Math.abs(dy) > th && Math.abs(dy) > Math.abs(dx) * 1.15) {
-          // vertical swipe wins when clearly vertical
-          if (dy < 0) this.queue.jump++;
-          else this.queue.slide++;
-          a.swiped = true;
-        } else if (Math.abs(dx) > th && Math.abs(dx) > Math.abs(dy) * 1.15) {
-          if (dx < 0) this.queue.left++;
-          else this.queue.right++;
-          a.swiped = true;
-          a.steering = true;
-        }
+      // Vertical swipe is an optional manual jump/slide override.
+      if (!a.swiped && Math.abs(dy) > th * 1.4 && Math.abs(dy) > Math.abs(dx) * 1.6) {
+        if (dy < 0) this.queue.jump++;
+        else this.queue.slide++;
+        a.swiped = true;
       }
+
       if (a.steering) {
-        // After a horizontal swipe, keep steering while the finger is held:
-        // drag distance maps to continuous steer for fine adjustments.
         const w = window.innerWidth || 800;
-        this.steerFromDrag = Math.max(-1, Math.min(1, (dx / (w * 0.28)) * this.sensitivity));
+        this.steerFromDrag = Math.max(-1, Math.min(1, (dx / (w * 0.22)) * this.sensitivity));
       }
     }
   }
@@ -165,15 +165,28 @@ export class InputManager {
       const a = this.touches.get(t.identifier);
       if (a) {
         if (a.steering) this.steerFromDrag = 0;
-        // Quick tap (no swipe) = jump: extremely forgiving default action.
-        const dt = performance.now() - a.startTime;
-        const dist = Math.hypot(a.lastX - a.startX, a.lastY - a.startY);
-        if (!a.swiped && dt < 220 && dist < 14 && this.enabled && this.scheme === 'swipe') {
-          this.queue.jump++;
-        }
         this.touches.delete(t.identifier);
       }
     }
+    if (this.touches.size === 0) this.steerFromDrag = 0;
+  }
+
+  private handleMouseDown(e: MouseEvent): void {
+    if (!this.enabled || e.button !== 0) return;
+    if (this.isUi(e.target)) return;
+    this.mouseDown = true;
+    this.mouseStartX = e.clientX;
+  }
+
+  private handleMouseMove(e: MouseEvent): void {
+    if (!this.enabled || !this.mouseDown) return;
+    const w = window.innerWidth || 800;
+    const dx = e.clientX - this.mouseStartX;
+    this.steerFromDrag = Math.max(-1, Math.min(1, (dx / (w * 0.22)) * this.sensitivity));
+  }
+
+  private handleMouseUp(): void {
+    this.mouseDown = false;
     if (this.touches.size === 0) this.steerFromDrag = 0;
   }
 

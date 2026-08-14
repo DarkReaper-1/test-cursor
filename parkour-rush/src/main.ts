@@ -173,7 +173,7 @@ function startLevel(levelId: number): void {
     const isTutorial = levelId === 1 && !save.data.tutorialDone;
     ui.showHUD(isTutorial);
     if (isTutorial) {
-      ui.toast('SWIPE to steer · UP jump · DOWN slide', 2800);
+      ui.toast('DRAG left / right · hit the yellow bumpers', 2800);
     }
     input.enabled = true;
     game.startRace();

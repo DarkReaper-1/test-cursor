@@ -84,6 +84,22 @@ class Ctx {
     const l = Math.max(1.5, this.half - 1.5);
     return [-l, 0, l];
   }
+
+  /** Glowing yellow speed bumper — the core skill object. Must be steered onto. */
+  bumper(x: number, z: number, w = 1.65, d = 2.2, mult = 1.48, dur = 2.5): void {
+    this.collider({
+      kind: 'boost',
+      minX: x - w / 2,
+      maxX: x + w / 2,
+      minY: -0.15,
+      maxY: 0.9,
+      minZ: z - d / 2,
+      maxZ: z + d / 2,
+      data: { mult, dur },
+    });
+    this.deco(x, 0.1, z, w, 0.2, d, this.pal.boost, 0.75);
+    this.deco(x, 0.2, z, w * 0.5, 0.1, d * 0.4, 0xffffff, 0.9);
+  }
 }
 
 type PieceFn = (ctx: Ctx, len: number, p: Record<string, number>) => void;
@@ -113,6 +129,12 @@ const pieces: Record<string, { defaultLen: number; build: PieceFn }> = {
         const side = ctx.rng() > 0.5 ? 1 : -1;
         ctx.deco(side * (ctx.half - 0.8), 0.5, ctx.z + len * 0.5, 1.2, 1.0, 2.2, ctx.pal.prop1);
       }
+      // occasional bumper to hunt
+      if (ctx.rng() > 0.55) {
+        const lane = ctx.lanes()[Math.floor(ctx.rng() * 3)];
+        ctx.bumper(lane, ctx.z + len * 0.55);
+        ctx.ai({ z: ctx.z + 1.5, action: 'steer', targetX: lane });
+      }
       ctx.z += len;
     },
   },
@@ -131,10 +153,14 @@ const pieces: Record<string, { defaultLen: number; build: PieceFn }> = {
     defaultLen: 0,
     build: (ctx, len, p) => {
       const width = p.width ?? 5;
-      const lead = 10;
+      const lead = 12;
       ctx.floor(lead);
       // warning stripes at the edge
       ctx.deco(0, 0.06, ctx.z + lead - 0.5, ctx.half * 2, 0.14, 1, ctx.pal.accent, 0.25);
+      // Big gaps need a bumper — jump distance is a function of speed.
+      if (width >= 7) {
+        ctx.bumper(0, ctx.z + lead - 3.2, 2.1, 2.4, 1.55, 2.8);
+      }
       ctx.z += lead;
       // coins over the gap reward a clean jump
       ctx.coinArc(0, ctx.z + 0.5, 4, 1.8, width / 4);
@@ -368,17 +394,13 @@ const pieces: Record<string, { defaultLen: number; build: PieceFn }> = {
     defaultLen: 18,
     build: (ctx, len) => {
       ctx.floor(len);
-      const zc = ctx.z + len / 2;
-      ctx.collider({
-        kind: 'boost',
-        minX: -ctx.half, maxX: ctx.half,
-        minY: -0.2, maxY: 0.8,
-        minZ: zc - 2.5, maxZ: zc + 2.5,
-        data: { mult: 1.4, dur: 2.2 },
-      });
-      for (let i = 0; i < 4; i++) {
-        ctx.deco(0, 0.08, zc - 1.8 + i * 1.2, ctx.half * 2 - 1, 0.16, 0.7, ctx.pal.boost, 0.55);
-      }
+      const lanes = ctx.lanes();
+      const n = ctx.rng() > 0.4 ? 2 : 1;
+      const shuffled = [...lanes].sort(() => ctx.rng() - 0.5);
+      const pick = shuffled.slice(0, n);
+      const zc = ctx.z + len * 0.5;
+      for (const x of pick) ctx.bumper(x, zc, 1.7, 2.3, 1.5, 2.6);
+      ctx.ai({ z: ctx.z + 2, action: 'steer', targetX: pick[0] });
       ctx.z += len;
     },
   },

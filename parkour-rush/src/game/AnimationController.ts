@@ -53,7 +53,7 @@ export class AnimationController {
   update(dt: number, state: MoveState, speedRatio: number, vx: number, grounded: boolean): void {
     if (state !== this.prevState) {
       this.stateTime = 0;
-      if (state === 'doubleJump') this.spinProgress = 0;
+      if (state === 'doubleJump' || state === 'jump') this.spinProgress = 0;
       this.prevState = state;
     }
     this.stateTime += dt;
@@ -97,12 +97,14 @@ export class AnimationController {
         t.hipsPitch = 0.1;
         break;
       case 'doubleJump': {
-        this.spinProgress = Math.min(1, this.spinProgress + dt * 2.4);
+        // Full backflip — Parkour Race's signature air trick.
+        this.spinProgress = Math.min(1, this.spinProgress + dt * 2.15);
         t.spin = this.spinProgress * Math.PI * 2;
-        t.legL = 1.3;
-        t.legR = 1.3;
-        t.armL = -0.9;
-        t.armR = -0.9;
+        t.legL = 1.45;
+        t.legR = 1.2;
+        t.armL = -1.15;
+        t.armR = -1.05;
+        t.hipsPitch = 0.15;
         break;
       }
       case 'fall':
@@ -207,7 +209,8 @@ export class AnimationController {
 
     // apply to rig
     const r = this.rig;
-    r.hips.position.y = (0.92 + b.hipsY) * this.baseScale;
+    const hipY = r.hipY ?? 0.88 * this.baseScale;
+    r.hips.position.y = hipY + b.hipsY * this.baseScale;
     r.hips.rotation.set(b.hipsPitch + b.spin, b.hipsYaw, b.hipsRoll);
     r.torso.rotation.x = b.torsoPitch;
     r.head.rotation.x = b.headPitch;

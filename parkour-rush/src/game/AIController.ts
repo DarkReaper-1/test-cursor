@@ -23,7 +23,11 @@ export interface AIProfile {
   color: string;
 }
 
-const FIRST_NAMES = ['Blur', 'Volt', 'Kiko', 'Rex', 'Nova', 'Juno', 'Ace', 'Piper', 'Zed', 'Momo', 'Sky', 'Turbo'];
+const FIRST_NAMES = [
+  'Blur', 'Volt', 'Kiko', 'Rex', 'Nova', 'Juno', 'Ace', 'Piper',
+  'Zed', 'Momo', 'Sky', 'Turbo', 'Nix', 'Echo', 'Dash', 'Rift',
+  'Bolt', 'Kai', 'Lux', 'Onyx', 'Fizz', 'Gum', 'Chip', 'Wick',
+];
 
 export function makeProfile(skill: AISkill, index: number, rng: () => number): AIProfile {
   const base = {

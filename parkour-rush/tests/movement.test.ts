@@ -131,10 +131,10 @@ describe('MovementController — slide', () => {
       id: 1, kind: 'slideUnder',
       minX: -5, maxX: 5, minY: 1.0, maxY: 1.7, minZ: 20, maxZ: 20.8,
     };
-    // standing: stumble
+    // standing: stumble (auto-parkour off so we can actually hit the bar)
     {
       const world = makeWorld([{ ...bar }]);
-      const mc = new MovementController();
+      const mc = new MovementController({ autoParkour: false });
       mc.reset(0, 0.2, 14);
       mc.invulnTimer = 0;
       let stumbled = 0;
@@ -280,5 +280,111 @@ describe('MovementController — death & momentum', () => {
     expect(seen).toContain('boost');
     expect(seen).toContain('checkpoint');
     expect(seen).toContain('finish');
+  });
+});
+
+describe('MovementController — Parkour Race auto-parkour', () => {
+  it('auto-jumps a rooftop gap with no jump input', () => {
+    const g1: BoxCollider = { id: 20, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: -10, maxZ: 20 };
+    const g2: BoxCollider = { id: 21, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: 26, maxZ: 80 };
+    const world = new LevelCollisionWorld([g1, g2], 5);
+    const mc = new MovementController();
+    mc.reset(0, 0.2, 8);
+    let jumps = 0;
+    mc.events.onJump = () => jumps++;
+    run(mc, world, 3.2);
+    expect(jumps).toBeGreaterThanOrEqual(1);
+    expect(mc.dead).toBe(false);
+    expect(mc.grounded).toBe(true);
+    expect(mc.z).toBeGreaterThan(27);
+  });
+
+  it('falls short of a wide gap when not boosted', () => {
+    const g1: BoxCollider = { id: 22, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: -10, maxZ: 16 };
+    const g2: BoxCollider = { id: 23, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: 36, maxZ: 80 };
+    const world = new LevelCollisionWorld([g1, g2], 5);
+    const mc = new MovementController();
+    mc.reset(0, 0.2, 6);
+    run(mc, world, 4.5);
+    expect(mc.dead).toBe(true);
+    expect(mc.y).toBeLessThan(0);
+  });
+
+  it('clears a wide gap after a speed bumper', () => {
+    const g1: BoxCollider = { id: 24, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: -10, maxZ: 18 };
+    const g2: BoxCollider = { id: 25, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: 30, maxZ: 80 };
+    const pad: BoxCollider = {
+      id: 26, kind: 'boost',
+      minX: -2, maxX: 2, minY: -0.2, maxY: 1,
+      minZ: 12, maxZ: 15,
+      data: { mult: 1.7, dur: 3 },
+    };
+    const world = new LevelCollisionWorld([g1, g2, pad], 5);
+    const mc = new MovementController();
+    mc.events.onTrigger = (c) => {
+      if (c.kind === 'boost') mc.applyBoost(c.data?.mult ?? 1.5, c.data?.dur ?? 2);
+    };
+    mc.reset(0, 0.2, 4);
+    run(mc, world, 4.5);
+    expect(mc.dead).toBe(false);
+    expect(mc.z).toBeGreaterThan(31);
+  });
+
+  it('auto-slides under a bar with no slide input', () => {
+    const bar: BoxCollider = {
+      id: 27, kind: 'slideUnder',
+      minX: -5, maxX: 5, minY: 1.0, maxY: 1.7, minZ: 22, maxZ: 22.8,
+    };
+    const world = makeWorld([bar]);
+    const mc = new MovementController();
+    mc.reset(0, 0.2, 12);
+    mc.invulnTimer = 0;
+    let stumbled = 0;
+    mc.events.onStumble = () => stumbled++;
+    run(mc, world, 2.2);
+    expect(stumbled).toBe(0);
+    expect(mc.z).toBeGreaterThan(23.5);
+  });
+
+  it('steering bleeds forward speed', () => {
+    const world = makeWorld();
+    const straight = new MovementController();
+    const turning = new MovementController();
+    straight.reset(0, 0.2, 0);
+    turning.reset(0, 0.2, 0);
+    run(straight, world, 2.2);
+    run(turning, world, 2.2, { steer: 1 });
+    expect(turning.speed).toBeLessThan(straight.speed - 0.15);
+  });
+
+  it('fast jumps flip and grant a landing boost', () => {
+    const world = makeWorld();
+    const mc = new MovementController();
+    mc.reset(0, 0.2, 0);
+    run(mc, world, 1.2);
+    mc.applyBoost(1.5, 3);
+    run(mc, world, 0.5);
+    let flipped = 0;
+    mc.events.onFlip = () => flipped++;
+    const speedBeforeLand = { v: 0 };
+    run(mc, world, 1.4, { jump: true }, () => {
+      if (mc.flipping) speedBeforeLand.v = mc.speed;
+    });
+    expect(flipped).toBeGreaterThanOrEqual(1);
+    expect(mc.grounded).toBe(true);
+    expect(mc.speed).toBeGreaterThan(speedBeforeLand.v * 0.9);
+  });
+
+  it('can disable auto-parkour for manual-only control', () => {
+    const g1: BoxCollider = { id: 28, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: -10, maxZ: 14 };
+    const g2: BoxCollider = { id: 29, kind: 'solid', minX: -5, maxX: 5, minY: -1, maxY: 0, minZ: 20, maxZ: 80 };
+    const world = new LevelCollisionWorld([g1, g2], 5);
+    const mc = new MovementController({ autoParkour: false });
+    mc.reset(0, 0.2, 6);
+    let jumps = 0;
+    mc.events.onJump = () => jumps++;
+    run(mc, world, 2.5);
+    expect(jumps).toBe(0);
+    expect(mc.dead).toBe(true);
   });
 });

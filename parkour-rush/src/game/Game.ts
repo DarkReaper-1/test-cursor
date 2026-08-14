@@ -230,7 +230,9 @@ export class Game {
       profile.speedMult *= 0.92 + def.difficulty * 0.016;
       const events = this.makeAiEvents();
       const mc = new MovementController({}, events.handlers);
-      mc.reset(slot, 0.2, startZ - 1.2);
+      // Crowd pack: stagger the pack in rows behind the player.
+      const row = i % 4;
+      mc.reset(slot + (rng() - 0.5) * 0.35, 0.2, startZ - 0.5 - row * 0.85);
       const charDef = CHARACTERS[(i + 1) % CHARACTERS.length];
       const rig = createCharacterRig(charDef, profile.color);
       this.racerGroup.add(rig.root);
@@ -262,7 +264,7 @@ export class Game {
     const old = this.player.mc;
     old.reset(0, 0.2, 0);
     old.finished = false;
-    old.cfg.baseSpeed = 11.5;
+    old.cfg.baseSpeed = 13.2;
     return old;
   }
 
