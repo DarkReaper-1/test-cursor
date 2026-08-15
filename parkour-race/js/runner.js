@@ -448,7 +448,14 @@ export class Runner {
     if (this.fallT > 0.55) {
       this.state = STATES.RESPAWN;
       this.respawnT = 0;
-      this.pos.copy(this.lastSafe);
+      // respawn a few meters back from the ledge so there's runway to rebuild
+      // speed and re-time the jump (never respawn right on the lip)
+      let rz = this.lastSafe.z, ry = this.lastSafe.y;
+      for (const back of [3.5, 2.5, 1.5, 0.5, 0]) {
+        const g = this.course.groundHeight(this.lastSafe.x, this.lastSafe.z - back, this.lastSafe.y + 1);
+        if (Number.isFinite(g)) { rz = this.lastSafe.z - back; ry = g; break; }
+      }
+      this.pos.set(this.lastSafe.x, ry, rz);
       this.vel.set(0, 0, 0);
       this.speed = 0;
       this.emit('respawn', {});

@@ -16,6 +16,9 @@ export class Input {
     this._lastPointerX = 0;
 
     element.addEventListener('pointerdown', (e) => {
+      // don't hijack presses on UI (buttons/overlays) — capturing the pointer
+      // here would prevent their click events from ever firing
+      if (e.target.closest?.('button, .overlay')) return;
       if (this._pointerId !== null) return;
       this._pointerId = e.pointerId;
       this._lastPointerX = e.clientX;
