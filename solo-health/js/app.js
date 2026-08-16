@@ -106,7 +106,7 @@ function renderStatus() {
   const need = xpToNextLevel(state.level);
   $("#xp-fill").style.width = `${Math.min(100, (state.xp / need) * 100)}%`;
   $("#xp-text").textContent = `${state.xp} / ${need} XP`;
-  $("#streak-text").textContent = `Streak: ${state.streak} days`;
+  $("#streak-text").textContent = `${state.streak} day streak`;
   renderStats();
 }
 
@@ -121,12 +121,12 @@ function questCard(q, { penalty = false } = {}) {
           <p class="quest-meta">${q.progress} / ${q.target} ${q.unit}${
             q.xp ? ` · +${q.xp} XP · ${q.stat.toUpperCase()}` : ""
           }</p>
-          <p class="quest-scan-tag">📷 Camera verification required</p>
+          <p class="quest-scan-tag">Camera verification</p>
         </div>
         <button class="sys-btn tiny ${penalty ? "scan-penalty" : "scan-quest"}" data-id="${q.id}" type="button" ${
           done ? "disabled" : ""
         }>
-          ${done ? "VERIFIED" : "SCAN"}
+          ${done ? "Verified" : "Scan"}
         </button>
       </div>
       <div class="bar ${penalty ? "danger" : ""}"><div class="bar-fill" style="width:${pct}%"></div></div>
@@ -324,7 +324,7 @@ function advanceDay() {
   renderAll();
 }
 
-async function openScanner(quest, { penalty = false, forceSynthetic = false } = {}) {
+async function openScanner(quest, { penalty = false } = {}) {
   if (!quest || quest.progress >= quest.target) return;
   activeQuest = quest;
   activeIsPenalty = penalty;
@@ -332,21 +332,21 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
   $("#scanner-title").textContent = quest.name;
   $("#scanner-target").textContent = `Target ${quest.target} ${quest.unit}`;
   $("#scanner-view").hidden = false;
-  $("#camera-pill").textContent = "SCANNING";
+  $("#camera-pill").textContent = "Scanning";
   $("#camera-pill").classList.add("live");
 
-  const params = new URLSearchParams(location.search);
-  const demo = params.get("demo") === "1" || forceSynthetic;
+  // Live camera by default. Synthetic only when URL has ?demo=1 (CI recordings).
+  const explicitDemo = new URLSearchParams(location.search).get("demo") === "1";
 
   await scanner.start({
     quest,
-    forceSynthetic: demo,
-    allowSynthFallback: demo || params.get("sim") === "1",
+    forceSynthetic: explicitDemo,
+    allowSynthFallback: explicitDemo,
     onProgress: (amount) => {
       addQuestProgress(quest, amount, { penalty });
       $("#scanner-target").textContent = `${quest.progress} / ${quest.target} ${quest.unit}`;
       if (quest.progress >= quest.target) {
-        $("#scanner-status").textContent = "OBJECTIVE VERIFIED";
+        $("#scanner-status").textContent = "Objective verified";
       }
     },
   });
@@ -355,7 +355,7 @@ async function openScanner(quest, { penalty = false, forceSynthetic = false } = 
 function closeScanner() {
   scanner.stop();
   $("#scanner-view").hidden = true;
-  $("#camera-pill").textContent = "SCANNER READY";
+  $("#camera-pill").textContent = "Scanner Ready";
   $("#camera-pill").classList.remove("live");
   activeQuest = null;
   activeIsPenalty = false;
@@ -366,7 +366,7 @@ function bindEvents() {
   $("#btn-awaken").addEventListener("click", () => {
     $("#boot-screen").classList.remove("active");
     $("#main-screen").classList.add("active");
-    showToast("[SYSTEM] Camera Scanner armed.", "success");
+    showToast("Camera Scanner armed.", "success");
     // preload model in background
     scanner.ensureModel().catch(() => {});
   });
@@ -388,9 +388,9 @@ function bindEvents() {
   $("#btn-close-scanner").addEventListener("click", closeScanner);
   $("#btn-finish-scan").addEventListener("click", closeScanner);
 
-  $("#btn-synth").addEventListener("click", () => {
-    scanner.enableSynthetic(true);
-    showToast("Simulation feed enabled", "info");
+  $("#btn-retry-camera").addEventListener("click", () => {
+    scanner.retryCamera();
+    showToast("Retrying camera…", "info");
   });
 
   $("#btn-reset-day").addEventListener("click", advanceDay);
@@ -450,11 +450,15 @@ window.__SOLO__ = {
     renderAll();
   },
   awaken: () => $("#btn-awaken").click(),
-  openScanner: (id, opts) => {
+  openScanner: (id, opts = {}) => {
     const q =
       state.quests.find((x) => x.id === id) ||
       state.penaltyQuests.find((x) => x.id === id);
-    return openScanner(q, { forceSynthetic: true, ...opts, penalty: !!state.penaltyQuests.find((x) => x.id === id) });
+    // Demo helper never forces synthetic unless page has ?demo=1
+    return openScanner(q, {
+      ...opts,
+      penalty: !!state.penaltyQuests.find((x) => x.id === id),
+    });
   },
   closeScanner,
   advanceDay,

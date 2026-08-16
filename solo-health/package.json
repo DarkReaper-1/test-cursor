@@ -6,9 +6,12 @@
   "scripts": {
     "start": "python3 -m http.server 8765 --directory ..",
     "demo": "node demo/record-demo.js",
-    "record": "node demo/record-demo.js"
+    "record": "node demo/record-demo.js",
+    "deploy": "vercel deploy --prod --yes",
+    "deploy:preview": "vercel deploy --yes"
   },
   "devDependencies": {
-    "playwright": "^1.49.0"
+    "playwright": "^1.49.0",
+    "vercel": "^39.4.2"
   }
 }
