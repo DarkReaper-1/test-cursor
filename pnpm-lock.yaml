@@ -13,6 +13,9 @@ importers:
       '@helix/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@helix/fitness':
+        specifier: workspace:*
+        version: link:../../packages/fitness
       '@helix/rpg':
         specifier: workspace:*
         version: link:../../packages/rpg
@@ -68,6 +71,9 @@ importers:
       '@helix/design':
         specifier: workspace:*
         version: link:../../packages/design
+      '@helix/fitness':
+        specifier: workspace:*
+        version: link:../../packages/fitness
       '@helix/rpg':
         specifier: workspace:*
         version: link:../../packages/rpg

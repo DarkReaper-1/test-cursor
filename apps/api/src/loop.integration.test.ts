@@ -126,4 +126,47 @@ describeDb("identity and completion loop", () => {
     expect(next.quest.category).toBe("recovery");
     expect(next.quest.title).toBe("The Return Path");
   });
+
+  it("progresses bodyweight reps from the last completed session", async () => {
+    const email = `prog-${randomUUID()}@helix.test`;
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash: await hashPassword("password12"),
+        profile: {
+          create: {
+            timezone: "UTC",
+            onboarding: {
+              goal: "consistency",
+              equipment: "none",
+              minutes: 20,
+              experience: "beginner",
+              constraints: "",
+            },
+            onboardingCompletedAt: new Date(),
+          },
+        },
+      },
+    });
+    await createOperatorCharacter(prisma, user.id);
+    const loaded = await prisma.user.findUniqueOrThrow({
+      where: { id: user.id },
+      include: { profile: true, character: { include: { scores: { include: { definition: true } } } } },
+    });
+    const monday = new Date("2026-08-17T12:00:00.000Z");
+    const first = await getOrCreateToday(prisma, loaded, monday);
+    await completeToday(prisma, loaded, {
+      idempotencyKey: randomUUID(),
+      questId: first.quest.id,
+      sets: ["push_up", "squat", "hinge"].flatMap((exerciseKey) =>
+        [10, 10, 10].map((reps) => ({ exerciseKey, load: 0, reps })),
+      ),
+    });
+    const tuesday = new Date("2026-08-18T12:00:00.000Z");
+    const next = await getOrCreateToday(prisma, loaded, tuesday);
+    expect(next.quest.category).toBe("main");
+    const payload = next.quest.payload as { exercises: { key: string; targetReps: number }[] };
+    expect(payload.exercises.find((item) => item.key === "push_up")?.targetReps).toBe(11);
+    expect(next.coach.why.toLowerCase()).toContain("history");
+  });
 });

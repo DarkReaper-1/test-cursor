@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@helix/ai": "workspace:*",
+    "@helix/fitness": "workspace:*",
     "@helix/rpg": "workspace:*",
     "@helix/shared": "workspace:*",
     "@prisma/client": "^6.14.0",

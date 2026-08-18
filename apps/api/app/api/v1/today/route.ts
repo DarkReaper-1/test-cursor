@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       dateKey: today.dateKey,
       character: today.character,
+      coach: today.coach,
       directive: {
         id: today.quest.id,
         category: today.quest.category,

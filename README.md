@@ -11,6 +11,7 @@ This is not a clone of Arise or any proprietary fitness RPG.
 - **Phase 0:** Discovery — `docs/`
 - **Phase 1:** Monorepo skeleton
 - **Phase 2:** Identity + playable Today loop (auth, onboarding, server XP)
+- **Phase 5/6 slice:** per-set session, wall-clock rest, history-based next work, coach.why
 
 ## Workspace
 
@@ -21,7 +22,7 @@ packages/shared Zod contracts
 packages/design Visual tokens (warm lattice, not a cyan HUD)
 packages/rpg    XP, levels, ranks, momentum, RewardEngine, Today assembly
 packages/fitness Adaptive set progression
-packages/ai     AIProvider + NoneProvider
+packages/ai     AIProvider, NoneProvider, today explainer
 ```
 
 ## Commands
@@ -42,8 +43,8 @@ pnpm --filter @helix/api dev
 # GET  /api/v1/health
 # POST /api/v1/auth/register
 # POST /api/v1/onboarding
-# GET  /api/v1/today
-# POST /api/v1/completions   (Bearer token, idempotency key, no client XP)
+# GET  /api/v1/today            (directive + coach.why)
+# POST /api/v1/completions      (Bearer token, idempotency key, no client XP)
 ```
 
 Optional Postgres:

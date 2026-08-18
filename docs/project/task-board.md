@@ -74,9 +74,9 @@ Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | P5-1 | Exercise seed | Fitness | P1-4 | core lifts + bodyweight | db seed | N/A | TODO |
-| P5-2 | Session + sets | Fitness | P5-1 | offline draft | mobile + api | unit | TODO |
-| P5-3 | Progression 8,8,7 | Fitness | P5-2 | next prescription | packages/fitness | unit | **DONE** (engine only) |
-| P5-4 | Background rest timer | Mobile | P5-2 | survives background | mobile | manual + unit | TODO |
+| P5-2 | Session + sets | Fitness | P5-1 | offline draft | mobile + api | unit | **DONE** (manual log; offline queue later) |
+| P5-3 | Progression 8,8,7 | Fitness | P5-2 | next prescription | packages/fitness | unit | **DONE** (engine + Today wiring) |
+| P5-4 | Background rest timer | Mobile | P5-2 | survives background | mobile | unit (wall clock) | **DONE** |
 
 ---
 
@@ -84,7 +84,7 @@ Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.
 
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P6-1 | AIProvider + None | AI | P1-5 | interface + stub | packages/ai | unit | TODO |
+| P6-1 | AIProvider + None | AI | P1-5 | interface + stub | packages/ai | unit | **DONE** |
 | P6-2 | Tools + proposals | AI/Security | P6-1 | writes validated | api | integration | TODO |
 | P6-3 | NL parse workout | AI | P6-2 | confirm UI | mobile | unit fixtures | TODO |
 | P6-4 | Memory facts | AI | P6-2 | retrieval cap | api | unit | TODO |

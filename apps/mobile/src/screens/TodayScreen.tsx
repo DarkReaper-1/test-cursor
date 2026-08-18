@@ -3,13 +3,14 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { api, type CharacterSnapshot, type Directive } from "../lib/api";
+import { api, type CharacterSnapshot, type CoachCopy, type Directive } from "../lib/api";
 import { useAuth } from "../lib/AuthProvider";
 
 export function TodayScreen() {
   const { signOut } = useAuth();
   const [character, setCharacter] = useState<CharacterSnapshot | null>(null);
   const [directive, setDirective] = useState<Directive | null>(null);
+  const [coach, setCoach] = useState<CoachCopy | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export function TodayScreen() {
       .then((payload) => {
         setCharacter(payload.character);
         setDirective(payload.directive);
+        setCoach(payload.coach);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Could not load today."));
   }, []);
@@ -52,6 +54,7 @@ export function TodayScreen() {
           </Text>
           <Text style={styles.cardTitle}>{directive.title}</Text>
           <Text style={styles.cardBody}>{directive.body}</Text>
+          {coach ? <Text style={styles.cardBody}>{coach.why}</Text> : null}
           {directive.status === "completed" ? (
             <Text style={styles.done}>Complete. Return tomorrow.</Text>
           ) : (

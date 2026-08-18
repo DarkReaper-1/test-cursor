@@ -15,6 +15,8 @@ export interface DirectivePlan {
   body: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   minutes: number;
+  restSeconds: number;
+  adaptedFromHistory?: boolean;
   exercises: DirectiveExercise[];
 }
 
@@ -71,6 +73,7 @@ export function assembleToday(input: AssembleTodayInput): DirectivePlan {
       body: `A ${minutes}-minute reset. Momentum dipped — this restores it. Not a failure state. Not medical advice.`,
       difficulty: 2,
       minutes,
+      restSeconds: 60,
       exercises: bodyweightCircuit(Math.min(minutes, 20)),
     };
   }
@@ -82,6 +85,7 @@ export function assembleToday(input: AssembleTodayInput): DirectivePlan {
       body: `Complete a ${minutes}-minute full-body session. No equipment required. This is a recommendation, not medical advice.`,
       difficulty: minutes <= 10 ? 2 : 3,
       minutes,
+      restSeconds: minutes <= 10 ? 45 : 75,
       exercises: bodyweightCircuit(minutes),
     };
   }
@@ -95,6 +99,7 @@ export function assembleToday(input: AssembleTodayInput): DirectivePlan {
     body: `Train for ${minutes} minutes with the equipment you have. Loads are a starting point you can correct.`,
     difficulty: 3,
     minutes,
+    restSeconds: 90,
     exercises: loadedCircuit(minutes, load),
   };
 }

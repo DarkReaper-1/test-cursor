@@ -58,7 +58,14 @@ export type Directive = {
       load: number;
     }>;
     minutes?: number;
+    restSeconds?: number;
+    adaptedFromHistory?: boolean;
   };
+};
+
+export type CoachCopy = {
+  why: string;
+  providerId: string;
 };
 
 export const api = {
@@ -80,7 +87,12 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   today: () =>
-    request<{ dateKey: string; character: CharacterSnapshot; directive: Directive }>("/api/v1/today"),
+    request<{
+      dateKey: string;
+      character: CharacterSnapshot;
+      directive: Directive;
+      coach: CoachCopy;
+    }>("/api/v1/today"),
   complete: (payload: unknown) =>
     request<{
       granted: boolean;

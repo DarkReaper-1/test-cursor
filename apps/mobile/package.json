@@ -15,6 +15,7 @@
   "dependencies": {
     "@helix/design": "workspace:*",
     "@helix/rpg": "workspace:*",
+    "@helix/fitness": "workspace:*",
     "@helix/shared": "workspace:*",
     "expo": "~54.0.12",
     "expo-constants": "~18.0.9",
