@@ -13,7 +13,7 @@ export function CharacterScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safe} accessibilityLabel="Character">
+    <SafeAreaView style={styles.safe} accessibilityLabel="Character" testID="character-screen">
       <Pressable
         onPress={() => router.back()}
         accessibilityRole="button"

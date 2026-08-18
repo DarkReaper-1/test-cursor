@@ -97,29 +97,31 @@ try {
   await page.getByTestId("onboard-submit").click();
 
   await page.getByTestId("begin-directive").waitFor({ state: "visible" });
-  await sleep(1600);
+  await sleep(2200);
   await page.getByTestId("begin-directive").click();
 
   await page.getByLabel("Log Push-up set 1 and start rest").waitFor({ state: "visible" });
   await sleep(900);
   await page.getByLabel("Log Push-up set 1 and start rest").click();
   await page.getByLabel(/Rest /).waitFor({ state: "visible" });
-  await sleep(2200);
+  await sleep(3600);
 
   await page.getByTestId("confirm-completion").scrollIntoViewIfNeeded();
   await sleep(400);
   await page.getByTestId("confirm-completion").click();
-  await page.getByText(/XP/).first().waitFor({ state: "visible" });
+  const result = page.getByTestId("session-result");
+  await result.waitFor({ state: "visible" });
+  await result.scrollIntoViewIfNeeded();
   await sleep(1800);
 
   await page.getByTestId("back-today").click();
-  await page.getByText(/Complete\. Return tomorrow|LEVEL /).first().waitFor({ state: "visible" });
+  await page.getByTestId("directive-done").waitFor({ state: "visible" });
   await sleep(1400);
 
   await page.getByTestId("character-link").click();
-  await page.getByLabel("Character").waitFor({ state: "visible" });
+  await page.getByTestId("character-screen").waitFor({ state: "visible" });
   await sleep(1800);
-  await page.getByTestId("back-today").click();
+  await page.getByTestId("character-screen").getByTestId("back-today").click();
   await sleep(1200);
 } finally {
   await context.close();

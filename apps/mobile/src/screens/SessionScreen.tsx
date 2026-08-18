@@ -160,7 +160,11 @@ export function SessionScreen() {
             ))}
           </View>
         ))}
-        {message ? <Text style={styles.message}>{message}</Text> : null}
+        {message ? (
+          <Text accessibilityLiveRegion="polite" style={styles.message} testID="session-result">
+            {message}
+          </Text>
+        ) : null}
         <Pressable
           accessibilityRole="button"
           disabled={busy || directive?.status === "completed"}

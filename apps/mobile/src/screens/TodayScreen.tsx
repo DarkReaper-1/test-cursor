@@ -65,7 +65,9 @@ export function TodayScreen() {
           <Text style={styles.cardBody}>{directive.body}</Text>
           {coach ? <Text style={styles.cardBody}>{coach.why}</Text> : null}
           {directive.status === "completed" ? (
-            <Text style={styles.done}>Complete. Return tomorrow.</Text>
+            <Text style={styles.done} testID="directive-done">
+              Complete. Return tomorrow.
+            </Text>
           ) : (
             <Pressable
               accessibilityRole="button"
