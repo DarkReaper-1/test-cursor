@@ -8,6 +8,23 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: helix
+          POSTGRES_PASSWORD: helix
+          POSTGRES_DB: helix
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U helix"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://helix:helix@localhost:5432/helix
+      AUTH_SECRET: test-auth-secret-at-least-32-chars
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,10 +36,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @helix/api db:generate
-        env:
-          DATABASE_URL: postgresql://helix:helix@localhost:5432/helix
       - run: pnpm --filter @helix/api db:validate
-        env:
-          DATABASE_URL: postgresql://helix:helix@localhost:5432/helix
+      - run: pnpm --filter @helix/api db:migrate
       - run: pnpm typecheck
       - run: pnpm test

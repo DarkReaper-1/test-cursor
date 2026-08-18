@@ -9,17 +9,17 @@ This is not a clone of Arise or any proprietary fitness RPG.
 ## Status
 
 - **Phase 0:** Discovery — `docs/`
-- **Phase 1:** Running skeleton (this tree)
-- **MVP loop:** not fully wired (auth + completions land in Phases 2–5)
+- **Phase 1:** Monorepo skeleton
+- **Phase 2:** Identity + playable Today loop (auth, onboarding, server XP)
 
 ## Workspace
 
 ```
-apps/mobile     Expo (Today + Character)
-apps/api        Next.js  /api/v1/health  /api/v1/rewards/preview
+apps/mobile     Expo (auth, onboarding, Today, session, Character)
+apps/api        Next.js  /api/v1/health  /auth  /today  /completions
 packages/shared Zod contracts
 packages/design Visual tokens (warm lattice, not a cyan HUD)
-packages/rpg    XP, levels, ranks, momentum, RewardEngine
+packages/rpg    XP, levels, ranks, momentum, RewardEngine, Today assembly
 packages/fitness Adaptive set progression
 packages/ai     AIProvider + NoneProvider
 ```
@@ -28,16 +28,22 @@ packages/ai     AIProvider + NoneProvider
 
 ```bash
 pnpm install
+cp .env.example apps/api/.env   # set DATABASE_URL and AUTH_SECRET
 pnpm --filter @helix/api db:generate
+pnpm --filter @helix/api db:migrate
 pnpm typecheck
 pnpm test
 ```
 
-API (no database required for health):
+API:
 
 ```bash
 pnpm --filter @helix/api dev
-# GET http://localhost:3000/api/v1/health
+# GET  /api/v1/health
+# POST /api/v1/auth/register
+# POST /api/v1/onboarding
+# GET  /api/v1/today
+# POST /api/v1/completions   (Bearer token, idempotency key, no client XP)
 ```
 
 Optional Postgres:
@@ -57,7 +63,7 @@ pnpm --filter @helix/mobile start
 ## Rules
 
 - Never grant XP on the client. Preview is not a grant (`granted: false`).
-- Completions return 401 until Phase 2 auth exists.
+- Completions require a session. XP is computed only on the server.
 - AI never writes XP, payments, or health records.
 - Do not commit secrets.
 

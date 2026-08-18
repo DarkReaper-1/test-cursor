@@ -43,9 +43,9 @@ Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.
 
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P2-1 | Auth | Backend/Mobile | P1-3 | email + session | api + mobile | auth integration | TODO |
-| P2-2 | Onboarding | Product/Mobile | P2-1 | answers persisted | onboarding | e2e later | TODO |
-| P2-3 | Character create | RPG | P2-2 | snapshot + attributes | character | unit | TODO |
+| P2-1 | Auth | Backend/Mobile | P1-3 | email + session | api + mobile | integration | **DONE** |
+| P2-2 | Onboarding | Product/Mobile | P2-1 | answers persisted | onboarding | integration | **DONE** |
+| P2-3 | Character create | RPG | P2-2 | snapshot + attributes | character | integration | **DONE** |
 
 ---
 
@@ -56,7 +56,7 @@ Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.
 | P3-1 | RewardEngine | RPG | P1-5 | no UI XP constants | packages/rpg | extensive unit | **DONE** |
 | P3-2 | Levels + ranks | RPG | P3-1 | tables + apply | packages/rpg | unit | **DONE** |
 | P3-3 | Momentum | RPG | P3-1 | miss/recovery math | packages/rpg | unit | **DONE** |
-| P3-4 | xp_events API | Backend/Security | P3-1 | idempotent, authz | api | security tests | TODO |
+| P3-4 | xp_events API | Backend/Security | P3-1 | idempotent, authz | api | security tests | **DONE** |
 
 ---
 
@@ -64,8 +64,8 @@ Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.
 
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P4-1 | Definitions + instances | RPG | P3-4 | main + recovery | quests | unit | TODO |
-| P4-2 | Today assembly | Product | P4-1 | one priority | api + mobile | unit | TODO |
+| P4-1 | Definitions + instances | RPG | P3-4 | main + recovery | quests | unit | **DONE** (rule-based Today) |
+| P4-2 | Today assembly | Product | P4-1 | one priority | api + mobile | unit + integration | **DONE** |
 
 ---
 

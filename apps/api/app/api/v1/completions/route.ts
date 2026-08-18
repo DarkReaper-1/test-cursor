@@ -1,12 +1,17 @@
+import { completeToday } from "@/lib/complete";
+import { jsonError, requireUser } from "@/lib/http";
 import { NextResponse } from "next/server";
 
-/** Completions require auth (Phase 2). Never accept client-supplied XP. */
-export async function POST() {
-  return NextResponse.json(
-    {
-      error: "UNAUTHORIZED",
-      message: "Completions are server-authoritative and require a session.",
-    },
-    { status: 401 },
-  );
+export const dynamic = "force-dynamic";
+
+/** Completions require a session. XP amount is computed server-side. */
+export async function POST(request: Request) {
+  try {
+    const { prisma, user } = await requireUser(request);
+    const body: unknown = await request.json().catch(() => null);
+    const result = await completeToday(prisma, user, body);
+    return NextResponse.json(result);
+  } catch (error) {
+    return jsonError(error);
+  }
 }

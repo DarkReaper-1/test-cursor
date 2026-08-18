@@ -1,81 +1,88 @@
 import { color, radius, space, type as typeToken } from "@helix/design";
-import { levelFromTotalXp, rankFromLevel } from "@helix/rpg";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-
-const SAMPLE_XP = 0;
+import { api, type CharacterSnapshot, type Directive } from "../lib/api";
+import { useAuth } from "../lib/AuthProvider";
 
 export function TodayScreen() {
-  const progress = levelFromTotalXp(SAMPLE_XP);
-  const rank = rankFromLevel(progress.level);
+  const { signOut } = useAuth();
+  const [character, setCharacter] = useState<CharacterSnapshot | null>(null);
+  const [directive, setDirective] = useState<Directive | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void api
+      .today()
+      .then((payload) => {
+        setCharacter(payload.character);
+        setDirective(payload.directive);
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Could not load today."));
+  }, []);
+
+  const fill = character ? Math.max(4, Math.round((character.xpIntoLevel / character.xpToNext) * 100)) : 4;
 
   return (
     <SafeAreaView style={styles.safe} accessibilityLabel="Today">
       <View style={styles.header}>
         <Text style={styles.kicker}>HELIX</Text>
-        <Text style={styles.greeting}>Good morning, Operator.</Text>
+        <Text style={styles.greeting}>What should you do now?</Text>
       </View>
-
-      <View style={styles.identity} accessibilityRole="summary">
-        <Text style={styles.identityLabel}>LEVEL {progress.level}</Text>
-        <Text style={styles.identityMeta}>
-          {rank.toUpperCase()} · {progress.xpIntoLevel} / {progress.xpToNext} XP · MOMENTUM 50
-        </Text>
-        <View
-          style={styles.xpTrack}
-          accessibilityLabel={`Experience ${progress.xpIntoLevel} of ${progress.xpToNext}`}
-        >
-          <View style={[styles.xpFill, { width: "4%" }]} />
+      {character ? (
+        <View style={styles.identity} accessibilityRole="summary">
+          <Text style={styles.identityLabel}>LEVEL {character.level}</Text>
+          <Text style={styles.identityMeta}>
+            {character.rankKey.toUpperCase()} · {character.xpIntoLevel} / {character.xpToNext} XP · MOMENTUM{" "}
+            {character.momentum}
+          </Text>
+          <View
+            style={styles.xpTrack}
+            accessibilityLabel={`Experience ${character.xpIntoLevel} of ${character.xpToNext}`}
+          >
+            <View style={[styles.xpFill, { width: `${fill}%` }]} />
+          </View>
         </View>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardKicker}>TODAY’S DIRECTIVE</Text>
-        <Text style={styles.cardTitle}>The Quiet Foundation</Text>
-        <Text style={styles.cardBody}>
-          Complete a 20-minute full-body session. No equipment required. This is an estimate of
-          what will move you forward—not medical advice.
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Begin today’s directive"
-          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-        >
-          <Text style={styles.ctaLabel}>Begin</Text>
-        </Pressable>
-      </View>
-
-      <Pressable
-        onPress={() => router.push("/character")}
-        accessibilityRole="link"
-        accessibilityLabel="Open character"
-        style={styles.link}
-      >
+      ) : null}
+      {directive ? (
+        <View style={styles.card}>
+          <Text style={styles.cardKicker}>
+            {directive.category === "recovery" ? "RECOVERY DIRECTIVE" : "TODAY’S DIRECTIVE"}
+          </Text>
+          <Text style={styles.cardTitle}>{directive.title}</Text>
+          <Text style={styles.cardBody}>{directive.body}</Text>
+          {directive.status === "completed" ? (
+            <Text style={styles.done}>Complete. Return tomorrow.</Text>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Begin today’s directive"
+              onPress={() => router.push("/session")}
+              style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+            >
+              <Text style={styles.ctaLabel}>Begin</Text>
+            </Pressable>
+          )}
+        </View>
+      ) : (
+        <Text style={styles.cardBody}>{error ?? "Loading today’s directive…"}</Text>
+      )}
+      <Pressable onPress={() => router.push("/character")} accessibilityRole="link" style={styles.link}>
         <Text style={styles.linkLabel}>Character</Text>
+      </Pressable>
+      <Pressable onPress={() => void signOut()} accessibilityRole="button" style={styles.link}>
+        <Text style={styles.linkLabel}>Sign out</Text>
       </Pressable>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: color.bg,
-    paddingHorizontal: space[5],
-  },
-  header: {
-    marginTop: space[5],
-    gap: space[2],
-  },
-  kicker: {
-    ...typeToken.label,
-    color: color.accent,
-  },
-  greeting: {
-    ...typeToken.display,
-    color: color.text,
-  },
+  safe: { flex: 1, backgroundColor: color.bg, paddingHorizontal: space[5] },
+  header: { marginTop: space[5], gap: space[2] },
+  kicker: { ...typeToken.label, color: color.accent },
+  greeting: { ...typeToken.display, color: color.text },
   identity: {
     marginTop: space[6],
     padding: space[4],
@@ -85,14 +92,8 @@ const styles = StyleSheet.create({
     borderColor: color.line,
     gap: space[2],
   },
-  identityLabel: {
-    ...typeToken.label,
-    color: color.textMuted,
-  },
-  identityMeta: {
-    ...typeToken.body,
-    color: color.text,
-  },
+  identityLabel: { ...typeToken.label, color: color.textMuted },
+  identityMeta: { ...typeToken.body, color: color.text },
   xpTrack: {
     height: 6,
     borderRadius: radius.full,
@@ -100,10 +101,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginTop: space[2],
   },
-  xpFill: {
-    height: 6,
-    backgroundColor: color.accent,
-  },
+  xpFill: { height: 6, backgroundColor: color.accent },
   card: {
     marginTop: space[5],
     padding: space[5],
@@ -111,18 +109,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     gap: space[3],
   },
-  cardKicker: {
-    ...typeToken.label,
-    color: color.accent,
-  },
-  cardTitle: {
-    ...typeToken.title,
-    color: color.text,
-  },
-  cardBody: {
-    ...typeToken.body,
-    color: color.textMuted,
-  },
+  cardKicker: { ...typeToken.label, color: color.accent },
+  cardTitle: { ...typeToken.title, color: color.text },
+  cardBody: { ...typeToken.body, color: color.textMuted, marginTop: space[4] },
+  done: { ...typeToken.body, color: color.success },
   cta: {
     marginTop: space[3],
     backgroundColor: color.text,
@@ -132,21 +122,8 @@ const styles = StyleSheet.create({
     minHeight: 48,
     justifyContent: "center",
   },
-  ctaPressed: {
-    opacity: 0.85,
-  },
-  ctaLabel: {
-    ...typeToken.body,
-    fontWeight: "600",
-    color: color.void,
-  },
-  link: {
-    marginTop: space[5],
-    minHeight: 44,
-    justifyContent: "center",
-  },
-  linkLabel: {
-    ...typeToken.body,
-    color: color.accent,
-  },
+  ctaPressed: { opacity: 0.85 },
+  ctaLabel: { ...typeToken.body, fontWeight: "600", color: color.void },
+  link: { marginTop: space[4], minHeight: 44, justifyContent: "center" },
+  linkLabel: { ...typeToken.body, color: color.accent },
 });

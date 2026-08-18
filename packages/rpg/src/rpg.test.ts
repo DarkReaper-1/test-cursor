@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { levelFromTotalXp, rankFromLevel, xpToNextLevel } from "./levels";
 import { applyMomentumDelta, MOMENTUM_DELTA, MOMENTUM_START } from "./momentum";
+import { applyGrant, momentumForCompletion } from "./grant";
+import { assembleToday, shiftDateKey } from "./directives";
 import { calculateReward } from "./rewards";
 
 describe("levels", () => {
@@ -99,5 +101,72 @@ describe("RewardEngine", () => {
     });
     expect(result.xp).toBeGreaterThan(0);
     expect(result.attributeDeltas.DISCIPLINE).toBe(1);
+  });
+});
+
+describe("applyGrant", () => {
+  it("levels up from engine XP and never from a client amount", () => {
+    const reward = calculateReward({
+      activityType: "workout",
+      difficulty: 3,
+      userLevel: 1,
+      streakDays: 0,
+      recentActivityCount24h: 0,
+    });
+    const next = applyGrant(
+      { totalXp: 0, momentum: 50, scores: { BODY: 10 } },
+      reward,
+      momentumForCompletion("main"),
+    );
+    expect(next.totalXp).toBe(reward.xp);
+    expect(next.scores.BODY).toBe(12);
+    expect(next.leveledUp).toBe(next.level > 1);
+  });
+
+  it("does not move attributes when XP is withheld", () => {
+    const reward = calculateReward({
+      activityType: "workout",
+      difficulty: 5,
+      userLevel: 1,
+      streakDays: 0,
+      recentActivityCount24h: 0,
+      volumeLoad: 999_999,
+    });
+    const next = applyGrant(
+      { totalXp: 40, momentum: 50, scores: { BODY: 10 } },
+      reward,
+      0,
+    );
+    expect(next.totalXp).toBe(40);
+    expect(next.scores.BODY).toBe(10);
+  });
+});
+
+describe("assembleToday", () => {
+  it("offers a recovery directive after a miss instead of a fail state", () => {
+    const plan = assembleToday({
+      missedYesterday: true,
+      equipment: "gym",
+      minutes: 45,
+      goal: "strength",
+    });
+    expect(plan.category).toBe("recovery");
+    expect(plan.title).toBe("The Return Path");
+    expect(plan.difficulty).toBeLessThan(4);
+  });
+
+  it("uses a 10-minute bodyweight plan when time is scarce", () => {
+    const plan = assembleToday({
+      missedYesterday: false,
+      equipment: "gym",
+      minutes: 10,
+      goal: "strength",
+    });
+    expect(plan.minutes).toBe(10);
+    expect(plan.exercises.every((item) => item.load === 0)).toBe(true);
+  });
+
+  it("shifts calendar keys without DST guesswork in tests", () => {
+    expect(shiftDateKey("2026-08-18", -1)).toBe("2026-08-17");
   });
 });

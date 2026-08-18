@@ -12,31 +12,61 @@ enum UserStatus {
   deleted
 }
 
+enum QuestStatus {
+  active
+  completed
+  expired
+}
+
+enum SessionStatus {
+  draft
+  completed
+}
+
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  status    UserStatus @default(active)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
-  profile   Profile?
-  character Character?
-  xpEvents  XpEvent[]
+  id           String     @id @default(uuid())
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  profile      Profile?
+  character    Character?
+  xpEvents     XpEvent[]
+  quests       QuestInstance[]
+  sessions     WorkoutSession[]
+  goals        Goal[]
 
   @@map("users")
 }
 
 model Profile {
+  id                    String    @id @default(uuid())
+  userId                String    @unique @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName           String?   @map("display_name")
+  locale                String    @default("en")
+  units                 String    @default("metric")
+  timezone              String    @default("UTC")
+  onboarding            Json?
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model Goal {
   id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
+  userId    String   @map("user_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  displayName String? @map("display_name")
-  locale    String   @default("en")
-  units     String   @default("metric")
-  timezone  String   @default("UTC")
+  type      String
+  status    String   @default("active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("profiles")
+  @@index([userId, status])
+  @@map("goals")
 }
 
 model AttributeDefinition {
@@ -67,28 +97,79 @@ model Character {
 }
 
 model AttributeScore {
-  id             String               @id @default(uuid())
-  characterId    String               @map("character_id")
-  character      Character            @relation(fields: [characterId], references: [id], onDelete: Cascade)
-  definitionId   String               @map("definition_id")
-  definition     AttributeDefinition  @relation(fields: [definitionId], references: [id])
-  value          Int                  @default(10)
+  id           String              @id @default(uuid())
+  characterId  String              @map("character_id")
+  character    Character           @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  definitionId String              @map("definition_id")
+  definition   AttributeDefinition @relation(fields: [definitionId], references: [id])
+  value        Int                 @default(10)
 
   @@unique([characterId, definitionId])
   @@map("attribute_scores")
 }
 
+model QuestInstance {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateKey     String       @map("date_key")
+  category    String
+  title       String
+  body        String
+  difficulty  Int          @default(3)
+  status      QuestStatus  @default(active)
+  payload     Json
+  expiresAt   DateTime     @map("expires_at")
+  completedAt DateTime?    @map("completed_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  sessions    WorkoutSession[]
+
+  @@unique([userId, dateKey])
+  @@index([userId, status])
+  @@map("quest_instances")
+}
+
+model WorkoutSession {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questInstanceId String?       @map("quest_instance_id")
+  quest           QuestInstance? @relation(fields: [questInstanceId], references: [id], onDelete: SetNull)
+  status          SessionStatus @default(draft)
+  source          String        @default("manual")
+  startedAt       DateTime      @default(now()) @map("started_at")
+  endedAt         DateTime?     @map("ended_at")
+  sets            WorkoutSet[]
+
+  @@index([userId, startedAt(sort: Desc)])
+  @@map("workout_sessions")
+}
+
+model WorkoutSet {
+  id         String         @id @default(uuid())
+  sessionId  String         @map("session_id")
+  session    WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseKey String        @map("exercise_key")
+  load       Int            @default(0)
+  reps       Int
+  rpe        Int?
+  sortOrder  Int            @map("sort_order")
+
+  @@index([sessionId])
+  @@map("workout_sets")
+}
+
 /// Append-only ledger. Clients never write `amount`.
 model XpEvent {
-  id              String   @id @default(uuid())
-  userId          String   @map("user_id")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount          Int
-  reason          String
-  sourceType      String   @map("source_type")
-  sourceId        String   @map("source_id")
-  idempotencyKey  String   @unique @map("idempotency_key")
-  createdAt       DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount         Int
+  reason         String
+  sourceType     String   @map("source_type")
+  sourceId       String   @map("source_id")
+  idempotencyKey String   @unique @map("idempotency_key")
+  createdAt      DateTime @default(now()) @map("created_at")
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("xp_events")

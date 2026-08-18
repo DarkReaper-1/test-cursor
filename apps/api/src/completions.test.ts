@@ -4,7 +4,9 @@ import { POST as complete } from "../app/api/v1/completions/route";
 
 describe("API authorization", () => {
   it("does not persist completions without a session", async () => {
-    const response = await complete();
+    const response = await complete(
+      new Request("http://helix.local/api/v1/completions", { method: "POST" }),
+    );
     expect(response.status).toBe(401);
     const body = (await response.json()) as { error: string };
     expect(body.error).toBe("UNAUTHORIZED");
