@@ -19,18 +19,19 @@ export default function Index() {
   }
   if (status === "anon") {
     return (
-      <>
+      <View style={styles.auth}>
         <LoginScreen mode={mode} />
         <Pressable
           accessibilityRole="button"
           onPress={() => setMode(mode === "login" ? "register" : "login")}
           style={styles.switcher}
+          testID="auth-switch"
         >
           <Text style={styles.switcherLabel}>
             {mode === "login" ? "Need an operator? Create one" : "Already activated? Sign in"}
           </Text>
         </Pressable>
-      </>
+      </View>
     );
   }
   if (status === "needs-onboarding") {
@@ -41,6 +42,7 @@ export default function Index() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: color.bg, alignItems: "center", justifyContent: "center" },
+  auth: { flex: 1, backgroundColor: color.bg },
   muted: { ...typeToken.body, color: color.textMuted },
   switcher: { position: "absolute", bottom: space[7], left: space[5], right: space[5], minHeight: 44 },
   switcherLabel: { ...typeToken.body, color: color.accent, textAlign: "center" },

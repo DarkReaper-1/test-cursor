@@ -39,6 +39,7 @@ export function LoginScreen({ mode }: { mode: "login" | "register" }) {
         keyboardType="email-address"
         onChangeText={setEmail}
         style={styles.input}
+        testID="email-input"
         value={email}
       />
       <Text style={styles.label}>PASSWORD</Text>
@@ -48,6 +49,7 @@ export function LoginScreen({ mode }: { mode: "login" | "register" }) {
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
+        testID="password-input"
         value={password}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -56,6 +58,7 @@ export function LoginScreen({ mode }: { mode: "login" | "register" }) {
         disabled={busy}
         onPress={() => void submit()}
         style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+        testID="auth-submit"
       >
         <Text style={styles.ctaLabel}>{busy ? "Working…" : mode === "register" ? "Create operator" : "Sign in"}</Text>
       </Pressable>

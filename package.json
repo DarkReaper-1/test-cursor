@@ -12,7 +12,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",
-    "verify": "pnpm typecheck && pnpm test"
+    "verify": "pnpm typecheck && pnpm test",
+    "demo:record": "node scripts/record-demo.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -22,5 +23,8 @@
       "prisma",
       "sharp"
     ]
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
   }
 }

@@ -48,6 +48,7 @@ export function OnboardingScreen() {
         placeholder="Optional"
         placeholderTextColor={color.textFaint}
         style={styles.input}
+        testID="display-name"
         value={displayName}
       />
       <Text style={styles.label}>GOAL</Text>
@@ -62,6 +63,7 @@ export function OnboardingScreen() {
         disabled={busy}
         onPress={() => void submit()}
         style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+        testID="onboard-submit"
       >
         <Text style={styles.ctaLabel}>{busy ? "Saving…" : "Activate operator"}</Text>
       </Pressable>
@@ -84,10 +86,12 @@ function ChipRow<T extends string>({
       {options.map((option) => (
         <Pressable
           key={option}
+          accessibilityLabel={option}
           accessibilityRole="button"
           accessibilityState={{ selected: option === value }}
           onPress={() => onChange(option)}
           style={[styles.chip, option === value && styles.chipOn]}
+          testID={`chip-${option}`}
         >
           <Text style={[styles.chipLabel, option === value && styles.chipLabelOn]}>{option}</Text>
         </Pressable>

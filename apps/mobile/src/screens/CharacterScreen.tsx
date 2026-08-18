@@ -14,7 +14,13 @@ export function CharacterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} accessibilityLabel="Character">
-      <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Back to today" style={styles.back}>
+      <Pressable
+        onPress={() => router.back()}
+        accessibilityRole="button"
+        accessibilityLabel="Back to today"
+        style={styles.back}
+        testID="back-today"
+      >
         <Text style={styles.backLabel}>Today</Text>
       </Pressable>
       <Text style={styles.title}>{character?.title ?? "Operator"}</Text>

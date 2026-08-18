@@ -24,6 +24,7 @@ Run in `packages/rpg` and `packages/fitness` without I/O.
 - Onboarding → first quest → complete → XP
 - Miss day → recovery
 - Subscription later
+- Recorded web walkthrough: `node scripts/record-demo.mjs` (Expo web + API)
 
 ## Security
 

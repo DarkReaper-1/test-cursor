@@ -107,7 +107,13 @@ export function SessionScreen() {
   return (
     <SafeAreaView style={styles.safe} accessibilityLabel="Session">
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" style={styles.back}>
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Back to today"
+          style={styles.back}
+          testID="back-today"
+        >
           <Text style={styles.backLabel}>Today</Text>
         </Pressable>
         <Text style={styles.title}>{directive?.title ?? "Session"}</Text>
@@ -160,6 +166,7 @@ export function SessionScreen() {
           disabled={busy || directive?.status === "completed"}
           onPress={() => void complete()}
           style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+          testID="confirm-completion"
         >
           <Text style={styles.ctaLabel}>{busy ? "Saving…" : "Confirm completion"}</Text>
         </Pressable>

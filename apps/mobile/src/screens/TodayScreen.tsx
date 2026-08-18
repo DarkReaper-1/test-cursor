@@ -1,6 +1,6 @@
 import { color, radius, space, type as typeToken } from "@helix/design";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api, type CharacterSnapshot, type CoachCopy, type Directive } from "../lib/api";
@@ -13,16 +13,25 @@ export function TodayScreen() {
   const [coach, setCoach] = useState<CoachCopy | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void api
-      .today()
-      .then((payload) => {
-        setCharacter(payload.character);
-        setDirective(payload.directive);
-        setCoach(payload.coach);
-      })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Could not load today."));
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      void api
+        .today()
+        .then((payload) => {
+          if (cancelled) return;
+          setCharacter(payload.character);
+          setDirective(payload.directive);
+          setCoach(payload.coach);
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) setError(err instanceof Error ? err.message : "Could not load today.");
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   const fill = character ? Math.max(4, Math.round((character.xpIntoLevel / character.xpToNext) * 100)) : 4;
 
@@ -63,6 +72,7 @@ export function TodayScreen() {
               accessibilityLabel="Begin today’s directive"
               onPress={() => router.push("/session")}
               style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+              testID="begin-directive"
             >
               <Text style={styles.ctaLabel}>Begin</Text>
             </Pressable>
@@ -71,10 +81,22 @@ export function TodayScreen() {
       ) : (
         <Text style={styles.cardBody}>{error ?? "Loading today’s directive…"}</Text>
       )}
-      <Pressable onPress={() => router.push("/character")} accessibilityRole="link" style={styles.link}>
+      <Pressable
+        onPress={() => router.push("/character")}
+        accessibilityRole="link"
+        accessibilityLabel="Character"
+        style={styles.link}
+        testID="character-link"
+      >
         <Text style={styles.linkLabel}>Character</Text>
       </Pressable>
-      <Pressable onPress={() => void signOut()} accessibilityRole="button" style={styles.link}>
+      <Pressable
+        onPress={() => void signOut()}
+        accessibilityRole="button"
+        accessibilityLabel="Sign out"
+        style={styles.link}
+        testID="sign-out"
+      >
         <Text style={styles.linkLabel}>Sign out</Text>
       </Pressable>
     </SafeAreaView>

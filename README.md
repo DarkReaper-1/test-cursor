@@ -59,6 +59,16 @@ Mobile:
 
 ```bash
 pnpm --filter @helix/mobile start
+# web preview (used for the recorded demo)
+pnpm --filter @helix/mobile web
+```
+
+Demo recording (API + Expo web already running):
+
+```bash
+pnpm exec playwright install chrome
+node scripts/record-demo.mjs
+# writes /opt/cursor/artifacts/helix-demo.mp4
 ```
 
 ## Rules
