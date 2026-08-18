@@ -2,41 +2,65 @@
 
 Helix is a personal RPG that turns real-world progress into an evolving digital identity.
 
-This repository currently contains **Phase 0 discovery only**: competitive research, product requirements, architecture, and the implementation roadmap. Application code begins in Phase 1 after the Project Readiness Report.
-
 North star: **What should I do today to become better tomorrow?**
 
-## What this is not
+This is not a clone of Arise or any proprietary fitness RPG.
 
-Helix is not a clone of Arise, Solo Leveling, or any proprietary fitness RPG. Arise is used only as a public competitive reference. We do not copy branding, artwork, characters, source, private APIs, or protected assets.
+## Status
 
-## Phase 0 documents
+- **Phase 0:** Discovery — `docs/`
+- **Phase 1:** Running skeleton (this tree)
+- **MVP loop:** not fully wired (auth + completions land in Phases 2–5)
 
-| Area | Path |
-| --- | --- |
-| Reverse-engineering | [`docs/reverse-engineering/`](docs/reverse-engineering/) |
-| Competitive research | [`docs/research/competitive-analysis.md`](docs/research/competitive-analysis.md) |
-| Product requirements | [`docs/product/product-requirements.md`](docs/product/product-requirements.md) |
-| MVP | [`docs/product/mvp.md`](docs/product/mvp.md) |
-| Architecture | [`docs/architecture/proposal.md`](docs/architecture/proposal.md) |
-| Database | [`docs/database/proposal.md`](docs/database/proposal.md) |
-| Task board | [`docs/project/task-board.md`](docs/project/task-board.md) |
-| Roadmap | [`docs/project/roadmap.md`](docs/project/roadmap.md) |
-| Readiness report | [`docs/project/project-readiness-report.md`](docs/project/project-readiness-report.md) |
+## Workspace
 
-## Stack (planned)
+```
+apps/mobile     Expo (Today + Character)
+apps/api        Next.js  /api/v1/health  /api/v1/rewards/preview
+packages/shared Zod contracts
+packages/design Visual tokens (warm lattice, not a cyan HUD)
+packages/rpg    XP, levels, ranks, momentum, RewardEngine
+packages/fitness Adaptive set progression
+packages/ai     AIProvider + NoneProvider
+```
 
-- Mobile: React Native, Expo, TypeScript
-- Backend: Next.js, TypeScript, Zod
-- Data: PostgreSQL, Prisma
-- Auth: Apple, Google, email
-- AI: provider-agnostic orchestrator
-- Payments: RevenueCat, after the core loop is useful
+## Commands
 
-## Evidence labels
+```bash
+pnpm install
+pnpm --filter @helix/api db:generate
+pnpm typecheck
+pnpm test
+```
 
-Every research claim is labeled:
+API (no database required for health):
 
-- **OBSERVED** — seen in a public source or confirmed artifact
-- **INFERRED** — reasonable interpretation, not confirmed
-- **PROPOSED** — Helix product/engineering decision
+```bash
+pnpm --filter @helix/api dev
+# GET http://localhost:3000/api/v1/health
+```
+
+Optional Postgres:
+
+```bash
+docker compose up -d db
+cp .env.example apps/api/.env
+pnpm --filter @helix/api exec prisma migrate dev
+```
+
+Mobile:
+
+```bash
+pnpm --filter @helix/mobile start
+```
+
+## Rules
+
+- Never grant XP on the client. Preview is not a grant (`granted: false`).
+- Completions return 401 until Phase 2 auth exists.
+- AI never writes XP, payments, or health records.
+- Do not commit secrets.
+
+## Docs
+
+See [`docs/README.md`](docs/README.md) and the [Project Readiness Report](docs/project/project-readiness-report.md).

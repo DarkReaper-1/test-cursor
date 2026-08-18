@@ -12,6 +12,18 @@ build/
 coverage/
 .turbo/
 *.tsbuildinfo
+.prisma/
+apps/api/prisma/*.db
+apps/api/prisma/*.db-journal
+
+# Expo / native
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
 # OS / editor
 .DS_Store

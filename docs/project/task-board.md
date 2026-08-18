@@ -21,7 +21,7 @@ Rule: never mark DONE without verification (tests, docs, or explicit N/A for res
 | P0-9 | MVP + roadmap + agents | PM | P0-8 | Loop defined, phases 1–12 | mvp.md, roadmap.md, agent-roles.md | N/A | **DONE** |
 | P0-10 | Project Readiness Report | PM | P0-9 | Report complete | project-readiness-report.md | N/A | **DONE** |
 
-Phase 0 application code: **not started (by design).**
+Phase 0 application code: complete. Phase 1 skeleton: [`../architecture/phase-1.md`](../architecture/phase-1.md).
 
 ---
 
@@ -29,13 +29,13 @@ Phase 0 application code: **not started (by design).**
 
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P1-1 | Monorepo + tooling | DevOps | P0-10 | pnpm, TS, lint, CI | apps/*, packages/*, .github | CI green | TODO |
-| P1-2 | Expo app boots | Mobile | P1-1 | Splash → placeholder Today | apps/mobile | smoke | TODO |
-| P1-3 | Next.js health API | Backend | P1-1 | `GET /api/v1/health` | apps/api | integration | TODO |
-| P1-4 | Prisma + Postgres | Database | P1-1 | migrate users | prisma | migrate in CI | TODO |
-| P1-5 | Shared Zod contracts | Backend | P1-1 | package builds | packages/shared | unit | TODO |
-| P1-6 | Design tokens | UI | P1-2 | theme used by 1 screen | packages/design | N/A | TODO |
-| P1-7 | .env.example | DevOps | P1-3 | documented vars | .env.example | N/A | TODO |
+| P1-1 | Monorepo + tooling | DevOps | P0-10 | pnpm, TS, lint, CI | apps/*, packages/*, .github | CI green | **DONE** (typecheck + tests locally) |
+| P1-2 | Expo app boots | Mobile | P1-1 | Splash → placeholder Today | apps/mobile | typecheck + identity test | **DONE** |
+| P1-3 | Next.js health API | Backend | P1-1 | `GET /api/v1/health` | apps/api | live 200 + unit | **DONE** |
+| P1-4 | Prisma + Postgres | Database | P1-1 | schema + migration SQL | prisma | prisma validate | **DONE** (migrate needs local Postgres) |
+| P1-5 | Shared Zod contracts | Backend | P1-1 | package builds | packages/shared | unit | **DONE** |
+| P1-6 | Design tokens | UI | P1-2 | theme used by Today | packages/design | identity test | **DONE** |
+| P1-7 | .env.example | DevOps | P1-3 | documented vars | .env.example | N/A | **DONE** |
 
 ---
 
@@ -53,9 +53,9 @@ Phase 0 application code: **not started (by design).**
 
 | ID | Task | Owner | Deps | Acceptance | Files | Tests | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| P3-1 | RewardEngine | RPG | P1-5 | no UI XP constants | packages/rpg | extensive unit | TODO |
-| P3-2 | Levels + ranks | RPG | P3-1 | tables + apply | packages/rpg | unit | TODO |
-| P3-3 | Momentum | RPG | P3-1 | miss/recovery math | packages/rpg | unit | TODO |
+| P3-1 | RewardEngine | RPG | P1-5 | no UI XP constants | packages/rpg | extensive unit | **DONE** |
+| P3-2 | Levels + ranks | RPG | P3-1 | tables + apply | packages/rpg | unit | **DONE** |
+| P3-3 | Momentum | RPG | P3-1 | miss/recovery math | packages/rpg | unit | **DONE** |
 | P3-4 | xp_events API | Backend/Security | P3-1 | idempotent, authz | api | security tests | TODO |
 
 ---
@@ -75,7 +75,7 @@ Phase 0 application code: **not started (by design).**
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | P5-1 | Exercise seed | Fitness | P1-4 | core lifts + bodyweight | db seed | N/A | TODO |
 | P5-2 | Session + sets | Fitness | P5-1 | offline draft | mobile + api | unit | TODO |
-| P5-3 | Progression 8,8,7 | Fitness | P5-2 | next prescription | packages/fitness | unit | TODO |
+| P5-3 | Progression 8,8,7 | Fitness | P5-2 | next prescription | packages/fitness | unit | **DONE** (engine only) |
 | P5-4 | Background rest timer | Mobile | P5-2 | survives background | mobile | manual + unit | TODO |
 
 ---

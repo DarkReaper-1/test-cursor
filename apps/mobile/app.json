@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Helix",
+    "slug": "helix",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "helix",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#141210"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.helix.operator"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#141210"
+      },
+      "package": "app.helix.operator"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

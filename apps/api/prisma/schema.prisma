@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  deleted
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  status    UserStatus @default(active)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  profile   Profile?
+  character Character?
+  xpEvents  XpEvent[]
+
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String? @map("display_name")
+  locale    String   @default("en")
+  units     String   @default("metric")
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model AttributeDefinition {
+  id        String           @id @default(uuid())
+  key       String           @unique
+  name      String
+  domain    String
+  sortOrder Int              @map("sort_order")
+  scores    AttributeScore[]
+
+  @@map("attribute_definitions")
+}
+
+model Character {
+  id        String           @id @default(uuid())
+  userId    String           @unique @map("user_id")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level     Int              @default(1)
+  totalXp   Int              @default(0) @map("total_xp")
+  rankKey   String           @default("spark") @map("rank_key")
+  momentum  Int              @default(50)
+  title     String           @default("Operator")
+  scores    AttributeScore[]
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  @@map("characters")
+}
+
+model AttributeScore {
+  id             String               @id @default(uuid())
+  characterId    String               @map("character_id")
+  character      Character            @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  definitionId   String               @map("definition_id")
+  definition     AttributeDefinition  @relation(fields: [definitionId], references: [id])
+  value          Int                  @default(10)
+
+  @@unique([characterId, definitionId])
+  @@map("attribute_scores")
+}
+
+/// Append-only ledger. Clients never write `amount`.
+model XpEvent {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Int
+  reason          String
+  sourceType      String   @map("source_type")
+  sourceId        String   @map("source_id")
+  idempotencyKey  String   @unique @map("idempotency_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("xp_events")
+}
