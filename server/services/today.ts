@@ -2,12 +2,14 @@ import { prisma } from "../db/client";
 import * as playerRepo from "../repositories/player";
 import * as exerciseRepo from "../repositories/exercise";
 import { assembleDirective } from "./directive";
+import { getTodayQuests } from "./quest";
 import { toPlayerSnapshot } from "@/lib/format";
-import type { PlayerSnapshot, TrainingDirective } from "@/lib/types";
+import type { PlayerSnapshot, QuestBoardDto, TrainingDirective } from "@/lib/types";
 
 export async function getToday(accountId: string): Promise<{
   player: PlayerSnapshot;
   directive: TrainingDirective;
+  dailyQuests: QuestBoardDto;
 }> {
   const player = await playerRepo.findPlayerByAccountId(prisma, accountId);
   if (!player) {
@@ -25,5 +27,6 @@ export async function getToday(accountId: string): Promise<{
       difficulty: item.difficulty,
     })),
   });
-  return { player: toPlayerSnapshot(player), directive };
+  const dailyQuests = await getTodayQuests(accountId);
+  return { player: toPlayerSnapshot(player), directive, dailyQuests };
 }

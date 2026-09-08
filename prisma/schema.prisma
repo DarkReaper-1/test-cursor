@@ -37,6 +37,7 @@ model Player {
   workouts          Workout[]
   xpEvents          XpEvent[]
   progressionEvents ProgressionEvent[]
+  quests            PlayerQuest[]
 }
 
 model Exercise {
@@ -98,4 +99,69 @@ model ProgressionEvent {
   createdAt DateTime @default(now())
 
   @@index([playerId, createdAt])
+}
+
+enum QuestTier {
+  DAILY
+  WEEKLY
+}
+
+enum QuestType {
+  REPS
+  SETS
+  DURATION
+  WORKOUT
+  CONSISTENCY
+}
+
+enum QuestStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+model QuestDefinition {
+  id          String        @id @default(uuid())
+  key         String        @unique
+  tier        QuestTier
+  type        QuestType
+  title       String
+  description String
+  baseTarget  Int
+  xpReward    Int
+  predicate   Json
+  active      Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  instances   PlayerQuest[]
+}
+
+model PlayerQuest {
+  id           String          @id @default(uuid())
+  playerId     String
+  player       Player          @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  definitionId String
+  definition   QuestDefinition @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  key          String
+  tier         QuestTier
+  type         QuestType
+  title        String
+  description  String
+  predicate    Json
+  periodKey    String
+  target       Int
+  progress     Int             @default(0)
+  status       QuestStatus     @default(ACTIVE)
+  xpReward     Int
+  startedAt    DateTime
+  expiresAt    DateTime
+  completedAt  DateTime?
+  sourceIds    String[]        @default([])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([playerId, key, periodKey])
+  @@index([playerId, tier, status])
+  @@index([playerId, expiresAt])
 }

@@ -39,7 +39,7 @@ describe.skipIf(!hasDb)("completeWorkout integration", () => {
     });
     expect(first.replay).toBe(false);
     expect(first.xp).toBeGreaterThan(0);
-    expect(first.player.xp).toBe(first.xp);
+    expect(first.player.xp).toBe(first.xp + first.questXp);
     expect(first.before.level).toBe(1);
     expect(first.before.xp).toBe(0);
     expect(first.player.level).toBeGreaterThanOrEqual(first.before.level);

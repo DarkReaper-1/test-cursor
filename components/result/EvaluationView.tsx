@@ -64,6 +64,21 @@ export function EvaluationView({ result }: { result: WorkoutResult }) {
       <p className="mt-5 font-display text-5xl tabular-nums tracking-tight text-paper">+{result.xp} XP</p>
       <p className="mt-2 font-mono text-[10px] tracking-[0.18em] text-steel">SERVER AWARDED</p>
 
+      {result.questCompletions.length > 0 ? (
+        <>
+          <Rule />
+          <div className="space-y-6">
+            {result.questCompletions.map((quest) => (
+              <div key={quest.id}>
+                <p className="font-mono text-[10px] tracking-[0.22em] text-amber">QUEST COMPLETE</p>
+                <p className="mt-2 font-display text-3xl">{quest.title}</p>
+                <p className="mt-2 font-display text-2xl tabular-nums">+{quest.xp} XP</p>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
+
       <Rule />
 
       {result.leveledUp ? (

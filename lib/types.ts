@@ -1,5 +1,6 @@
 import type { RankKey } from "./constants/ranks";
 import type { ProgressionEventType } from "./constants/events";
+import type { QuestStatus, QuestTier, QuestType } from "./constants/quests";
 
 export type PlayerSnapshot = {
   id: string;
@@ -48,10 +49,47 @@ export type NextMilestone = {
   minLevel: number;
 };
 
+export type QuestCompletionDto = {
+  id: string;
+  key: string;
+  title: string;
+  xp: number;
+};
+
+export type QuestDto = {
+  id: string;
+  key: string;
+  title: string;
+  description: string;
+  tier: QuestTier;
+  type: QuestType;
+  progress: number;
+  target: number;
+  percent: number;
+  status: QuestStatus;
+  xpReward: number;
+  startedAt: string;
+  expiresAt: string;
+  completedAt: string | null;
+};
+
+export type QuestBoardDto = {
+  tier: QuestTier;
+  periodKey: string;
+  timezone: string;
+  expiresAt: string;
+  quests: QuestDto[];
+  completedCount: number;
+  totalCount: number;
+  xpRewardTotal: number;
+};
+
 export type WorkoutResult = {
   workoutId: string;
   replay: boolean;
   xp: number;
+  questXp: number;
+  questCompletions: QuestCompletionDto[];
   leveledUp: boolean;
   rankUp: boolean;
   before: PlayerSnapshot;

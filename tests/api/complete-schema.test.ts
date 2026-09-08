@@ -19,4 +19,13 @@ describe("completeWorkoutSchema", () => {
     expect(parsed).toEqual(valid);
     expect("xp" in parsed).toBe(false);
   });
+
+  it("does not accept client quest progress", () => {
+    const parsed = completeWorkoutSchema.parse({
+      ...valid,
+      questProgress: 100,
+      progress: 100,
+    });
+    expect(parsed).toEqual(valid);
+  });
 });
