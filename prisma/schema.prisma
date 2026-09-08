@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  player       Player?
+}
+
+model Player {
+  id                String              @id @default(uuid())
+  accountId         String              @unique
+  account           Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  username          String              @unique
+  level             Int                 @default(1)
+  xp                Int                 @default(0)
+  rank              String              @default("INITIATE")
+  strength          Int                 @default(10)
+  endurance         Int                 @default(10)
+  agility           Int                 @default(10)
+  vitality          Int                 @default(10)
+  discipline        Int                 @default(10)
+  streak            Int                 @default(0)
+  lastActivityDate  DateTime?           @db.Date
+  timezone          String              @default("UTC")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  workouts          Workout[]
+  xpEvents          XpEvent[]
+  progressionEvents ProgressionEvent[]
+}
+
+model Exercise {
+  id            String             @id @default(uuid())
+  slug          String             @unique
+  name          String
+  description   String
+  muscleGroups  String[]
+  difficulty    Int
+  equipment     String[]
+  movementType  String
+  active        Boolean            @default(true)
+  workoutItems  WorkoutExercise[]
+}
+
+model Workout {
+  id              String             @id @default(uuid())
+  playerId        String
+  player          Player             @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  durationSec     Int
+  completed       Boolean            @default(false)
+  xpEarned        Int                @default(0)
+  completedAt     DateTime?
+  idempotencyKey  String             @unique
+  createdAt       DateTime           @default(now())
+  exercises       WorkoutExercise[]
+}
+
+model WorkoutExercise {
+  id           String   @id @default(uuid())
+  workoutId    String
+  workout      Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise @relation(fields: [exerciseId], references: [id])
+  sets         Int
+  reps         Int
+  weight       Decimal  @default(0) @db.Decimal(8, 2)
+  durationSec  Int?
+  sortOrder    Int      @default(0)
+}
+
+model XpEvent {
+  id              String   @id @default(uuid())
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  amount          Int
+  source          String
+  sourceId        String
+  idempotencyKey  String   @unique
+  createdAt       DateTime @default(now())
+}
+
+model ProgressionEvent {
+  id        String   @id @default(uuid())
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  type      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([playerId, createdAt])
+}
