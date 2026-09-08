@@ -35,3 +35,6 @@ export const completeWorkoutSchema = z
     .max(12),
   })
   .strip();
+
+/** Empty body. Rank and XP from the client are stripped and ignored. */
+export const promoteRankSchema = z.object({}).strip();

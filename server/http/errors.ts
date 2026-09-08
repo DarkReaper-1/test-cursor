@@ -16,5 +16,8 @@ export function fromUnknown(err: unknown) {
   if (message === "INVALID_CREDENTIALS") return jsonError(401, "INVALID_CREDENTIALS", "Email or password is wrong.");
   if (message === "IDEMPOTENCY_CONFLICT") return jsonError(409, "IDEMPOTENCY_CONFLICT", "Key already used.");
   if (message === "UNKNOWN_EXERCISE") return jsonError(400, "UNKNOWN_EXERCISE", "Exercise is not in the catalog.");
+  if (message === "PROMOTION_NOT_AVAILABLE") {
+    return jsonError(409, "PROMOTION_NOT_AVAILABLE", "No rank promotion is available.");
+  }
   return jsonError(500, "ERROR", "SYSTEM could not complete that.");
 }

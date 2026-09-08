@@ -30,6 +30,7 @@ model Player {
   vitality          Int                 @default(10)
   discipline        Int                 @default(10)
   streak            Int                 @default(0)
+  bestStreak        Int                 @default(0)
   lastActivityDate  DateTime?           @db.Date
   timezone          String              @default("UTC")
   createdAt         DateTime            @default(now())
@@ -39,6 +40,7 @@ model Player {
   progressionEvents ProgressionEvent[]
   quests            PlayerQuest[]
   achievements      PlayerAchievement[]
+  rankPromotions    RankPromotion[]
 }
 
 model Exercise {
@@ -218,4 +220,23 @@ model PlayerAchievement {
 
   @@unique([playerId, key])
   @@index([playerId, family, status])
+}
+
+model RankPromotion {
+  id                   String   @id @default(uuid())
+  playerId             String
+  player               Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  fromRank             String
+  toRank               String
+  levelAtAccept        Int
+  xpAtAccept           Int
+  workoutCountAtAccept Int
+  streakAtAccept       Int
+  bestStreakAtAccept   Int
+  requirementSnapshot  Json
+  acceptedAt           DateTime @default(now())
+  createdAt            DateTime @default(now())
+
+  @@unique([playerId, toRank])
+  @@index([playerId, acceptedAt])
 }

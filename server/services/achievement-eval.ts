@@ -102,6 +102,7 @@ export function evaluatePredicate(
         target: parsed.min,
       };
     case "RANK_REACHED": {
+      // Qualifies from accepted player.rank, not rankFromLevel().
       const target = rankMinLevel(parsed.rank);
       return {
         qualifies: rankIndex(ctx.rank) >= rankIndex(parsed.rank),

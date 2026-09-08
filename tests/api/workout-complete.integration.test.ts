@@ -44,6 +44,8 @@ describe.skipIf(!hasDb)("completeWorkout integration", () => {
     expect(first.before.xp).toBe(0);
     expect(first.player.level).toBeGreaterThanOrEqual(first.before.level);
     expect(first.workoutId.length).toBeGreaterThan(0);
+    expect(first.player.rank).toBe("INITIATE");
+    expect(first.rankUp).toBe(false);
     expect(first.nextMilestone?.rank).toBe("CIRCUIT");
 
     const latest = await getLatestEvaluation(accountId);

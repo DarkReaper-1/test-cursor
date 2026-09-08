@@ -16,6 +16,7 @@ import type { RankKey } from "@/lib/constants/ranks";
 import {
   evaluatePredicate,
   nextAchievementStatus,
+  parseAchievementPredicate,
   type AchievementEvalContext,
   type ExercisePerformance,
 } from "./achievement-eval";
@@ -94,6 +95,7 @@ async function evaluateAgainstState(
     playerId: string;
     now: Date;
     ctx: AchievementEvalContext;
+    kinds?: Array<"WORKOUT_COUNT" | "RANK_REACHED" | "STREAK" | "PERFORMANCE_PR">;
   },
 ): Promise<{ unlocks: AchievementUnlockDto[]; achievementXp: number }> {
   const rows = await achievementRepo.listPlayerAchievements(db, input.playerId);
@@ -103,6 +105,8 @@ async function evaluateAgainstState(
 
   for (const row of rows) {
     if (row.status === "UNLOCKED") continue;
+    const parsed = parseAchievementPredicate(row.predicate);
+    if (input.kinds && parsed && !input.kinds.includes(parsed.kind)) continue;
     const evaluated = evaluatePredicate(row.predicate, input.ctx);
     if (!evaluated) continue;
 
@@ -161,6 +165,40 @@ async function evaluateAgainstState(
   return { unlocks, achievementXp };
 }
 
+export async function evaluateAchievementsForState(
+  db: Db,
+  input: {
+    playerId: string;
+    now: Date;
+    level: number;
+    rank: RankKey;
+    streak: number;
+    exercises?: ExercisePerformance[];
+    excludeWorkoutId?: string;
+    kinds?: Array<"WORKOUT_COUNT" | "RANK_REACHED" | "STREAK" | "PERFORMANCE_PR">;
+  },
+): Promise<{ unlocks: AchievementUnlockDto[]; achievementXp: number }> {
+  await ensurePlayerAchievements(db, input.playerId);
+  const workoutCount = await workoutRepo.countCompletedWorkouts(db, input.playerId);
+  const priorExercises = input.excludeWorkoutId
+    ? await workoutRepo.listPriorExerciseLogs(db, input.playerId, input.excludeWorkoutId)
+    : [];
+  const ctx: AchievementEvalContext = {
+    workoutCount,
+    level: input.level,
+    rank: input.rank,
+    streak: input.streak,
+    currentExercises: input.exercises ?? [],
+    priorExercises,
+  };
+  return evaluateAgainstState(db, {
+    playerId: input.playerId,
+    now: input.now,
+    ctx,
+    kinds: input.kinds,
+  });
+}
+
 export async function applyWorkoutToAchievements(
   db: Db,
   input: {
@@ -173,18 +211,15 @@ export async function applyWorkoutToAchievements(
     exercises: ExercisePerformance[];
   },
 ): Promise<{ unlocks: AchievementUnlockDto[]; achievementXp: number }> {
-  await ensurePlayerAchievements(db, input.playerId);
-  const workoutCount = await workoutRepo.countCompletedWorkouts(db, input.playerId);
-  const priorExercises = await workoutRepo.listPriorExerciseLogs(db, input.playerId, input.workoutId);
-  const ctx: AchievementEvalContext = {
-    workoutCount,
+  return evaluateAchievementsForState(db, {
+    playerId: input.playerId,
+    now: input.now,
     level: input.level,
     rank: input.rank,
     streak: input.streak,
-    currentExercises: input.exercises,
-    priorExercises,
-  };
-  return evaluateAgainstState(db, { playerId: input.playerId, now: input.now, ctx });
+    exercises: input.exercises,
+    excludeWorkoutId: input.workoutId,
+  });
 }
 
 export async function getAchievementBoard(accountId: string): Promise<AchievementBoardDto> {
