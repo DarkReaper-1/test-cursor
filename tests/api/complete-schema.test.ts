@@ -35,10 +35,12 @@ describe("completeWorkoutSchema", () => {
       questXp: 750,
       xpReward: 750,
       ironWeekXp: 750,
+      achievementXp: 9999,
     });
     expect(parsed).toEqual(valid);
     expect("questXp" in parsed).toBe(false);
     expect("xpReward" in parsed).toBe(false);
     expect("ironWeekXp" in parsed).toBe(false);
+    expect("achievementXp" in parsed).toBe(false);
   });
 });

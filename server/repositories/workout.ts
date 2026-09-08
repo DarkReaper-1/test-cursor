@@ -73,3 +73,30 @@ export async function createCompletedWorkout(
     },
   });
 }
+
+export async function countCompletedWorkouts(db: Db, playerId: string): Promise<number> {
+  return db.workout.count({ where: { playerId, completed: true } });
+}
+
+export async function listPriorExerciseLogs(
+  db: Db,
+  playerId: string,
+  excludeWorkoutId: string,
+): Promise<Array<{ exerciseId: string; sets: number; reps: number; weight: number }>> {
+  const rows = await db.workoutExercise.findMany({
+    where: {
+      workout: {
+        playerId,
+        completed: true,
+        id: { not: excludeWorkoutId },
+      },
+    },
+    select: { exerciseId: true, sets: true, reps: true, weight: true },
+  });
+  return rows.map((row) => ({
+    exerciseId: row.exerciseId,
+    sets: row.sets,
+    reps: row.reps,
+    weight: Number(row.weight),
+  }));
+}

@@ -79,6 +79,22 @@ export function EvaluationView({ result }: { result: WorkoutResult }) {
         </>
       ) : null}
 
+      {result.achievementUnlocks.length > 0 ? (
+        <>
+          <Rule />
+          <div className="space-y-6">
+            {result.achievementUnlocks.map((item) => (
+              <div key={item.id}>
+                <p className="font-mono text-[10px] tracking-[0.22em] text-amber">ACHIEVEMENT UNLOCKED</p>
+                <p className="mt-2 font-display text-3xl">{item.title}</p>
+                <p className="mt-1 text-sm text-steel">{item.identity}</p>
+                <p className="mt-2 font-display text-2xl tabular-nums">+{item.xp} XP</p>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
+
       <Rule />
 
       {result.leveledUp ? (
