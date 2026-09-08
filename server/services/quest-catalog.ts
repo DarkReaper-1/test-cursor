@@ -36,13 +36,16 @@ export function descriptionFor(entry: QuestCatalogEntry, target: number): string
 
 /**
  * Scale catalog bases from player level (and a mild attribute hint).
- * Hard cap: 2× base. Workout quests stay at 1. Consistency never exceeds 6.
+ * Daily targets stay at catalog base so they remain finishable from the
+ * current 3×10 directive. Weekly stretch goals may scale. Hard cap: 2× base.
+ * Workout quests stay at 1. Consistency never exceeds 6.
  */
 export function scaleQuestTarget(
   entry: QuestCatalogEntry,
   player: PlayerProgressionHint,
 ): number {
   if (entry.type === "WORKOUT") return 1;
+  if (entry.tier === "DAILY") return entry.baseTarget;
 
   const levelBonus = Math.min(Math.max(player.level - 1, 0), 20);
   const levelFactor = 1 + levelBonus * 0.05;
