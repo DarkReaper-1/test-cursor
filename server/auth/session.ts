@@ -1,7 +1,8 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import type { NextResponse } from "next/server";
 
-const COOKIE = "system_session";
+export const SESSION_COOKIE = "system_session";
 
 function secret() {
   const value = process.env.AUTH_SECRET;
@@ -9,6 +10,16 @@ function secret() {
     throw new Error("AUTH_SECRET is not set");
   }
   return new TextEncoder().encode(value);
+}
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 14,
+  };
 }
 
 export async function createSessionToken(accountId: string): Promise<string> {
@@ -28,26 +39,34 @@ export async function readAccountIdFromToken(token: string): Promise<string | nu
   }
 }
 
+export async function attachSessionCookie(
+  response: NextResponse,
+  accountId: string,
+): Promise<NextResponse> {
+  const token = await createSessionToken(accountId);
+  response.cookies.set(SESSION_COOKIE, token, cookieOptions());
+  return response;
+}
+
+export function clearSessionCookieOnResponse(response: NextResponse): NextResponse {
+  response.cookies.set(SESSION_COOKIE, "", { ...cookieOptions(), maxAge: 0 });
+  return response;
+}
+
 export async function setSessionCookie(accountId: string): Promise<void> {
   const token = await createSessionToken(accountId);
   const store = await cookies();
-  store.set(COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 14,
-  });
+  store.set(SESSION_COOKIE, token, cookieOptions());
 }
 
 export async function clearSessionCookie(): Promise<void> {
   const store = await cookies();
-  store.delete(COOKIE);
+  store.delete(SESSION_COOKIE);
 }
 
 export async function getSessionAccountId(): Promise<string | null> {
   const store = await cookies();
-  const token = store.get(COOKIE)?.value;
+  const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return readAccountIdFromToken(token);
 }
