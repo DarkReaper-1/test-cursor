@@ -34,6 +34,10 @@ export function toPlayerSnapshot(player: {
   };
 }
 
+export function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
 export function dateKeyInTimeZone(now: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,

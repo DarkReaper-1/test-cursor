@@ -43,11 +43,19 @@ export type ProgressionEventDto = {
   payload: Record<string, unknown>;
 };
 
+export type NextMilestone = {
+  rank: RankKey;
+  minLevel: number;
+};
+
 export type WorkoutResult = {
+  workoutId: string;
   replay: boolean;
   xp: number;
   leveledUp: boolean;
   rankUp: boolean;
+  before: PlayerSnapshot;
   player: PlayerSnapshot;
+  nextMilestone: NextMilestone | null;
   events: ProgressionEventDto[];
 };

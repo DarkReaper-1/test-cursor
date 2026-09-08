@@ -8,13 +8,12 @@ import * as xpEventRepo from "../repositories/xp-event";
 import * as eventRepo from "../repositories/progression-event";
 import { computeWorkoutXp } from "./xp";
 import { levelFromTotalXp } from "./level";
-import { rankFromLevel } from "./rank";
+import { nextRankThreshold, rankFromLevel } from "./rank";
 import { nextStreak } from "./streak";
 import { applyAttributeDeltas, attributeDeltas, type AttributeSnapshot } from "./attributes";
 import { onAchievementHook, onQuestHook } from "./hooks";
 import { toPlayerSnapshot } from "@/lib/format";
-import type { ProgressionEventDto, WorkoutResult } from "@/lib/types";
-import type { ATTRIBUTE_KEYS } from "@/lib/constants/attributes";
+import type { PlayerSnapshot, ProgressionEventDto, WorkoutResult } from "@/lib/types";
 
 export type CompleteWorkoutInput = {
   playerId: string;
@@ -30,19 +29,95 @@ export type CompleteWorkoutInput = {
   now?: Date;
 };
 
-async function snapshotResult(db: Db, playerId: string, extra: Partial<WorkoutResult>): Promise<WorkoutResult> {
-  const player = await playerRepo.findPlayerById(db, playerId);
-  if (!player) {
-    throw new Error("PLAYER_NOT_FOUND");
-  }
+function milestoneFor(level: number): WorkoutResult["nextMilestone"] {
+  const next = nextRankThreshold(level);
+  return next ? { rank: next.key, minLevel: next.minLevel } : null;
+}
+
+function toResult(input: {
+  workoutId: string;
+  replay: boolean;
+  xp: number;
+  before: PlayerSnapshot;
+  after: PlayerSnapshot;
+  events: ProgressionEventDto[];
+}): WorkoutResult {
   return {
-    replay: extra.replay ?? false,
-    xp: extra.xp ?? 0,
-    leveledUp: extra.leveledUp ?? false,
-    rankUp: extra.rankUp ?? false,
-    player: toPlayerSnapshot(player),
-    events: extra.events ?? [],
+    workoutId: input.workoutId,
+    replay: input.replay,
+    xp: input.xp,
+    leveledUp: input.after.level > input.before.level,
+    rankUp: input.after.rank !== input.before.rank,
+    before: input.before,
+    player: input.after,
+    nextMilestone: milestoneFor(input.after.level),
+    events: input.events,
   };
+}
+
+function snapshotFromPayload(value: unknown): PlayerSnapshot | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as PlayerSnapshot;
+  if (typeof row.id !== "string" || typeof row.level !== "number" || typeof row.xp !== "number") {
+    return null;
+  }
+  return row;
+}
+
+function resultFromStoredEvent(
+  workoutId: string,
+  xp: number,
+  payload: Prisma.JsonValue | null,
+  fallbackAfter: PlayerSnapshot,
+  replay: boolean,
+): WorkoutResult {
+  const body = payload && typeof payload === "object" && !Array.isArray(payload) ? payload : {};
+  const before = snapshotFromPayload((body as { before?: unknown }).before);
+  const after = snapshotFromPayload((body as { after?: unknown }).after) ?? fallbackAfter;
+  const events = Array.isArray((body as { events?: unknown }).events)
+    ? ((body as { events: ProgressionEventDto[] }).events)
+    : [{ type: "WORKOUT_COMPLETED" as const, payload: { workoutId, xp } }];
+  if (before) {
+    return toResult({ workoutId, replay, xp, before, after, events });
+  }
+  return toResult({
+    workoutId,
+    replay,
+    xp,
+    before: after,
+    after,
+    events,
+  });
+}
+
+async function evaluationForWorkout(
+  db: Db,
+  playerId: string,
+  workoutId: string,
+  replay: boolean,
+): Promise<WorkoutResult> {
+  const workout = await workoutRepo.findWorkoutById(db, workoutId);
+  if (!workout || workout.playerId !== playerId) {
+    throw new Error("WORKOUT_NOT_FOUND");
+  }
+  const player = await playerRepo.findPlayerById(db, playerId);
+  if (!player) throw new Error("PLAYER_NOT_FOUND");
+  const stored = await eventRepo.findWorkoutCompletedEvent(db, playerId, workoutId);
+  return resultFromStoredEvent(
+    workout.id,
+    workout.xpEarned,
+    stored?.payload ?? null,
+    toPlayerSnapshot(player),
+    replay,
+  );
+}
+
+export async function getLatestEvaluation(accountId: string): Promise<WorkoutResult | null> {
+  const player = await playerRepo.findPlayerByAccountId(prisma, accountId);
+  if (!player) throw new Error("PLAYER_MISSING");
+  const workout = await workoutRepo.findLatestCompletedWorkout(prisma, player.id);
+  if (!workout) return null;
+  return evaluationForWorkout(prisma, player.id, workout.id, true);
 }
 
 export async function completeWorkout(input: CompleteWorkoutInput): Promise<WorkoutResult> {
@@ -51,15 +126,13 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
     if (existing.playerId !== input.playerId) {
       throw new Error("IDEMPOTENCY_CONFLICT");
     }
-    return snapshotResult(prisma, input.playerId, {
-      replay: true,
-      xp: existing.xpEarned,
-    });
+    return evaluationForWorkout(prisma, input.playerId, existing.id, true);
   }
 
   return prisma.$transaction(async (tx) => {
     const player = await playerRepo.findPlayerById(tx, input.playerId);
     if (!player) throw new Error("PLAYER_NOT_FOUND");
+    const before = toPlayerSnapshot(player);
 
     const catalog = await exerciseRepo.findExercisesByIds(
       tx,
@@ -138,6 +211,10 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
       discipline: nextAttrs.discipline,
     });
 
+    const updated = await playerRepo.findPlayerById(tx, player.id);
+    if (!updated) throw new Error("PLAYER_NOT_FOUND");
+    const after = toPlayerSnapshot(updated);
+
     const events: ProgressionEventDto[] = [
       {
         type: "WORKOUT_COMPLETED",
@@ -151,7 +228,18 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
       events.push({ type: "RANK_UP", payload: { from: player.rank, to: nextRank } });
     }
 
-    for (const event of events) {
+    await eventRepo.insertProgressionEvent(tx, {
+      playerId: player.id,
+      type: "WORKOUT_COMPLETED",
+      payload: {
+        workoutId: workout.id,
+        xp,
+        before,
+        after,
+        events,
+      } as Prisma.InputJsonValue,
+    });
+    for (const event of events.slice(1)) {
       await eventRepo.insertProgressionEvent(tx, {
         playerId: player.id,
         type: event.type,
@@ -162,16 +250,13 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
     await onQuestHook({ playerId: player.id, eventType: "WORKOUT_COMPLETED" });
     await onAchievementHook({ playerId: player.id, eventType: "WORKOUT_COMPLETED" });
 
-    const updated = await playerRepo.findPlayerById(tx, player.id);
-    if (!updated) throw new Error("PLAYER_NOT_FOUND");
-
-    return {
+    return toResult({
+      workoutId: workout.id,
       replay: false,
       xp,
-      leveledUp,
-      rankUp,
-      player: toPlayerSnapshot(updated),
+      before,
+      after,
       events,
-    };
+    });
   });
 }

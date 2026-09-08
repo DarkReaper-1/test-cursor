@@ -12,6 +12,24 @@ export async function insertProgressionEvent(
   return db.progressionEvent.create({ data: input });
 }
 
+export async function findWorkoutCompletedEvent(
+  db: Db,
+  playerId: string,
+  workoutId: string,
+): Promise<ProgressionEvent | null> {
+  return db.progressionEvent.findFirst({
+    where: {
+      playerId,
+      type: "WORKOUT_COMPLETED",
+      payload: {
+        path: ["workoutId"],
+        equals: workoutId,
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function listRecentProgressionEvents(
   db: Db,
   playerId: string,

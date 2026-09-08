@@ -3,7 +3,7 @@
 export function SignOutButton() {
   return (
     <button
-      className="text-amber"
+      className="min-h-11 text-amber outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
       type="button"
       onClick={() => {
         void fetch("/api/v1/auth/logout", { method: "POST" }).then(() => {
