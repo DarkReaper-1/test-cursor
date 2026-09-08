@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../db/client";
 import * as accountRepo from "../repositories/account";
 import * as playerRepo from "../repositories/player";
 import { toPlayerSnapshot } from "@/lib/format";
 import type { PlayerSnapshot } from "@/lib/types";
+import { isPlaytestOperator } from "@/lib/constants/playtest";
 
 export class AuthError extends Error {
   constructor(
@@ -14,6 +16,21 @@ export class AuthError extends Error {
   }
 }
 
+export function uniqueConstraintFields(err: unknown): string[] {
+  if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") {
+    return [];
+  }
+  const target = err.meta?.target;
+  if (Array.isArray(target)) return target.map(String);
+  if (typeof target === "string") {
+    const lower = target.toLowerCase();
+    if (lower.includes("username")) return ["username"];
+    if (lower.includes("email")) return ["email"];
+    return [target];
+  }
+  return [];
+}
+
 export async function register(input: {
   email: string;
   password: string;
@@ -22,8 +39,17 @@ export async function register(input: {
 }): Promise<{ accountId: string; player: PlayerSnapshot }> {
   const existing = await accountRepo.findAccountByEmail(prisma, input.email);
   if (existing) {
-    throw new AuthError("EMAIL_TAKEN", "That email is already activated.");
+    if (isPlaytestOperator({ email: input.email, username: input.username, password: input.password })) {
+      return login({ email: input.email, password: input.password });
+    }
+    throw new AuthError("EMAIL_TAKEN", "That email is already activated. Sign in instead.");
   }
+
+  const taken = await playerRepo.findPlayerByUsername(prisma, input.username);
+  if (taken) {
+    throw new AuthError("USERNAME_TAKEN", "That callsign is taken.");
+  }
+
   const passwordHash = await bcrypt.hash(input.password, 10);
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -40,9 +66,12 @@ export async function register(input: {
     });
     return result;
   } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    if (message.includes("Player_username_key") || message.includes("username")) {
+    const fields = uniqueConstraintFields(err);
+    if (fields.includes("username")) {
       throw new AuthError("USERNAME_TAKEN", "That callsign is taken.");
+    }
+    if (fields.includes("email")) {
+      throw new AuthError("EMAIL_TAKEN", "That email is already activated. Sign in instead.");
     }
     throw err;
   }
