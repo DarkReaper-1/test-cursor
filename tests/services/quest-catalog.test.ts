@@ -40,6 +40,13 @@ describe("quest catalog scaling", () => {
     expect(scaleQuestTarget(iron, { ...basePlayer, level: 50 })).toBe(6);
   });
 
+  it("sets Iron Week at +400 XP", () => {
+    const iron = QUEST_CATALOG.find((entry) => entry.key === "iron_week")!;
+    const walk = QUEST_CATALOG.find((entry) => entry.key === "movement_week")!;
+    expect(iron.xpReward).toBe(400);
+    expect(walk.xpReward).toBe(500);
+  });
+
   it("snapshots descriptions from the generated target", () => {
     const squat = QUEST_CATALOG.find((entry) => entry.key === "foundation_squats")!;
     expect(descriptionFor(squat, 5)).toBe("Complete 5 sets of squats.");
