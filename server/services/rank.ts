@@ -7,3 +7,11 @@ export function rankFromLevel(level: number): RankKey {
   }
   return current;
 }
+
+/** Next rank on the configured ladder, or null at Sovereign. Display-only. */
+export function nextRankThreshold(level: number): { key: RankKey; minLevel: number } | null {
+  for (const row of RANK_THRESHOLDS) {
+    if (level < row.minLevel) return row;
+  }
+  return null;
+}

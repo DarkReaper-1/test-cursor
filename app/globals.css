@@ -14,3 +14,9 @@ body {
   background: #d4a574;
   color: #100e0c;
 }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #d4a574;
+  outline-offset: 2px;
+}

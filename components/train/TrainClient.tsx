@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Cta, Shell, inputClass } from "@/components/ui/Shell";
-import type { TrainingDirective, WorkoutResult } from "@/lib/types";
+import type { TrainingDirective } from "@/lib/types";
 
 type Draft = { exerciseId: string; sets: string; reps: string; weight: string };
 
@@ -53,12 +53,12 @@ export function TrainClient() {
           })),
         }),
       });
-      const data = (await response.json()) as WorkoutResult & { message?: string };
+      const data = (await response.json()) as { message?: string };
       if (!response.ok) {
         throw new Error(data.message ?? "Could not complete.");
       }
-      sessionStorage.setItem("system.lastResult", JSON.stringify(data));
       router.push("/result");
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not complete.");
     } finally {
@@ -89,7 +89,12 @@ export function TrainClient() {
           const meta = directive?.exercises[index];
           return (
             <div key={row.exerciseId}>
-              <p className="text-sm text-paper">{meta?.name ?? "Exercise"}</p>
+              <p className="text-sm text-paper">
+                <span className="mr-2 font-mono text-[10px] tracking-[0.12em] text-amber">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                {meta?.name ?? "Exercise"}
+              </p>
               <div className="mt-2 grid grid-cols-3 gap-2">
                 <input
                   aria-label="Sets"

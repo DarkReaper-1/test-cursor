@@ -1,25 +1,26 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSessionAccountId } from "@/server/auth/session";
+import { getLatestEvaluation } from "@/server/services/progression";
 import { Shell } from "@/components/ui/Shell";
-import type { WorkoutResult } from "@/lib/types";
+import { EvaluationView } from "@/components/result/EvaluationView";
 
-export default function ResultPage() {
-  const [result, setResult] = useState<WorkoutResult | null>(null);
-
-  useEffect(() => {
-    const raw = sessionStorage.getItem("system.lastResult");
-    if (!raw) return;
-    setResult(JSON.parse(raw) as WorkoutResult);
-  }, []);
+export default async function ResultPage() {
+  const accountId = await getSessionAccountId();
+  if (!accountId) redirect("/sign-in");
+  const result = await getLatestEvaluation(accountId);
 
   if (!result) {
     return (
       <Shell>
-        <p className="text-steel">No result on file.</p>
-        <Link href="/" className="mt-4 inline-block text-amber">
-          Today
+        <p className="font-mono text-[10px] tracking-[0.24em] text-amber">EVALUATION</p>
+        <h1 className="mt-3 font-display text-3xl">No evaluation on file</h1>
+        <p className="mt-3 text-sm text-steel">Complete today’s training to write a result.</p>
+        <Link
+          href="/"
+          className="mt-8 flex min-h-14 items-center justify-center rounded-md bg-paper text-sm font-semibold text-void outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+        >
+          Continue
         </Link>
       </Shell>
     );
@@ -27,26 +28,7 @@ export default function ResultPage() {
 
   return (
     <Shell>
-      <p className="font-mono text-[10px] tracking-[0.24em] text-amber">EVALUATION</p>
-      <h1 className="mt-2 font-display text-4xl leading-none">
-        {result.leveledUp ? "Level up." : "File updated."}
-      </h1>
-      <p className="mt-3 text-lg text-paper">+{result.xp} XP</p>
-      {result.rankUp ? <p className="mt-2 text-amber">Rank → {result.player.rank}</p> : null}
-      <ul className="mt-6 space-y-2 text-sm text-steel">
-        {result.events.map((event, index) => (
-          <li key={`${event.type}-${index}`}>{event.type.replaceAll("_", " ")}</li>
-        ))}
-      </ul>
-      <p className="mt-6 text-sm text-paper">
-        LEVEL {result.player.level} · {result.player.rank} · STREAK {result.player.streak}
-      </p>
-      <Link
-        href="/"
-        className="mt-8 flex min-h-12 items-center justify-center rounded-md bg-paper text-sm font-semibold text-void"
-      >
-        Return to Today
-      </Link>
+      <EvaluationView result={result} />
     </Shell>
   );
 }

@@ -20,6 +20,27 @@ export async function findWorkoutByIdempotency(
   });
 }
 
+export async function findLatestCompletedWorkout(
+  db: Db,
+  playerId: string,
+): Promise<(Workout & { exercises: WorkoutExercise[] }) | null> {
+  return db.workout.findFirst({
+    where: { playerId, completed: true },
+    include: { exercises: true },
+    orderBy: { completedAt: "desc" },
+  });
+}
+
+export async function findWorkoutById(
+  db: Db,
+  id: string,
+): Promise<(Workout & { exercises: WorkoutExercise[] }) | null> {
+  return db.workout.findUnique({
+    where: { id },
+    include: { exercises: true },
+  });
+}
+
 export async function createCompletedWorkout(
   db: Db,
   input: {
