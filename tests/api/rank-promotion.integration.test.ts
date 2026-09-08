@@ -5,7 +5,7 @@ import { completeWorkout } from "@/server/services/progression";
 import { acceptNextRank, getPromotionForAccount } from "@/server/services/rank-promotion";
 import { register } from "@/server/services/identity";
 import { listActiveExercises } from "@/server/repositories/exercise";
-import { POST as promoteRoute } from "@/app/api/v1/rank/promote/route";
+import { promoteRankSchema } from "@/server/validators";
 import { levelFromTotalXp } from "@/server/services/level";
 
 const hasDb = Boolean(process.env.DATABASE_URL);
@@ -175,14 +175,13 @@ describe.skipIf(!hasDb)("rank promotion", () => {
     await expect(acceptNextRank({ playerId: player.id })).rejects.toThrow("PROMOTION_NOT_AVAILABLE");
   });
 
-  it("does not accept a rank from the HTTP body", async () => {
-    const unauthorized = await promoteRoute(
-      new Request("http://system.test/api/v1/rank/promote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rank: "SOVEREIGN", xp: 9999 }),
-      }),
-    );
-    expect(unauthorized.status).toBe(401);
+  it("does not let the client choose a later rank", async () => {
+    const { player } = await makePlayer();
+    const { hinge } = await hingeId();
+    await trainDays(player.id, hinge.id, 10);
+    const accepted = await acceptNextRank({ playerId: player.id });
+    expect(accepted.to).toBe("CIRCUIT");
+    expect(accepted.player.rank).toBe("CIRCUIT");
+    expect(promoteRankSchema.parse({ rank: "SOVEREIGN", xp: 9999 })).toEqual({});
   });
 });
