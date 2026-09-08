@@ -8,16 +8,18 @@ import * as xpEventRepo from "../repositories/xp-event";
 import * as eventRepo from "../repositories/progression-event";
 import { computeWorkoutXp } from "./xp";
 import { levelFromTotalXp } from "./level";
-import { nextRankThreshold, rankFromLevel } from "./rank";
+import { nextRankThreshold } from "./rank";
 import { nextStreak } from "./streak";
 import { applyAttributeDeltas, attributeDeltas, type AttributeSnapshot } from "./attributes";
 import { applyWorkoutToQuests } from "./quest";
 import { applyWorkoutToAchievements } from "./achievement";
+import { getPromotionForPlayer } from "./rank-promotion";
 import { toPlayerSnapshot } from "@/lib/format";
 import type {
   AchievementUnlockDto,
   PlayerSnapshot,
   ProgressionEventDto,
+  PromotionDto,
   QuestCompletionDto,
   WorkoutResult,
 } from "@/lib/types";
@@ -50,6 +52,7 @@ function toResult(input: {
   questCompletions: QuestCompletionDto[];
   achievementXp: number;
   achievementUnlocks: AchievementUnlockDto[];
+  promotion: PromotionDto;
   before: PlayerSnapshot;
   after: PlayerSnapshot;
   events: ProgressionEventDto[];
@@ -62,8 +65,9 @@ function toResult(input: {
     questCompletions: input.questCompletions,
     achievementXp: input.achievementXp,
     achievementUnlocks: input.achievementUnlocks,
+    promotion: input.promotion,
     leveledUp: input.after.level > input.before.level,
-    rankUp: input.after.rank !== input.before.rank,
+    rankUp: false,
     before: input.before,
     player: input.after,
     nextMilestone: milestoneFor(input.after.level),
@@ -115,6 +119,23 @@ function unlocksFromPayload(value: unknown): AchievementUnlockDto[] {
   return rows;
 }
 
+function promotionFromPayload(value: unknown, fallbackRank: RankKey): PromotionDto {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { available: false, from: fallbackRank, to: null, identity: null, requirements: [] };
+  }
+  const row = value as PromotionDto;
+  if (typeof row.available !== "boolean" || typeof row.from !== "string") {
+    return { available: false, from: fallbackRank, to: null, identity: null, requirements: [] };
+  }
+  return {
+    available: row.available,
+    from: row.from,
+    to: row.to ?? null,
+    identity: row.identity ?? null,
+    requirements: Array.isArray(row.requirements) ? row.requirements : [],
+  };
+}
+
 function resultFromStoredEvent(
   workoutId: string,
   xp: number,
@@ -131,6 +152,7 @@ function resultFromStoredEvent(
     questCompletions?: unknown;
     achievementXp?: unknown;
     achievementUnlocks?: unknown;
+    promotion?: unknown;
   };
   const before = snapshotFromPayload(record.before);
   const after = snapshotFromPayload(record.after) ?? fallbackAfter;
@@ -149,6 +171,7 @@ function resultFromStoredEvent(
     questCompletions,
     achievementXp,
     achievementUnlocks,
+    promotion: promotionFromPayload(record.promotion, after.rank),
     before: before ?? after,
     after,
     events,
@@ -168,13 +191,15 @@ async function evaluationForWorkout(
   const player = await playerRepo.findPlayerById(db, playerId);
   if (!player) throw new Error("PLAYER_NOT_FOUND");
   const stored = await eventRepo.findWorkoutCompletedEvent(db, playerId, workoutId);
-  return resultFromStoredEvent(
+  const result = resultFromStoredEvent(
     workout.id,
     workout.xpEarned,
     stored?.payload ?? null,
     toPlayerSnapshot(player),
     replay,
   );
+  const promotion = await getPromotionForPlayer(db, player);
+  return { ...result, promotion };
 }
 
 export async function getLatestEvaluation(accountId: string): Promise<WorkoutResult | null> {
@@ -272,7 +297,7 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
 
     let totalXp = await xpEventRepo.sumXp(tx, player.id);
     let nextLevel = levelFromTotalXp(totalXp);
-    let nextRank = rankFromLevel(nextLevel) as RankKey;
+    const acceptedRank = player.rank as RankKey;
 
     const performance = input.exercises.map((item) => ({
       exerciseId: item.exerciseId,
@@ -289,7 +314,7 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
         now,
         workoutId: workout.id,
         level: nextLevel,
-        rank: nextRank,
+        rank: acceptedRank,
         streak: streak.streak,
         exercises: performance,
       });
@@ -298,24 +323,21 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
       achievementXp += batch.achievementXp;
       totalXp = await xpEventRepo.sumXp(tx, player.id);
       const raisedLevel = levelFromTotalXp(totalXp);
-      const raisedRank = rankFromLevel(raisedLevel) as RankKey;
-      if (raisedLevel === nextLevel && raisedRank === nextRank) break;
+      if (raisedLevel === nextLevel) break;
       nextLevel = raisedLevel;
-      nextRank = raisedRank;
     }
 
     totalXp = await xpEventRepo.sumXp(tx, player.id);
     nextLevel = levelFromTotalXp(totalXp);
-    nextRank = rankFromLevel(nextLevel) as RankKey;
-
     const leveledUp = nextLevel > player.level;
-    const rankUp = nextRank !== player.rank;
+    const bestStreak = Math.max(player.bestStreak, streak.streak);
 
     await playerRepo.savePlayerSnapshot(tx, player.id, {
       xp: totalXp,
       level: nextLevel,
-      rank: nextRank,
+      rank: acceptedRank,
       streak: streak.streak,
+      bestStreak,
       lastActivityDate: streak.activityDate,
       strength: nextAttrs.strength,
       endurance: nextAttrs.endurance,
@@ -327,6 +349,7 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
     const updated = await playerRepo.findPlayerById(tx, player.id);
     if (!updated) throw new Error("PLAYER_NOT_FOUND");
     const after = toPlayerSnapshot(updated);
+    const promotion = await getPromotionForPlayer(tx, updated);
 
     const events: ProgressionEventDto[] = [
       {
@@ -362,9 +385,6 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
     if (leveledUp) {
       events.push({ type: "LEVEL_UP", payload: { from: player.level, to: nextLevel } });
     }
-    if (rankUp) {
-      events.push({ type: "RANK_UP", payload: { from: player.rank, to: nextRank } });
-    }
 
     await eventRepo.insertProgressionEvent(tx, {
       playerId: player.id,
@@ -376,6 +396,7 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
         questCompletions: questEval.completions,
         achievementXp,
         achievementUnlocks,
+        promotion,
         before,
         after,
         events,
@@ -404,6 +425,7 @@ export async function completeWorkout(input: CompleteWorkoutInput): Promise<Work
       questCompletions: questEval.completions,
       achievementXp,
       achievementUnlocks,
+      promotion,
       before,
       after,
       events,

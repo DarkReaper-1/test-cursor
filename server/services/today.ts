@@ -3,13 +3,15 @@ import * as playerRepo from "../repositories/player";
 import * as exerciseRepo from "../repositories/exercise";
 import { assembleDirective } from "./directive";
 import { getTodayQuests } from "./quest";
+import { getPromotionForPlayer } from "./rank-promotion";
 import { toPlayerSnapshot } from "@/lib/format";
-import type { PlayerSnapshot, QuestBoardDto, TrainingDirective } from "@/lib/types";
+import type { PlayerSnapshot, PromotionDto, QuestBoardDto, TrainingDirective } from "@/lib/types";
 
 export async function getToday(accountId: string): Promise<{
   player: PlayerSnapshot;
   directive: TrainingDirective;
   dailyQuests: QuestBoardDto;
+  promotion: PromotionDto;
 }> {
   const player = await playerRepo.findPlayerByAccountId(prisma, accountId);
   if (!player) {
@@ -28,5 +30,6 @@ export async function getToday(accountId: string): Promise<{
     })),
   });
   const dailyQuests = await getTodayQuests(accountId);
-  return { player: toPlayerSnapshot(player), directive, dailyQuests };
+  const promotion = await getPromotionForPlayer(prisma, player);
+  return { player: toPlayerSnapshot(player), directive, dailyQuests, promotion };
 }

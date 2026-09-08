@@ -6,11 +6,12 @@ import { Shell } from "@/components/ui/Shell";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { XpTrack } from "@/components/ui/XpTrack";
 import { QuestList } from "@/components/quests/QuestList";
+import { PromotionCallout } from "@/components/rank/PromotionCallout";
 
 export default async function TodayPage() {
   const accountId = await getSessionAccountId();
   if (!accountId) redirect("/sign-in");
-  const { player, directive, dailyQuests } = await getToday(accountId);
+  const { player, directive, dailyQuests, promotion } = await getToday(accountId);
 
   return (
     <Shell
@@ -44,6 +45,8 @@ export default async function TodayPage() {
         </div>
         <p className="mt-4 font-mono text-[10px] tracking-[0.2em] text-amber">STREAK {player.streak}</p>
       </section>
+
+      <PromotionCallout promotion={promotion} />
 
       <section className="mt-5 rounded-xl bg-[#1a1714] p-5">
         <p className="font-mono text-[10px] tracking-[0.2em] text-amber">TODAY’S DIRECTIVE</p>

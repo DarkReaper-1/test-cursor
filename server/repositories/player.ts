@@ -23,6 +23,7 @@ export async function createPlayer(db: Db, input: PlayerCreate): Promise<Player>
       vitality: BASELINE_ATTRIBUTE,
       discipline: BASELINE_ATTRIBUTE,
       streak: 0,
+      bestStreak: 0,
     },
   });
 }

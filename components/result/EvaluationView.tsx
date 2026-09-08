@@ -3,6 +3,7 @@ import { ATTRIBUTE_KEYS } from "@/lib/constants/attributes";
 import { pad2 } from "@/lib/format";
 import type { WorkoutResult } from "@/lib/types";
 import { XpTrack } from "@/components/ui/XpTrack";
+import { PromotionCallout } from "@/components/rank/PromotionCallout";
 
 const ATTR_LABEL: Record<(typeof ATTRIBUTE_KEYS)[number], string> = {
   strength: "STRENGTH",
@@ -129,20 +130,21 @@ export function EvaluationView({ result }: { result: WorkoutResult }) {
       <div>
         <p className="font-mono text-[10px] tracking-[0.22em] text-amber">RANK</p>
         <p className="mt-2 font-display text-2xl">{player.rank}</p>
-        {result.rankUp ? (
-          <p className="mt-1 text-sm text-steel">
-            {before.rank} → {player.rank}
-          </p>
-        ) : null}
+        <p className="mt-1 text-sm text-steel">Accepted status. Level is earned through XP.</p>
       </div>
 
-      {result.nextMilestone ? (
+      {result.promotion.available ? (
+        <>
+          <Rule />
+          <PromotionCallout promotion={result.promotion} />
+        </>
+      ) : result.promotion.to ? (
         <>
           <Rule />
           <div>
-            <p className="font-mono text-[10px] tracking-[0.22em] text-amber">NEXT</p>
-            <p className="mt-2 font-display text-2xl">{result.nextMilestone.rank}</p>
-            <p className="mt-1 text-sm text-steel">Rank opens at level {result.nextMilestone.minLevel}</p>
+            <p className="font-mono text-[10px] tracking-[0.22em] text-amber">NEXT RANK</p>
+            <p className="mt-2 font-display text-2xl">{result.promotion.to}</p>
+            <p className="mt-1 text-sm text-steel">Requirements are not yet met.</p>
           </div>
         </>
       ) : null}

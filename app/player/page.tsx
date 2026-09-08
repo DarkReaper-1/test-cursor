@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionAccountId } from "@/server/auth/session";
 import { getMe } from "@/server/services/identity";
+import { getPromotionForAccount } from "@/server/services/rank-promotion";
 import { Shell } from "@/components/ui/Shell";
+import { PromotionCallout } from "@/components/rank/PromotionCallout";
 
 export default async function PlayerPage() {
   const accountId = await getSessionAccountId();
   if (!accountId) redirect("/sign-in");
   const player = await getMe(accountId);
+  const promotion = await getPromotionForAccount(accountId);
 
   return (
     <Shell>
@@ -18,6 +21,7 @@ export default async function PlayerPage() {
       <p className="mt-2 text-sm text-steel">
         Rank {player.rank} · Level {player.level} · Streak {player.streak}
       </p>
+      <PromotionCallout promotion={promotion} />
       <div className="mt-8 grid grid-cols-2 gap-3">
         {(
           [

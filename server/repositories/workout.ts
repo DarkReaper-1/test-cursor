@@ -78,6 +78,14 @@ export async function countCompletedWorkouts(db: Db, playerId: string): Promise<
   return db.workout.count({ where: { playerId, completed: true } });
 }
 
+export async function listCompletedAt(db: Db, playerId: string): Promise<Date[]> {
+  const rows = await db.workout.findMany({
+    where: { playerId, completed: true, completedAt: { not: null } },
+    select: { completedAt: true },
+  });
+  return rows.flatMap((row) => (row.completedAt ? [row.completedAt] : []));
+}
+
 export async function listPriorExerciseLogs(
   db: Db,
   playerId: string,

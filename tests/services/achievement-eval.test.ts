@@ -45,6 +45,7 @@ describe("achievement evaluation", () => {
     expect(evaluatePredicate(pred, { ...baseCtx, level: 4, rank: "INITIATE" })?.qualifies).toBe(false);
     expect(evaluatePredicate(pred, { ...baseCtx, level: 5, rank: "CIRCUIT" })?.qualifies).toBe(true);
     expect(evaluatePredicate(pred, { ...baseCtx, level: 12, rank: "VOLTAGE" })?.qualifies).toBe(true);
+    expect(evaluatePredicate(pred, { ...baseCtx, level: 14, rank: "INITIATE" })?.qualifies).toBe(false);
     expect(evaluatePredicate(pred, { ...baseCtx, level: 4, rank: "INITIATE" })?.progress).toBe(4);
     expect(evaluatePredicate(pred, { ...baseCtx, level: 4, rank: "INITIATE" })?.target).toBe(5);
   });

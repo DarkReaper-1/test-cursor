@@ -9,7 +9,6 @@ import { POST as rejectUnlock } from "@/app/api/v1/achievements/[id]/unlock/rout
 import { POST as rejectProgress } from "@/app/api/v1/achievements/[id]/progress/route";
 import { ACHIEVEMENT_CATALOG } from "@/lib/constants/achievements";
 import { levelFromTotalXp } from "@/server/services/level";
-import { rankFromLevel } from "@/server/services/rank";
 
 const hasDb = Boolean(process.env.DATABASE_URL);
 
@@ -69,7 +68,7 @@ describe.skipIf(!hasDb)("achievement system integration", () => {
     expect(first.achievementXp).toBeGreaterThanOrEqual(50);
     expect(first.player.xp).toBe(first.xp + first.questXp + first.achievementXp);
     expect(first.player.level).toBe(levelFromTotalXp(first.player.xp));
-    expect(first.player.rank).toBe(rankFromLevel(first.player.level));
+    expect(first.player.rank).toBe("INITIATE");
 
     const replay = await completeWorkout({
       playerId: player.id,
@@ -92,7 +91,7 @@ describe.skipIf(!hasDb)("achievement system integration", () => {
     expect(xpEvents.filter((row) => row.idempotencyKey === `achievement:${awakening?.id}:unlock`)).toHaveLength(1);
   });
 
-  it("unlocks Circuit when rank reaches CIRCUIT in the same transaction", async () => {
+  it("does not unlock Circuit from level; accepted rank is required", async () => {
     const { player } = await makePlayer();
     const { push, squat } = await exercise();
     let last = await completeWorkout({
@@ -105,7 +104,7 @@ describe.skipIf(!hasDb)("achievement system integration", () => {
       ],
       now: new Date("2026-09-08T12:00:00Z"),
     });
-    if (last.player.rank === "INITIATE") {
+    if (last.player.level < 5) {
       last = await completeWorkout({
         playerId: player.id,
         idempotencyKey: randomUUID(),
@@ -117,11 +116,11 @@ describe.skipIf(!hasDb)("achievement system integration", () => {
         now: new Date("2026-09-09T12:00:00Z"),
       });
     }
-    expect(["CIRCUIT", "VOLTAGE", "KEYSTONE", "MERIDIAN", "SOVEREIGN"]).toContain(last.player.rank);
+    expect(last.player.rank).toBe("INITIATE");
     const circuit = await db.playerAchievement.findFirst({
       where: { playerId: player.id, key: "circuit" },
     });
-    expect(circuit?.status).toBe("UNLOCKED");
+    expect(circuit?.status).not.toBe("UNLOCKED");
   });
 
   it("unlocks Limit Breaker from a server-side performance improvement, not XP", async () => {
@@ -209,13 +208,12 @@ describe.skipIf(!hasDb)("achievement system integration", () => {
       now: new Date("2026-04-10T12:00:00Z"),
     });
     const keys = result.achievementUnlocks.map((row) => row.key);
-    expect(keys).toEqual(
-      expect.arrayContaining(["centurion", "unbreakable", "first_awakening", "circuit"]),
-    );
+    expect(keys).toEqual(expect.arrayContaining(["centurion", "unbreakable", "first_awakening"]));
+    expect(keys).not.toContain("circuit");
     expect(result.player.streak).toBe(30);
     expect(result.player.xp).toBe(result.xp + result.questXp + result.achievementXp);
     expect(result.player.level).toBe(levelFromTotalXp(result.player.xp));
-    expect(result.player.rank).toBe(rankFromLevel(result.player.level));
+    expect(result.player.rank).toBe("INITIATE");
     const rows = await db.playerAchievement.findMany({
       where: { playerId: player.id, key: { in: ["centurion", "unbreakable"] } },
     });

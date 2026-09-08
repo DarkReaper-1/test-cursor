@@ -50,6 +50,34 @@ export type NextMilestone = {
   minLevel: number;
 };
 
+export type PromotionRequirementDto = {
+  key: string;
+  label: string;
+  current: number;
+  target: number;
+  met: boolean;
+};
+
+export type PromotionDto = {
+  available: boolean;
+  from: RankKey;
+  to: Exclude<RankKey, "INITIATE"> | null;
+  identity: string | null;
+  requirements: PromotionRequirementDto[];
+};
+
+export type PromotionResult = {
+  replay: boolean;
+  from: RankKey;
+  to: Exclude<RankKey, "INITIATE">;
+  identity: string;
+  player: PlayerSnapshot;
+  achievementXp: number;
+  achievementUnlocks: AchievementUnlockDto[];
+  promotion: PromotionDto;
+  events: ProgressionEventDto[];
+};
+
 export type QuestCompletionDto = {
   id: string;
   key: string;
@@ -124,6 +152,7 @@ export type WorkoutResult = {
   questCompletions: QuestCompletionDto[];
   achievementXp: number;
   achievementUnlocks: AchievementUnlockDto[];
+  promotion: PromotionDto;
   leveledUp: boolean;
   rankUp: boolean;
   before: PlayerSnapshot;

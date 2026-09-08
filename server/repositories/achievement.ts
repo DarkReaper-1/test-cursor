@@ -79,6 +79,14 @@ export async function listPlayerAchievements(
   });
 }
 
+export async function listUnlockedAchievementKeys(db: Db, playerId: string): Promise<string[]> {
+  const rows = await db.playerAchievement.findMany({
+    where: { playerId, status: "UNLOCKED" },
+    select: { key: true },
+  });
+  return rows.map((row) => row.key);
+}
+
 export async function updatePlayerAchievement(
   db: Db,
   id: string,
