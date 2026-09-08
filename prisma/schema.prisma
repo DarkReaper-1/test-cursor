@@ -38,6 +38,7 @@ model Player {
   xpEvents          XpEvent[]
   progressionEvents ProgressionEvent[]
   quests            PlayerQuest[]
+  achievements      PlayerAchievement[]
 }
 
 model Exercise {
@@ -164,4 +165,57 @@ model PlayerQuest {
   @@unique([playerId, key, periodKey])
   @@index([playerId, tier, status])
   @@index([playerId, expiresAt])
+}
+
+enum AchievementFamily {
+  MILESTONE
+  STREAK
+  MASTERY
+}
+
+enum AchievementStatus {
+  LOCKED
+  IN_PROGRESS
+  UNLOCKED
+}
+
+model AchievementDefinition {
+  id          String              @id @default(uuid())
+  key         String              @unique
+  family      AchievementFamily
+  title       String
+  description String
+  identity    String
+  baseTarget  Int
+  xpReward    Int
+  predicate   Json
+  active      Boolean             @default(true)
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  instances   PlayerAchievement[]
+}
+
+model PlayerAchievement {
+  id           String                 @id @default(uuid())
+  playerId     String
+  player       Player                 @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  definitionId String
+  definition   AchievementDefinition  @relation(fields: [definitionId], references: [id], onDelete: Restrict)
+  key          String
+  family       AchievementFamily
+  title        String
+  description  String
+  identity     String
+  predicate    Json
+  target       Int
+  progress     Int                    @default(0)
+  status       AchievementStatus      @default(LOCKED)
+  xpReward     Int
+  unlockedAt   DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([playerId, key])
+  @@index([playerId, family, status])
 }

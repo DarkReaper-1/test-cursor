@@ -1,6 +1,7 @@
 import type { RankKey } from "./constants/ranks";
 import type { ProgressionEventType } from "./constants/events";
 import type { QuestStatus, QuestTier, QuestType } from "./constants/quests";
+import type { AchievementFamily, AchievementStatus } from "./constants/achievements";
 
 export type PlayerSnapshot = {
   id: string;
@@ -84,12 +85,45 @@ export type QuestBoardDto = {
   xpRewardTotal: number;
 };
 
+export type AchievementUnlockDto = {
+  id: string;
+  key: string;
+  family: AchievementFamily;
+  title: string;
+  description: string;
+  identity: string;
+  xp: number;
+};
+
+export type AchievementDto = {
+  id: string;
+  key: string;
+  family: AchievementFamily;
+  title: string;
+  description: string;
+  identity: string;
+  progress: number;
+  target: number;
+  percent: number;
+  status: AchievementStatus;
+  xpReward: number;
+  unlockedAt: string | null;
+};
+
+export type AchievementBoardDto = {
+  milestones: AchievementDto[];
+  streak: AchievementDto[];
+  mastery: AchievementDto[];
+};
+
 export type WorkoutResult = {
   workoutId: string;
   replay: boolean;
   xp: number;
   questXp: number;
   questCompletions: QuestCompletionDto[];
+  achievementXp: number;
+  achievementUnlocks: AchievementUnlockDto[];
   leveledUp: boolean;
   rankUp: boolean;
   before: PlayerSnapshot;

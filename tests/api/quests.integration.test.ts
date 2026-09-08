@@ -97,7 +97,7 @@ describe.skipIf(!hasDb)("quest system integration", () => {
       ["daily_training", "foundation_squats", "upper_pushups"].sort(),
     );
     expect(first.questXp).toBe(80 + 90 + 80);
-    expect(first.player.xp).toBe(first.xp + first.questXp);
+    expect(first.player.xp).toBe(first.xp + first.questXp + first.achievementXp);
     expect(first.events.some((event) => event.type === "QUEST_COMPLETED")).toBe(true);
 
     const today = await getTodayQuests(accountId, new Date("2026-09-08T12:05:00Z"));

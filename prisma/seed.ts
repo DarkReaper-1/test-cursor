@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { QUEST_CATALOG } from "../lib/constants/quests";
+import { ACHIEVEMENT_CATALOG } from "../lib/constants/achievements";
 
 const prisma = new PrismaClient();
 
@@ -107,6 +108,35 @@ async function main() {
         type: entry.type,
         title: entry.title,
         description: entry.descriptionTemplate,
+        baseTarget: entry.baseTarget,
+        xpReward: entry.xpReward,
+        predicate: entry.predicate,
+        active: true,
+        sortOrder: entry.sortOrder,
+      },
+    });
+  }
+
+  for (const entry of ACHIEVEMENT_CATALOG) {
+    await prisma.achievementDefinition.upsert({
+      where: { key: entry.key },
+      update: {
+        family: entry.family,
+        title: entry.title,
+        description: entry.description,
+        identity: entry.identity,
+        baseTarget: entry.baseTarget,
+        xpReward: entry.xpReward,
+        predicate: entry.predicate,
+        active: true,
+        sortOrder: entry.sortOrder,
+      },
+      create: {
+        key: entry.key,
+        family: entry.family,
+        title: entry.title,
+        description: entry.description,
+        identity: entry.identity,
         baseTarget: entry.baseTarget,
         xpReward: entry.xpReward,
         predicate: entry.predicate,

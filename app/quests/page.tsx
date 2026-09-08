@@ -33,6 +33,7 @@ export default async function QuestsPage() {
       <nav className="mt-8 flex gap-6 text-sm text-amber">
         <Link href="/">Today</Link>
         <Link href="/player">Player</Link>
+        <Link href="/achievements">Achievements</Link>
       </nav>
     </Shell>
   );

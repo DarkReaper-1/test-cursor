@@ -36,6 +36,7 @@ export default async function PlayerPage() {
       </div>
       <nav className="mt-8 flex gap-6 text-sm text-amber">
         <Link href="/quests">Quests</Link>
+        <Link href="/achievements">Achievements</Link>
       </nav>
     </Shell>
   );

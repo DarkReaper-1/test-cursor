@@ -101,6 +101,12 @@ export default async function TodayPage() {
           Quests
         </Link>
         <Link
+          href="/achievements"
+          className="min-h-11 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+        >
+          Achievements
+        </Link>
+        <Link
           href="/player"
           className="min-h-11 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
         >
