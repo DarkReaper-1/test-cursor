@@ -21,11 +21,17 @@ describe("quest catalog scaling", () => {
     expect(scaleQuestTarget(session, basePlayer)).toBe(1);
   });
 
-  it("never exceeds 2x base even at a high level", () => {
+  it("does not ratchet daily targets above the directive after a level-up", () => {
+    const squat = QUEST_CATALOG.find((entry) => entry.key === "foundation_squats")!;
     const push = QUEST_CATALOG.find((entry) => entry.key === "upper_pushups")!;
+    const high = { ...basePlayer, level: 12, strength: 22, endurance: 10 };
+    expect(scaleQuestTarget(squat, high)).toBe(3);
+    expect(scaleQuestTarget(push, high)).toBe(30);
+  });
+
+  it("never exceeds 2x base even at a high level", () => {
     const walk = QUEST_CATALOG.find((entry) => entry.key === "movement_week")!;
     const high = { ...basePlayer, level: 80, strength: 40, endurance: 40 };
-    expect(scaleQuestTarget(push, high)).toBe(60);
     expect(scaleQuestTarget(walk, high)).toBe(180);
   });
 

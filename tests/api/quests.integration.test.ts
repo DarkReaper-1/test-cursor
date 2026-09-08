@@ -174,4 +174,25 @@ describe.skipIf(!hasDb)("quest system integration", () => {
     const body = await response.json();
     expect(body.error).toBe("METHOD_NOT_ALLOWED");
   });
+
+  it("keeps next-day daily targets finishable from the 3x10 directive", async () => {
+    const { accountId, player } = await makePlayer();
+    const exercises = await bySlug();
+    await completeWorkout({
+      playerId: player.id,
+      idempotencyKey: randomUUID(),
+      durationSec: 1200,
+      exercises: [
+        { exerciseId: exercises.push.id, sets: 3, reps: 10, weight: 0 },
+        { exerciseId: exercises.squat.id, sets: 3, reps: 8, weight: 0 },
+      ],
+      now: new Date("2026-09-08T12:00:00Z"),
+    });
+    const nextDay = await getTodayQuests(accountId, new Date("2026-09-09T12:00:00Z"));
+    const squat = nextDay.quests.find((quest) => quest.key === "foundation_squats");
+    const push = nextDay.quests.find((quest) => quest.key === "upper_pushups");
+    expect(squat?.target).toBe(3);
+    expect(push?.target).toBe(30);
+    expect(nextDay.quests.find((quest) => quest.key === "daily_training")?.target).toBe(1);
+  });
 });
