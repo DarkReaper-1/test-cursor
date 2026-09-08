@@ -5,11 +5,12 @@ import { getToday } from "@/server/services/today";
 import { Shell } from "@/components/ui/Shell";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { XpTrack } from "@/components/ui/XpTrack";
+import { QuestList } from "@/components/quests/QuestList";
 
 export default async function TodayPage() {
   const accountId = await getSessionAccountId();
   if (!accountId) redirect("/sign-in");
-  const { player, directive } = await getToday(accountId);
+  const { player, directive, dailyQuests } = await getToday(accountId);
 
   return (
     <Shell
@@ -65,6 +66,10 @@ export default async function TodayPage() {
         </ol>
       </section>
 
+      <div className="mt-5">
+        <QuestList board={dailyQuests} heading="DAILY QUESTS" />
+      </div>
+
       <section className="mt-5">
         <p className="mb-3 font-mono text-[10px] tracking-[0.2em] text-steel">ATTRIBUTES</p>
         <div className="grid grid-cols-2 gap-2">
@@ -89,6 +94,12 @@ export default async function TodayPage() {
       </section>
 
       <nav className="mt-6 flex gap-6 text-sm text-amber">
+        <Link
+          href="/quests"
+          className="min-h-11 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+        >
+          Quests
+        </Link>
         <Link
           href="/player"
           className="min-h-11 outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"

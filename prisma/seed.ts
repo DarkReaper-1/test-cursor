@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { QUEST_CATALOG } from "../lib/constants/quests";
 
 const prisma = new PrismaClient();
 
@@ -83,6 +84,35 @@ async function main() {
       where: { slug: exercise.slug },
       update: exercise,
       create: exercise,
+    });
+  }
+
+  for (const entry of QUEST_CATALOG) {
+    await prisma.questDefinition.upsert({
+      where: { key: entry.key },
+      update: {
+        tier: entry.tier,
+        type: entry.type,
+        title: entry.title,
+        description: entry.descriptionTemplate,
+        baseTarget: entry.baseTarget,
+        xpReward: entry.xpReward,
+        predicate: entry.predicate,
+        active: true,
+        sortOrder: entry.sortOrder,
+      },
+      create: {
+        key: entry.key,
+        tier: entry.tier,
+        type: entry.type,
+        title: entry.title,
+        description: entry.descriptionTemplate,
+        baseTarget: entry.baseTarget,
+        xpReward: entry.xpReward,
+        predicate: entry.predicate,
+        active: true,
+        sortOrder: entry.sortOrder,
+      },
     });
   }
 }
