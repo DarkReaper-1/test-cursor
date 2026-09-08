@@ -71,7 +71,7 @@ export const QUEST_CATALOG: QuestCatalogEntry[] = [
     title: "Iron Week",
     descriptionTemplate: "Complete {target} training sessions.",
     baseTarget: 4,
-    xpReward: 750,
+    xpReward: 400,
     sortOrder: 10,
     predicate: { kind: "CONSISTENCY" },
   },

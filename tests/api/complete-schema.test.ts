@@ -28,4 +28,17 @@ describe("completeWorkoutSchema", () => {
     });
     expect(parsed).toEqual(valid);
   });
+
+  it("does not accept client quest or Iron Week XP", () => {
+    const parsed = completeWorkoutSchema.parse({
+      ...valid,
+      questXp: 750,
+      xpReward: 750,
+      ironWeekXp: 750,
+    });
+    expect(parsed).toEqual(valid);
+    expect("questXp" in parsed).toBe(false);
+    expect("xpReward" in parsed).toBe(false);
+    expect("ironWeekXp" in parsed).toBe(false);
+  });
 });

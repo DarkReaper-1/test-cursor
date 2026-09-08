@@ -53,13 +53,19 @@ describe.skipIf(!hasDb)("quest system integration", () => {
   });
 
   it("creates weekly quests that survive a daily boundary", async () => {
-    const { accountId } = await makePlayer("America/New_York");
+    const { accountId, player } = await makePlayer("America/New_York");
     const monday = await getWeekQuests(accountId, new Date("2026-09-08T12:00:00Z"));
     const tuesday = await getWeekQuests(accountId, new Date("2026-09-09T12:00:00Z"));
     expect(monday.quests.length).toBeGreaterThanOrEqual(1);
     expect(monday.quests.length).toBeLessThanOrEqual(2);
     expect(tuesday.periodKey).toBe(monday.periodKey);
     expect(tuesday.quests.map((quest) => quest.id)).toEqual(monday.quests.map((quest) => quest.id));
+    const iron = monday.quests.find((quest) => quest.key === "iron_week");
+    expect(iron?.xpReward).toBe(400);
+    const stored = await db.playerQuest.findFirst({
+      where: { playerId: player.id, key: "iron_week" },
+    });
+    expect(stored?.xpReward).toBe(400);
   });
 
   it("uses the local timezone day, not UTC midnight", async () => {
@@ -100,6 +106,7 @@ describe.skipIf(!hasDb)("quest system integration", () => {
     const iron = week.quests.find((quest) => quest.key === "iron_week");
     expect(iron?.progress).toBe(1);
     expect(iron?.status).toBe("ACTIVE");
+    expect(iron?.xpReward).toBe(400);
 
     const second = await completeWorkout({
       playerId: player.id,
