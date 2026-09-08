@@ -24,8 +24,7 @@ export default async function TodayPage() {
         </div>
       }
     >
-      <p className="font-mono text-[10px] tracking-[0.28em] text-amber">SYSTEM</p>
-      <h1 className="mt-2 font-display text-4xl leading-none">What should you do now?</h1>
+      <h1 className="mt-1 font-display text-4xl leading-none">What should you do now?</h1>
       <p className="mt-3 font-mono text-xs tracking-[0.14em] text-steel">{player.username}</p>
 
       <section className="mt-7 rounded-xl border border-steel-line bg-steel-raised p-4">

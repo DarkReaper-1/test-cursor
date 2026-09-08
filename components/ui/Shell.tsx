@@ -18,7 +18,7 @@ export function Shell({
         </Link>
         <p className="font-mono text-[10px] tracking-[0.18em] text-steel">V0.1</p>
       </header>
-      <main className="flex-1">{children}</main>
+      <main className={footer ? "flex-1 pb-24" : "flex-1"}>{children}</main>
       {footer}
     </div>
   );
