@@ -1,6 +1,9 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { QUEST_CATALOG } from "../lib/constants/quests";
 import { ACHIEVEMENT_CATALOG } from "../lib/constants/achievements";
+import { PLAYTEST_OPERATOR } from "../lib/constants/playtest";
+import { BASELINE_ATTRIBUTE } from "../lib/constants/attributes";
 
 const prisma = new PrismaClient();
 
@@ -144,6 +147,38 @@ async function main() {
         sortOrder: entry.sortOrder,
       },
     });
+  }
+
+  const passwordHash = await bcrypt.hash(PLAYTEST_OPERATOR.password, 10);
+  const account = await prisma.account.upsert({
+    where: { email: PLAYTEST_OPERATOR.email },
+    update: { passwordHash },
+    create: { email: PLAYTEST_OPERATOR.email, passwordHash },
+  });
+  const player = await prisma.player.findUnique({ where: { accountId: account.id } });
+  if (!player) {
+    const usernameTaken = await prisma.player.findUnique({
+      where: { username: PLAYTEST_OPERATOR.username },
+    });
+    if (!usernameTaken) {
+      await prisma.player.create({
+        data: {
+          accountId: account.id,
+          username: PLAYTEST_OPERATOR.username,
+          timezone: "UTC",
+          level: 1,
+          xp: 0,
+          rank: "INITIATE",
+          strength: BASELINE_ATTRIBUTE,
+          endurance: BASELINE_ATTRIBUTE,
+          agility: BASELINE_ATTRIBUTE,
+          vitality: BASELINE_ATTRIBUTE,
+          discipline: BASELINE_ATTRIBUTE,
+          streak: 0,
+          bestStreak: 0,
+        },
+      });
+    }
   }
 }
 

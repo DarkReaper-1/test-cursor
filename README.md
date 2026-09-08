@@ -23,7 +23,15 @@ pnpm test
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Register a callsign, begin today’s directive, log the work. XP is awarded on the server.
+Open [http://localhost:3000](http://localhost:3000). The sign-in form is prefilled with the playtest file (remove before launch):
+
+```text
+callsign  tester
+email     tester@system.test
+password  testfile1
+```
+
+Press **Enter**. Then begin today’s directive.
 
 ## Rules
 

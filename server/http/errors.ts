@@ -7,6 +7,20 @@ export function jsonError(status: number, error: string, message: string) {
 
 export function fromUnknown(err: unknown) {
   if (err instanceof ZodError) {
+    const path = err.issues[0]?.path[0];
+    if (path === "username") {
+      return jsonError(
+        400,
+        "INVALID_CALLSIGN",
+        "Callsign must be 3–24 letters, numbers, or underscores. No spaces.",
+      );
+    }
+    if (path === "email") {
+      return jsonError(400, "INVALID_EMAIL", "Enter a valid email. Playtest: tester@system.test");
+    }
+    if (path === "password") {
+      return jsonError(400, "INVALID_PASSWORD", "Password must be at least 8 characters. Playtest: testfile1");
+    }
     return jsonError(400, "INVALID", "Request did not match the contract.");
   }
   const message = err instanceof Error ? err.message : "Request failed";

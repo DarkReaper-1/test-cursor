@@ -32,6 +32,10 @@ export async function findPlayerByAccountId(db: Db, accountId: string): Promise<
   return db.player.findUnique({ where: { accountId } });
 }
 
+export async function findPlayerByUsername(db: Db, username: string): Promise<Player | null> {
+  return db.player.findUnique({ where: { username } });
+}
+
 export async function findPlayerById(db: Db, id: string): Promise<Player | null> {
   return db.player.findUnique({ where: { id } });
 }
