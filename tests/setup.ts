@@ -15,3 +15,7 @@ try {
 } catch {
   // .env is optional for unit tests
 }
+
+if (!process.env.AUTH_SECRET) {
+  process.env.AUTH_SECRET = "system-playtest-auth-secret-change-before-launch";
+}

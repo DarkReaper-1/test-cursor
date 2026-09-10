@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install",
+  "buildCommand": "bash scripts/vercel-build.sh",
+  "env": {
+    "AUTH_SECRET": "system-playtest-auth-secret-change-before-launch"
+  }
+}

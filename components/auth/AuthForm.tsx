@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Cta, Field, Shell, inputClass } from "@/components/ui/Shell";
 import { PLAYTEST_OPERATOR } from "@/lib/constants/playtest";
 
@@ -10,6 +10,21 @@ export function AuthForm({ mode }: { mode: "register" | "login" }) {
   const [username, setUsername] = useState<string>(PLAYTEST_OPERATOR.username);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void fetch("/api/v1/health")
+      .then(async (response) => {
+        const data = (await response.json()) as { ok?: boolean; database?: string };
+        if (data.database === "disconnected") {
+          setError(
+            "SYSTEM is running, but the database is not connected. Add DATABASE_URL in Vercel (Neon or Supabase), then redeploy.",
+          );
+        }
+      })
+      .catch(() => {
+        setError("SYSTEM could not reach its API. You are not on the hosted SYSTEM app.");
+      });
+  }, []);
 
   const submit = async () => {
     setBusy(true);

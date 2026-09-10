@@ -24,6 +24,7 @@ export function fromUnknown(err: unknown) {
     return jsonError(400, "INVALID", "Request did not match the contract.");
   }
   const message = err instanceof Error ? err.message : "Request failed";
+  const name = err instanceof Error ? err.name : "";
   if (message === "UNAUTHORIZED") return jsonError(401, "UNAUTHORIZED", "Sign in required.");
   if (message === "EMAIL_TAKEN") return jsonError(409, "EMAIL_TAKEN", "That email is already activated.");
   if (message === "USERNAME_TAKEN") return jsonError(409, "USERNAME_TAKEN", "That callsign is taken.");
@@ -32,6 +33,18 @@ export function fromUnknown(err: unknown) {
   if (message === "UNKNOWN_EXERCISE") return jsonError(400, "UNKNOWN_EXERCISE", "Exercise is not in the catalog.");
   if (message === "PROMOTION_NOT_AVAILABLE") {
     return jsonError(409, "PROMOTION_NOT_AVAILABLE", "No rank promotion is available.");
+  }
+  if (
+    message === "AUTH_SECRET is not set" ||
+    message.includes("Can't reach database") ||
+    message.includes("DATABASE_URL") ||
+    (typeof name === "string" && name.includes("PrismaClientInitialization"))
+  ) {
+    return jsonError(
+      503,
+      "DATABASE",
+      "SYSTEM is up, but it has no database on this host. Add DATABASE_URL in Vercel (Neon or Supabase Postgres), then redeploy.",
+    );
   }
   return jsonError(500, "ERROR", "SYSTEM could not complete that.");
 }

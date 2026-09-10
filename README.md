@@ -2,28 +2,11 @@
 
 SYSTEM is an original fitness RPG. Your real-world training is the save file.
 
-This is not a franchise clone. No hunter guilds, dungeon windows, or borrowed chrome.
+North star: **your body is the save file.**
 
-## Status
+> **Level is what you earn. Rank is what you are recognized as.**
 
-Phases 0–3: scaffold, identity, training log, Today / train / result UI.
-
-Quests, achievements, builds, AI, social, wearables, camera, and payments are not implemented.
-
-## Setup
-
-```bash
-cp .env.example .env   # DATABASE_URL, AUTH_SECRET
-pnpm install
-pnpm db:generate
-pnpm db:migrate:dev
-pnpm db:seed
-pnpm typecheck
-pnpm test
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000). The sign-in form is prefilled with the playtest file (remove before launch):
+## Playtest file
 
 ```text
 callsign  tester
@@ -31,12 +14,25 @@ email     tester@system.test
 password  testfile1
 ```
 
-Press **Enter**. Then begin today’s directive.
+## Website
+
+The public GitHub/Vercel link only serves SYSTEM after this app is on `main` **and** `DATABASE_URL` is set in Vercel. See `docs/hosting.md`.
+
+Local:
+
+```bash
+cp .env.example .env
+pnpm install
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+Open [http://localhost:3000/sign-in](http://localhost:3000/sign-in). Leave the prefilled playtest file. Press Enter.
 
 ## Rules
 
 - The client never grants XP, level, rank, or attributes.
-- `XpEvent` is the source of truth; Player fields are snapshots.
-- Workout completion is transactional and idempotent.
+- Rank is accepted, never auto-applied from level.
 - Repositories are the only Prisma callers.
-- Rank names live in `lib/constants/ranks.ts`.

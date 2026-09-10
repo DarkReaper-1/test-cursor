@@ -22,6 +22,13 @@ describe("uniqueConstraintFields", () => {
 });
 
 describe("auth validation copy", () => {
+  it("explains a missing database instead of a generic 500", async () => {
+    const response = fromUnknown(new Error("Can't reach database server at `127.0.0.1:5432`"));
+    const body = await response.json();
+    expect(response.status).toBe(503);
+    expect(body.error).toBe("DATABASE");
+  });
+
   it("explains callsign rules instead of a generic contract error", async () => {
     const response = fromUnknown(
       new ZodError([
