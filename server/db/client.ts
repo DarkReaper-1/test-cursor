@@ -1,4 +1,7 @@
 import { PrismaClient, type Prisma } from "@prisma/client";
+import { ensureSqliteFile } from "./url";
+
+ensureSqliteFile();
 
 export type Db = PrismaClient | Prisma.TransactionClient;
 

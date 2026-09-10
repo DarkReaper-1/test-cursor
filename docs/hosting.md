@@ -1,22 +1,17 @@
 # Host SYSTEM on the public website
 
-The GitHub repo website (https://test-cursor-eosin.vercel.app) deploys **`main`**. Until SYSTEM is on `main` with a Postgres URL, that link will keep serving an older app (Spider-Man, etc.) or a failed Vercel preview.
+The GitHub repo website (https://test-cursor-eosin.vercel.app) deploys **`main`**. Until SYSTEM is on `main`, that link will keep serving an older app (Spider-Man, etc.).
+
+SYSTEM ships a SQLite save file. You do **not** need Neon, Supabase, or a Vercel `DATABASE_URL`.
 
 ## Permanent setup (once)
 
-1. Merge this branch into `main` so Vercel production builds SYSTEM, not the old static games.
-2. Create a free Postgres database at [Neon](https://console.neon.tech) or [Supabase](https://supabase.com). Copy the connection string.
-3. In Vercel → Project **test-cursor** → Settings → Environment Variables, add:
+1. Merge this branch into `main` so Vercel production builds SYSTEM.
+2. Redeploy Production if Vercel does not auto-deploy.
 
-   | Name | Value |
-   | --- | --- |
-   | `DATABASE_URL` | the Neon/Supabase URL (`postgresql://…`) |
-   | `AUTH_SECRET` | any long random string (override the playtest default before launch) |
+The build generates Prisma, pushes the SQLite schema, and seeds the playtest file into `prisma/dev.db`. On Vercel that file is copied to `/tmp/system.db` (the writable path) on boot.
 
-   Apply to **Production**, **Preview**, and **Development**.
-4. Redeploy Production (Deployments → … → Redeploy).
-
-The build will run migrations and seed the playtest file:
+Playtest file:
 
 ```text
 tester
@@ -24,10 +19,11 @@ tester@system.test
 testfile1
 ```
 
-5. Open https://test-cursor-eosin.vercel.app/sign-in and press Enter.
+3. Open https://test-cursor-eosin.vercel.app/sign-in and press Enter.
 
-## What this repo already does
+`AUTH_SECRET` has a playtest default in `vercel.json`. Change it before launch.
 
-- Vercel build generates Prisma even if `DATABASE_URL` is missing, so the Next.js app can deploy.
-- If the database is missing, sign-in shows that error instead of doing nothing.
-- `AUTH_SECRET` has a playtest default in `vercel.json`. Change it before launch.
+## Notes
+
+- Leftover `postgresql://…` env vars are ignored.
+- Vercel serverless `/tmp` is per-instance, so playtest progress may reset between cold starts. That is enough to sign in and train. A hosted Postgres URL is optional later if you want durable saves.

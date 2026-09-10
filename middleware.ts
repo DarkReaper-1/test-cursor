@@ -1,9 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { applyAuthSecret } from "@/lib/runtime-env";
+
+applyAuthSecret();
 
 const COOKIE = "system_session";
 
 function secret() {
+  applyAuthSecret();
   return new TextEncoder().encode(process.env.AUTH_SECRET ?? "");
 }
 

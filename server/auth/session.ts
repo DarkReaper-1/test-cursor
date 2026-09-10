@@ -1,10 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
+import { applyAuthSecret } from "@/lib/runtime-env";
 
 export const SESSION_COOKIE = "system_session";
 
 function secret() {
+  applyAuthSecret();
   const value = process.env.AUTH_SECRET;
   if (!value) {
     throw new Error("AUTH_SECRET is not set");

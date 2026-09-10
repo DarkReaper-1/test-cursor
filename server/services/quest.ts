@@ -6,6 +6,7 @@ import * as questRepo from "../repositories/quest";
 import * as xpEventRepo from "../repositories/xp-event";
 import * as eventRepo from "../repositories/progression-event";
 import { QUEST_CATALOG, type QuestTier } from "@/lib/constants/quests";
+import { stringArray } from "@/lib/json-array";
 import type { QuestBoardDto, QuestCompletionDto, QuestDto } from "@/lib/types";
 import {
   activeCatalogForTier,
@@ -137,14 +138,15 @@ export async function applyWorkoutToQuests(
   let questXp = 0;
 
   for (const quest of active) {
-    if (quest.sourceIds.includes(input.workoutId)) continue;
+    const seen = stringArray(quest.sourceIds);
+    if (seen.includes(input.workoutId)) continue;
     const delta = deltaForQuest({
       type: quest.type,
       predicate: quest.predicate,
       activity,
     });
     const progress = applyDelta(quest.progress, quest.target, delta);
-    const sourceIds = [...quest.sourceIds, input.workoutId];
+    const sourceIds = [...seen, input.workoutId];
     const completes = quest.status === "ACTIVE" && shouldComplete(progress, quest.target);
 
     if (completes) {

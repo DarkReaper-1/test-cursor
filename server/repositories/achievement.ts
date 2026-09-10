@@ -1,9 +1,9 @@
+import { Prisma } from "@prisma/client";
 import type {
   AchievementDefinition,
   AchievementFamily,
   AchievementStatus,
   PlayerAchievement,
-  Prisma,
 } from "@prisma/client";
 import type { Db } from "../db/client";
 import type { AchievementCatalogEntry } from "@/lib/constants/achievements";
@@ -65,8 +65,15 @@ export async function createPlayerAchievementsIgnoreDupes(
   db: Db,
   rows: PlayerAchievementCreate[],
 ): Promise<void> {
-  if (rows.length === 0) return;
-  await db.playerAchievement.createMany({ data: rows, skipDuplicates: true });
+  for (const row of rows) {
+    try {
+      await db.playerAchievement.create({ data: row });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") {
+        throw err;
+      }
+    }
+  }
 }
 
 export async function listPlayerAchievements(

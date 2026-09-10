@@ -1,4 +1,5 @@
-import type { PlayerQuest, Prisma, QuestDefinition, QuestStatus, QuestTier } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { PlayerQuest, QuestDefinition, QuestStatus, QuestTier } from "@prisma/client";
 import type { Db } from "../db/client";
 import type { QuestCatalogEntry } from "@/lib/constants/quests";
 
@@ -67,8 +68,15 @@ export async function createPlayerQuestsIgnoreDupes(
   db: Db,
   rows: PlayerQuestCreate[],
 ): Promise<void> {
-  if (rows.length === 0) return;
-  await db.playerQuest.createMany({ data: rows, skipDuplicates: true });
+  for (const row of rows) {
+    try {
+      await db.playerQuest.create({ data: row });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError) || err.code !== "P2002") {
+        throw err;
+      }
+    }
+  }
 }
 
 export async function listPlayerQuestsForPeriod(
@@ -112,7 +120,7 @@ export async function updatePlayerQuest(
     progress?: number;
     status?: QuestStatus;
     completedAt?: Date | null;
-    sourceIds?: string[];
+    sourceIds?: Prisma.InputJsonValue;
   },
 ): Promise<PlayerQuest> {
   return db.playerQuest.update({ where: { id }, data });
