@@ -1,5 +1,5 @@
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
-import path from "node:path";
+import fs from "fs";
+import path from "path";
 import { applyAuthSecret, resolveDatabaseUrl } from "@/lib/runtime-env";
 
 function packagedDatabasePaths(): string[] {
@@ -14,7 +14,7 @@ function packagedDatabasePaths(): string[] {
 
 function findPackagedDatabase(): string | null {
   for (const candidate of packagedDatabasePaths()) {
-    if (existsSync(candidate)) return candidate;
+    if (fs.existsSync(candidate)) return candidate;
   }
   return null;
 }
@@ -36,11 +36,11 @@ export function ensureSqliteFile(): string {
   process.env.DATABASE_URL = url;
 
   const dest = sqliteFilePath(url);
-  if (dest && !existsSync(dest)) {
+  if (dest && !fs.existsSync(dest)) {
     const src = findPackagedDatabase();
     if (src && src !== dest) {
-      mkdirSync(path.dirname(dest), { recursive: true });
-      copyFileSync(src, dest);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
     }
   }
 
