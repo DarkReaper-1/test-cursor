@@ -1,5 +1,9 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import path, { resolve } from "node:path";
+import { PrismaClient } from "@prisma/client";
+import { PLAYTEST_AUTH_SECRET } from "../lib/runtime-env";
+import { seedCatalog } from "../server/db/seed-catalog";
 
 try {
   const raw = readFileSync(resolve(process.cwd(), ".env"), "utf8");
@@ -16,6 +20,19 @@ try {
   // .env is optional for unit tests
 }
 
+process.env.DATABASE_URL = "file:./test.db";
 if (!process.env.AUTH_SECRET) {
-  process.env.AUTH_SECRET = "system-playtest-auth-secret-change-before-launch";
+  process.env.AUTH_SECRET = PLAYTEST_AUTH_SECRET;
 }
+
+const prismaCli = path.join(process.cwd(), "node_modules", "prisma", "build", "index.js");
+if (existsSync(prismaCli)) {
+  execFileSync(process.execPath, [prismaCli, "db", "push", "--skip-generate", "--accept-data-loss"], {
+    env: process.env,
+    stdio: "pipe",
+  });
+}
+
+const seedClient = new PrismaClient();
+await seedCatalog(seedClient);
+await seedClient.$disconnect();

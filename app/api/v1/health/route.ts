@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/server/db/client";
+import { prepareDatabase } from "@/server/db/ready";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   let database = "disconnected";
   try {
+    await prepareDatabase();
     await prisma.$queryRaw`SELECT 1`;
     database = "connected";
   } catch {

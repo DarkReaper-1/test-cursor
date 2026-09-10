@@ -16,7 +16,7 @@ password  testfile1
 
 ## Website
 
-The public GitHub/Vercel link only serves SYSTEM after this app is on `main` **and** `DATABASE_URL` is set in Vercel. See `docs/hosting.md`.
+The public GitHub/Vercel link only serves SYSTEM after this app is on `main`. SQLite is bundled — no Neon/Supabase `DATABASE_URL` is required. See `docs/hosting.md`.
 
 Local:
 
@@ -24,7 +24,7 @@ Local:
 cp .env.example .env
 pnpm install
 pnpm db:generate
-pnpm db:migrate
+pnpm db:push
 pnpm db:seed
 pnpm dev
 ```

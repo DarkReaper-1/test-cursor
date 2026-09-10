@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db/client";
+import { prepareDatabase } from "../db/ready";
 import * as accountRepo from "../repositories/account";
 import * as playerRepo from "../repositories/player";
 import { toPlayerSnapshot } from "@/lib/format";
@@ -37,6 +38,7 @@ export async function register(input: {
   username: string;
   timezone?: string;
 }): Promise<{ accountId: string; player: PlayerSnapshot }> {
+  await prepareDatabase();
   const existing = await accountRepo.findAccountByEmail(prisma, input.email);
   if (existing) {
     if (isPlaytestOperator({ email: input.email, username: input.username, password: input.password })) {
@@ -81,6 +83,7 @@ export async function login(input: {
   email: string;
   password: string;
 }): Promise<{ accountId: string; player: PlayerSnapshot }> {
+  await prepareDatabase();
   const account = await accountRepo.findAccountByEmail(prisma, input.email);
   if (!account) {
     throw new AuthError("INVALID_CREDENTIALS", "Email or password is wrong.");

@@ -43,7 +43,7 @@ export function fromUnknown(err: unknown) {
     return jsonError(
       503,
       "DATABASE",
-      "SYSTEM is up, but it has no database on this host. Add DATABASE_URL in Vercel (Neon or Supabase Postgres), then redeploy.",
+      "SYSTEM could not open its save file. Restart the app; the SQLite database is created automatically.",
     );
   }
   return jsonError(500, "ERROR", "SYSTEM could not complete that.");

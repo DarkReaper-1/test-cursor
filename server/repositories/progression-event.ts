@@ -17,17 +17,18 @@ export async function findWorkoutCompletedEvent(
   playerId: string,
   workoutId: string,
 ): Promise<ProgressionEvent | null> {
-  return db.progressionEvent.findFirst({
-    where: {
-      playerId,
-      type: "WORKOUT_COMPLETED",
-      payload: {
-        path: ["workoutId"],
-        equals: workoutId,
-      },
-    },
+  const rows = await db.progressionEvent.findMany({
+    where: { playerId, type: "WORKOUT_COMPLETED" },
     orderBy: { createdAt: "desc" },
+    take: 50,
   });
+  return (
+    rows.find((row) => {
+      const payload = row.payload;
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+      return (payload as { workoutId?: unknown }).workoutId === workoutId;
+    }) ?? null
+  );
 }
 
 export async function listRecentProgressionEvents(

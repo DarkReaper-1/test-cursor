@@ -16,9 +16,7 @@ export function AuthForm({ mode }: { mode: "register" | "login" }) {
       .then(async (response) => {
         const data = (await response.json()) as { ok?: boolean; database?: string };
         if (data.database === "disconnected") {
-          setError(
-            "SYSTEM is running, but the database is not connected. Add DATABASE_URL in Vercel (Neon or Supabase), then redeploy.",
-          );
+          setError("SYSTEM could not open its save file. Wait a moment and try Enter again.");
         }
       })
       .catch(() => {

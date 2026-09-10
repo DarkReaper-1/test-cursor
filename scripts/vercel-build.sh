@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
-# Vercel / production build. Prisma generate needs a DATABASE_URL even when
-# it will not connect; migrate/seed only run when a real host URL is present.
+# Vercel / production build. Ships a seeded SQLite file so the app runs
+# without DATABASE_URL (Neon/Supabase are not required).
 set -euo pipefail
 
-DUMMY_DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build"
-REAL_DATABASE_URL="${DATABASE_URL:-}"
-
-export DATABASE_URL="${REAL_DATABASE_URL:-$DUMMY_DATABASE_URL}"
-pnpm exec prisma generate
-
-if [[ -n "$REAL_DATABASE_URL" ]]; then
-  export DATABASE_URL="$REAL_DATABASE_URL"
-  pnpm exec prisma migrate deploy
-  pnpm exec tsx prisma/seed.ts
+if [[ -z "${DATABASE_URL:-}" || "${DATABASE_URL}" == postgresql://* || "${DATABASE_URL}" == postgres://* ]]; then
+  export DATABASE_URL="file:./dev.db"
 fi
 
+pnpm exec prisma generate
+pnpm exec prisma db push --skip-generate --accept-data-loss
+pnpm exec tsx prisma/seed.ts
 pnpm exec next build

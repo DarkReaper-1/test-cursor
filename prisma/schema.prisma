@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -32,7 +32,7 @@ model Player {
   discipline        Int                 @default(10)
   streak            Int                 @default(0)
   bestStreak        Int                 @default(0)
-  lastActivityDate  DateTime?           @db.Date
+  lastActivityDate  DateTime?
   timezone          String              @default("UTC")
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -49,9 +49,9 @@ model Exercise {
   slug          String             @unique
   name          String
   description   String
-  muscleGroups  String[]
+  muscleGroups  Json
   difficulty    Int
-  equipment     String[]
+  equipment     Json
   movementType  String
   active        Boolean            @default(true)
   workoutItems  WorkoutExercise[]
@@ -78,7 +78,7 @@ model WorkoutExercise {
   exercise     Exercise @relation(fields: [exerciseId], references: [id])
   sets         Int
   reps         Int
-  weight       Decimal  @default(0) @db.Decimal(8, 2)
+  weight       Float    @default(0)
   durationSec  Int?
   sortOrder    Int      @default(0)
 }
@@ -161,7 +161,7 @@ model PlayerQuest {
   startedAt    DateTime
   expiresAt    DateTime
   completedAt  DateTime?
-  sourceIds    String[]        @default([])
+  sourceIds    Json            @default("[]")
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
