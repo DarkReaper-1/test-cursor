@@ -5,8 +5,20 @@ describe("completeWorkoutSchema", () => {
   const valid = {
     idempotencyKey: "11111111-1111-4111-8111-111111111111",
     durationSec: 1200,
+    source: "CAMERA" as const,
     exercises: [{ exerciseId: "22222222-2222-4222-8222-222222222222", sets: 3, reps: 10, weight: 0 }],
   };
+
+  it("rejects work SYSTEM did not see", () => {
+    expect(() => completeWorkoutSchema.parse({ ...valid, source: undefined })).toThrow();
+    expect(() =>
+      completeWorkoutSchema.parse({
+        idempotencyKey: valid.idempotencyKey,
+        durationSec: valid.durationSec,
+        exercises: valid.exercises,
+      }),
+    ).toThrow();
+  });
 
   it("strips client XP, level, rank, and attributes", () => {
     const parsed = completeWorkoutSchema.parse({
