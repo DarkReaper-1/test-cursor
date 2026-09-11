@@ -28,6 +28,7 @@ export function cameraWorkoutBody(input: {
   return completeWorkoutSchema.parse({
     idempotencyKey: input.idempotencyKey,
     durationSec: input.durationSec,
+    source: "CAMERA",
     exercises: input.exercises.map((item) => ({
       exerciseId: item.exerciseId,
       sets: item.sets,

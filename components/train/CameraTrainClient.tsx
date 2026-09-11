@@ -3,11 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Cta, Shell } from "@/components/ui/Shell";
-import {
-  isCameraExercise,
-  VISION_PRIVACY_LINE,
-  type CameraExerciseSlug,
-} from "@/lib/constants/vision";
+import { VISION_PRIVACY_LINE } from "@/lib/constants/vision";
 import { emptyRepCounter, tickRepCounter, type RepCounterState } from "@/lib/vision/rep-counter";
 import { cameraDurationSec, cameraWorkoutBody, summarizeCameraSets } from "@/lib/vision/workout-payload";
 import { createPoseEngine, type PoseEngine } from "@/lib/vision/pose-engine";
@@ -96,7 +92,6 @@ export function CameraTrainClient() {
   };
 
   const startCamera = async (exercise: CatalogExercise, mode = facing) => {
-    if (!isCameraExercise(exercise.slug)) return;
     setError(null);
     setSelected(exercise);
     setSetReps([]);
@@ -115,10 +110,10 @@ export function CameraTrainClient() {
         const pose = engineRef.current;
         if (node && pose && node.readyState >= 2) {
           const landmarks = pose.detect(node, performance.now());
-          const slug = exercise.slug as CameraExerciseSlug;
+          const slug = exercise.slug;
           const previous = counterRef.current.reps;
-          counterRef.current = tickRepCounter(counterRef.current, slug, landmarks);
           const now = performance.now();
+          counterRef.current = tickRepCounter(counterRef.current, slug, landmarks, now);
           if (counterRef.current.reps !== previous || now - lastUi > 90) {
             lastUi = now;
             setCounter({ ...counterRef.current });
@@ -132,8 +127,8 @@ export function CameraTrainClient() {
       const denied = err instanceof DOMException && err.name === "NotAllowedError";
       setError(
         denied
-          ? "Camera permission is off. Use manual log, or allow the camera and try again."
-          : "Could not start movement detection. Use manual log.",
+          ? "Camera permission is off. SYSTEM cannot file work it has not seen."
+          : "Could not start movement detection. SYSTEM only files work it has seen.",
       );
     }
   };
@@ -152,7 +147,7 @@ export function CameraTrainClient() {
   const completeSet = () => {
     const reps = counterRef.current.reps;
     if (reps < 1) {
-      setError("No reps counted in this set.");
+      setError("SYSTEM has not seen a set yet.");
       return;
     }
     setError(null);
@@ -188,7 +183,7 @@ export function CameraTrainClient() {
       }
     }
     if (rows.length === 0) {
-      setError("Log at least one set before SYSTEM evaluates.");
+      setError("Log at least one set SYSTEM has seen before it evaluates.");
       return;
     }
     setBusy(true);
@@ -218,15 +213,15 @@ export function CameraTrainClient() {
     }
   };
 
-  const cameraCatalog = catalog.filter((item) => isCameraExercise(item.slug));
+  const cameraCatalog = catalog;
   const todayIds = new Set(directive?.exercises.map((item) => item.exerciseId) ?? []);
 
   return (
     <Shell>
-      <a href="/train" className="text-sm text-amber">
-        Train
+      <a href="/" className="text-sm text-amber">
+        Today
       </a>
-      <h1 className="mt-3 font-display text-4xl leading-none">Camera</h1>
+      <h1 className="mt-3 font-display text-4xl leading-none">Train</h1>
       <p className="mt-3 text-sm text-steel">{VISION_PRIVACY_LINE}</p>
 
       <div className="relative mt-5 overflow-hidden rounded-xl border border-steel-line bg-void">
@@ -239,15 +234,18 @@ export function CameraTrainClient() {
         />
         {!live ? (
           <div className="flex aspect-[3/4] items-center justify-center px-6 text-center">
-            <p className="text-sm text-steel">Select an exercise. SYSTEM will count on-device.</p>
+            <p className="text-sm text-steel">Select an exercise. SYSTEM must see the movement to file it.</p>
           </div>
         ) : null}
         {live ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-void to-transparent p-4">
             <p className="font-mono text-[10px] tracking-[0.2em] text-amber">
-              {selected?.name.toUpperCase()} · {counter.inFrame ? counter.phase.toUpperCase() : "FIND BODY"}
+              {selected?.name.toUpperCase()} ·{" "}
+              {counter.inFrame ? (selected?.slug === "plank" ? "HOLD" : counter.phase.toUpperCase()) : "FIND BODY"}
             </p>
-            <p className="mt-1 font-display text-5xl tabular-nums leading-none">{counter.reps}</p>
+            <p className="mt-1 font-display text-5xl tabular-nums leading-none">
+              {selected?.slug === "plank" ? `${counter.reps}s` : counter.reps}
+            </p>
             <p className="mt-2 font-mono text-[10px] tracking-[0.16em] text-steel">
               SET {String(setReps.length + 1).padStart(2, "0")}
               {setReps.length > 0 ? ` · ${setReps.join(" / ")}` : ""}
@@ -319,9 +317,6 @@ export function CameraTrainClient() {
       <Cta disabled={busy || (logged.length === 0 && setReps.length === 0 && counter.reps === 0)} onClick={() => void submit()}>
         {busy ? "Evaluating…" : "Complete workout"}
       </Cta>
-      <p className="mt-4 text-center text-sm text-amber">
-        <a href="/train/manual">Camera won’t work? Manual log</a>
-      </p>
     </Shell>
   );
 }

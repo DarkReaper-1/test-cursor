@@ -14,7 +14,7 @@ describe("camera workout payload", () => {
     expect(cameraDurationSec(0, 12_000)).toBe(60);
   });
 
-  it("builds the same POST body as manual logging", () => {
+  it("builds a CAMERA workout contract", () => {
     const body = cameraWorkoutBody({
       idempotencyKey: "11111111-1111-4111-8111-111111111111",
       durationSec: 60,
@@ -22,5 +22,6 @@ describe("camera workout payload", () => {
     });
     expect(body.exercises[0]?.weight).toBe(0);
     expect(body.exercises[0]?.sets).toBe(3);
+    expect(body.source).toBe("CAMERA");
   });
 });

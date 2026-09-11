@@ -66,4 +66,13 @@ describe("tickRepCounter", () => {
     state = tickRepCounter(state, "squat", sideFigure(170));
     expect(state.reps).toBe(0);
   });
+
+  it("counts plank hold time as reps", () => {
+    const plank = sideFigure(170);
+    let state = emptyRepCounter();
+    for (let t = 0; t <= 4000; t += 100) {
+      state = tickRepCounter(state, "plank", plank, t);
+    }
+    expect(state.reps).toBeGreaterThanOrEqual(3);
+  });
 });

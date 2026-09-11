@@ -39,5 +39,5 @@ Open [http://localhost:3000/sign-in](http://localhost:3000/sign-in). Leave the p
 
 ## Phase 7 — Vision
 
-V1 is **guided camera logging**. You pick the exercise; the camera counts reps on-device; SYSTEM still evaluates through `POST /api/v1/workouts`. Manual log stays. Footage is not saved. See `docs/vision.md`.
+V1 is **guided camera logging**. You pick the exercise; the camera counts reps on-device; SYSTEM still evaluates through `POST /api/v1/workouts`. There is no manual log — work is not filed until SYSTEM has seen it. Footage is not saved. See `docs/vision.md`.
 

@@ -1,5 +1,5 @@
-import { TrainClient } from "@/components/train/TrainClient";
+import { redirect } from "next/navigation";
 
-export default function ManualTrainPage() {
-  return <TrainClient />;
+export default function ManualTrainRedirect() {
+  redirect("/train");
 }

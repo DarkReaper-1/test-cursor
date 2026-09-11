@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { isCameraExercise } from "@/lib/constants/vision";
 
 describe("camera exercise gate", () => {
-  it("allows guided counting only for V1 movements", () => {
+  it("requires SYSTEM to see every catalog movement", () => {
     expect(isCameraExercise("squat")).toBe(true);
-    expect(isCameraExercise("walk")).toBe(false);
-    expect(isCameraExercise("plank")).toBe(false);
+    expect(isCameraExercise("walk")).toBe(true);
+    expect(isCameraExercise("plank")).toBe(true);
+    expect(isCameraExercise("row")).toBe(true);
   });
 });

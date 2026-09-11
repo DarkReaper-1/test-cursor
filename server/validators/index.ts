@@ -21,6 +21,7 @@ export const completeWorkoutSchema = z
   .object({
     idempotencyKey: z.string().uuid(),
     durationSec: z.number().int().min(60).max(60 * 180),
+    source: z.literal("CAMERA"),
     exercises: z
       .array(
         z.object({
