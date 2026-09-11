@@ -36,3 +36,8 @@ Open [http://localhost:3000/sign-in](http://localhost:3000/sign-in). Leave the p
 - The client never grants XP, level, rank, or attributes.
 - Rank is accepted, never auto-applied from level.
 - Repositories are the only Prisma callers.
+
+## Phase 7 — Vision
+
+V1 is **guided camera logging**. You pick the exercise; the camera counts reps on-device; SYSTEM still evaluates through `POST /api/v1/workouts`. Manual log stays. Footage is not saved. See `docs/vision.md`.
+

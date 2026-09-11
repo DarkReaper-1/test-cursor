@@ -1,5 +1,5 @@
-import { TrainClient } from "@/components/train/TrainClient";
+import { TrainHub } from "@/components/train/TrainHub";
 
 export default function TrainPage() {
-  return <TrainClient />;
+  return <TrainHub />;
 }

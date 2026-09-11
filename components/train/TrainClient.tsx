@@ -68,10 +68,10 @@ export function TrainClient() {
 
   return (
     <Shell>
-      <a href="/" className="text-sm text-amber">
-        Today
+      <a href="/train" className="text-sm text-amber">
+        Train
       </a>
-      <h1 className="mt-3 font-display text-4xl leading-none">{directive?.title ?? "Training"}</h1>
+      <h1 className="mt-3 font-display text-4xl leading-none">{directive?.title ?? "Manual log"}</h1>
       <p className="mt-3 text-sm text-steel">
         Log sets, reps, and load. SYSTEM evaluates the file. This is not medical advice.
       </p>
@@ -139,6 +139,9 @@ export function TrainClient() {
       <Cta disabled={busy || !directive} onClick={() => void complete()}>
         {busy ? "Evaluating…" : "Complete workout"}
       </Cta>
+      <p className="mt-4 text-center text-sm text-amber">
+        <a href="/train/camera">Let SYSTEM count instead</a>
+      </p>
     </Shell>
   );
 }
